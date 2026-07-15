@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商汤 FDE · 作品 Demo｜我们交付的 AI 场景</title>
+<meta name="description" content="商汤 FDE 交付的 Agent 作品 Demo —— 覆盖会展、餐饮、人力、销售等场景，网页点击直达、小程序扫码体验。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+<script>
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.addEventListener("load", function () { window.scrollTo(0, 0); });
+  window.addEventListener("pageshow", function () { window.scrollTo(0, 0); });
+</script>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <!-- ============ 导航 ============ -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img class="st-logo" src="images/sensetime-logo.png" alt="商汤科技 SenseTime">
+        <span class="brand-div"></span>
+        <span class="fde-lockup">
+          <span class="fde-word">FDE</span>
+          <span class="fde-cap">Forward Deployed Engineering</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#about">关于 FDE</a>
+        <a href="demos.html">作品 Demo</a>
+        <a href="hackathon.html">Hackathon</a>
+        <a href="training.html">FDE 培训</a>
+      </div>
+      <a href="mailto:hello@sensetime.com" class="btn btn-red nav-cta">产品咨询</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- ============ 首屏 ============ -->
+    <header class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-grid-lines" aria-hidden="true"></div>
+      <div class="wrap hero-center">
+        <span class="eyebrow">Selected Work · 作品 Demo</span>
+        <h1>我们交付的<br><span class="hl">AI 场景 Demo</span></h1>
+        <p class="lead">每一个链接背后，都是一次真实的工程落地。覆盖会展、餐饮、人力、销售等场景 —— 网页类点击直达，小程序类扫码即可体验。</p>
+        <div class="hero-actions">
+          <a href="#work" class="btn btn-red">浏览全部 Demo <span class="ar">↗</span></a>
+          <a href="index.html" class="btn btn-dark">返回 FDE 主页</a>
+        </div>
+        <div class="hero-tags">
+          <span>真实落地</span><i></i><span>实时预览</span><i></i><span>扫码体验</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ 作品网格 ============ -->
+    <section id="work" class="sec">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="kicker">作品 · Selected Work</span>
+          <h2>按场景浏览</h2>
+          <p class="sec-sub">点击分类筛选，缩略图为各 Agent 的实时预览，点击卡片即可访问线上版本。</p>
+        </div>
+        <div class="filters" id="filters"></div>
+        <div class="grid" id="grid"></div>
+      </div>
+    </section>
+
+    <!-- ============ 联系 / CTA ============ -->
+    <section id="contact" class="sec sec-alt">
+      <div class="wrap">
+        <div class="cta">
+          <div class="cta-warm" aria-hidden="true"></div>
+          <div class="cta-body">
+            <h2>想为你的业务做一个这样的 Demo？</h2>
+            <p>告诉我们你的场景，FDE 团队可以快速为你搭建一个可演示、可试用的 AI 原型。</p>
+            <a href="mailto:hello@sensetime.com" class="btn btn-red">产品咨询 <span class="ar">↗</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+        <footer>
+    <div class="wrap foot-legal">
+      <p class="foot-copy">
+        沪 ICP 备 19044592 号-3 ｜
+        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener"><img src="images/gongan.png" alt="" onerror="this.style.display='none'">沪公网安备 31010402009327 号</a>
+        © 2014–2026 SenseTime. All Rights Reserved. 上海商汤智能科技有限公司
+      </p>
+      <p class="foot-sub">上海商汤智能科技有限公司是商汤集团旗下子公司</p>
+    </div>
+  </footer>
+
+  <!-- 二维码放大弹层 -->
+  <div id="lightbox"><div class="lb-card" id="lbCard"></div></div>
+
+  <!-- 数据与逻辑分离：编辑 js/data.js 即可维护 Demo -->
+  <script src="./js/data.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>

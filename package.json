@@ -1,0 +1,13 @@
+{
+  "name": "sensetime-fde-demo-hub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "商汤 FDE 团队内部 Demo 中心 —— 静态作品集展示页",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve ."
+  },
+  "devDependencies": {
+    "serve": "^14.2.1"
+  }
+}
