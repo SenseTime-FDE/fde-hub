@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商汤 FDE · 把 AI 部署到业务最前线</title>
+<meta name="description" content="商汤 FDE（Forward Deployed Engineer）—— 帮助企业把 AI 能力落到业务场景中的前线交付团队。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+<script>
+  // 每次进入都停留在页面顶部，不恢复上次滚动位置、不因锚点跳转
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.addEventListener("load", function () { window.scrollTo(0, 0); });
+  window.addEventListener("pageshow", function () { window.scrollTo(0, 0); });
+</script>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <!-- ============ 导航 ============ -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a class="brand" href="#top">
+        <img class="st-logo" src="images/sensetime-logo.png" alt="商汤科技 SenseTime">
+        <span class="brand-div"></span>
+        <span class="fde-lockup">
+          <span class="fde-word">FDE</span>
+          <span class="fde-cap">Forward Deployed Engineering</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="#about">关于 FDE</a>
+        <a href="demos.html">作品 Demo</a>
+        <a href="hackathon.html">Hackathon</a>
+        <a href="training.html">FDE 培训</a>
+      </div>
+      <a href="#contact" class="btn btn-red nav-cta">产品咨询</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <!-- ============ 首屏 Hero ============ -->
+    <header class="hero">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-grid-lines" aria-hidden="true"></div>
+      <div class="wrap hero-center">
+        <span class="eyebrow">SenseTime · Forward Deployed Engineering</span>
+        <h1>把 AI 部署到<br><span class="hl">业务最前线</span></h1>
+        <p class="lead">商汤 FDE 是把大模型能力转化为客户真实业务价值的一线落地团队 —— 帮客户梳理需求、设计场景、搭建 Demo、完成试点，并把有效场景沉淀成可持续使用的方案。</p>
+        <div class="hero-actions">
+          <a href="demos.html" class="btn btn-red">查看作品 Demo <span class="ar">↗</span></a>
+          <a href="#about" class="btn btn-dark">了解 FDE</a>
+        </div>
+        <div class="hero-tags">
+          <span>需求翻译器</span><i></i><span>场景验证器</span><i></i><span>落地推动者</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- ============ 关于 FDE ============ -->
+    <section id="about" class="sec">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="kicker">关于 FDE · About</span>
+          <h2>什么是商汤 FDE</h2>
+          <p class="sec-sub">FDE，全称 Forward Deployed Engineer（前沿部署工程师），是深入客户业务一线，陪伴客户完成 AI 应用从需求识别、方案设计、Demo 验证、试点落地到持续优化的关键角色。</p>
+        </div>
+        <div class="stat-row">
+          <div class="stat-item"><div class="stat-n">100<span>+</span></div><div class="stat-l">全国一线交付工程师</div></div>
+          <div class="stat-item"><div class="stat-n">5<span>+</span></div><div class="stat-l">城市 · 北京 / 上海 / 广州 / 深圳 / 杭州</div></div>
+          <div class="stat-item"><div class="stat-n">全国</div><div class="stat-l">就近服务，快速响应客户</div></div>
+        </div>
+        <div class="pos-grid">
+          <div class="pos-card">
+            <div class="pos-top">
+              <img class="pos-img" src="https://images.unsplash.com/photo-1758518732175-5d608ba3abdf?q=80&w=900&auto=format&fit=crop" alt="" loading="lazy">
+            </div>
+            <div class="pos-body">
+              <h3>翻译器</h3>
+              <p>把客户模糊的业务诉求，翻译成清晰的 AI 场景与技术方案。</p>
+            </div>
+          </div>
+          <div class="pos-card">
+            <div class="pos-top">
+              <img class="pos-img" src="https://images.unsplash.com/photo-1631624215749-b10b3dd7bca7?q=80&w=900&auto=format&fit=crop" alt="" loading="lazy">
+            </div>
+            <div class="pos-body">
+              <h3>验证器</h3>
+              <p>用可演示、可试用的 Demo 与 PoC，快速验证场景价值。</p>
+            </div>
+          </div>
+          <div class="pos-card">
+            <div class="pos-top">
+              <img class="pos-img" src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=900&auto=format&fit=crop" alt="" loading="lazy">
+            </div>
+            <div class="pos-body">
+              <h3>推动者</h3>
+              <p>陪跑客户完成试点、上线、培训与扩容，推动持续使用。</p>
+            </div>
+          </div>
+        </div>
+        <p class="oneliner">FDE 的价值不止于演示，而是让 AI 在你的业务里被真正<strong>理解、用起来、持续创造价值</strong>。</p>
+      </div>
+    </section>
+
+    <!-- ============ 核心能力 · 六大角色 ============ -->
+    <section id="roles" class="sec sec-alt">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="kicker">核心能力 · Capability</span>
+          <h2>FDE 的六大角色</h2>
+          <p class="sec-sub">连接客户业务与商汤技术，FDE 一站式承担从需求识别到成果沉淀的全链路落地。</p>
+        </div>
+        <div class="role-grid" id="roleGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ 客户价值 ============ -->
+    <section id="value" class="sec sec-alt">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="kicker">客户价值 · Value</span>
+          <h2>FDE 对客户的价值</h2>
+          <p class="sec-sub">对客户而言，FDE 的价值不止于介绍产品，而是实实在在帮你降低 AI 落地的门槛与成本。</p>
+        </div>
+        <div class="value-grid" id="valueGrid"></div>
+      </div>
+    </section>
+
+    <!-- ============ 联系 / CTA ============ -->
+    <section id="contact" class="sec">
+      <div class="wrap">
+        <div class="cta">
+          <div class="cta-warm" aria-hidden="true"></div>
+          <div class="cta-body">
+            <h2>想把 AI 落到你的业务里？</h2>
+            <p>告诉我们你的业务场景，FDE 团队帮你找到切入点、快速搭建 Demo、推动试点落地。</p>
+            <a href="mailto:hello@sensetime.com" class="btn btn-red">产品咨询 <span class="ar">↗</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+        <footer>
+    <div class="wrap foot-legal">
+      <p class="foot-copy">
+        沪 ICP 备 19044592 号-3 ｜
+        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener"><img src="images/gongan.png" alt="" onerror="this.style.display='none'">沪公网安备 31010402009327 号</a>
+        © 2014–2026 SenseTime. All Rights Reserved. 上海商汤智能科技有限公司
+      </p>
+      <p class="foot-sub">上海商汤智能科技有限公司是商汤集团旗下子公司</p>
+    </div>
+  </footer>
+
+  <!-- 数据与逻辑分离：编辑 js/data.js 即可维护 Demo / 角色 / 价值 -->
+  <script src="./js/data.js"></script>
+  <script src="./js/main.js"></script>
+</body>
+</html>

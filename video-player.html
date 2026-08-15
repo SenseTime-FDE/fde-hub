@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>商汤 FDE · 新品 Pitch 生成器</title>
+<meta name="description" content="新品 Pitch 生成器 Demo 视频播放页。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div id="progress"></div>
+  <nav id="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img class="st-logo" src="images/sensetime-logo.png" alt="商汤科技 SenseTime">
+        <span class="brand-div"></span>
+        <span class="fde-lockup">
+          <span class="fde-word">FDE</span>
+          <span class="fde-cap">Forward Deployed Engineering</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html#about">关于 FDE</a>
+        <a href="demos.html">作品 Demo</a>
+        <a href="hackathon.html">Hackathon</a>
+        <a href="training.html">FDE 培训</a>
+      </div>
+      <a href="mailto:hello@sensetime.com" class="btn btn-red nav-cta">产品咨询</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="sec">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="kicker">Demo Video · 视频播放</span>
+          <h2>新品 Pitch 生成器</h2>
+          <p class="sec-sub">点击下方视频即可播放。这个版本已压缩到适合 GitHub Pages 托管的体积。</p>
+        </div>
+        <div class="video-shell">
+          <video controls playsinline preload="metadata" poster="assets/fde-infinity-poster.jpg">
+            <source src="assets/new-product-pitch-demo-wifi.m4v" type="video/mp4">
+            你的浏览器不支持视频播放。
+          </video>
+        </div>
+        <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;">
+          <a class="btn btn-dark" href="demos.html">返回作品 Demo</a>
+          <a class="btn btn-red" href="assets/new-product-pitch-demo-wifi.m4v" download>下载视频</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
