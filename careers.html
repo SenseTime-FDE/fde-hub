@@ -6,74 +6,145 @@
 <title>人才招聘 · 商汤生态渠道</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&amp;family=Noto+Sans+SC:wght@400;500;700;900&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./css/style.css">
-<script>
-  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-  window.addEventListener("load", function () { window.scrollTo(0, 0); });
-  window.addEventListener("pageshow", function () { window.scrollTo(0, 0); });
-</script>
 <style>
-  /* 招聘 Agent 工作台(本页专用) */
-  .agent-wrap{display:grid;grid-template-columns:1.25fr .75fr;gap:20px;align-items:start}
-  @media(max-width:960px){.agent-wrap{grid-template-columns:1fr}}
-  .agent-panel,.track-panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden}
-  .agent-head{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(231,36,39,.05),transparent 60%)}
-  .agent-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;
-    background:linear-gradient(135deg,var(--red),#F7831F);box-shadow:0 8px 18px -8px rgba(231,36,39,.55)}
-  .agent-head h3{font-size:16px}
-  .agent-head p{font-size:12px;color:var(--gray)}
-  .agent-body{padding:22px 24px 24px}
-  .agent-msg{background:var(--bg);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:13px 16px;
-    font-size:13.8px;line-height:1.7;color:var(--ink);margin-bottom:14px}
-  .agent-msg b{color:var(--red)}
-  .resume-box{width:100%;min-height:130px;border:1px solid var(--line-2);border-radius:14px;padding:14px 16px;font:inherit;
-    font-size:13.5px;line-height:1.7;color:var(--ink);background:#fff;resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s}
-  .resume-box:focus{border-color:var(--ink);box-shadow:0 0 0 4px rgba(15,18,24,.06)}
-  .agent-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-  .btn-sm{padding:10px 20px;font-size:13.5px}
-  .skill-tags{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px}
-  .skill-tags span{font-size:12px;font-weight:700;color:var(--red);background:rgba(231,36,39,.07);
-    border:1px solid rgba(231,36,39,.14);padding:5px 12px;border-radius:999px}
-  .match-card{display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;
-    cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .2s;background:#fff}
-  .match-card:hover{border-color:rgba(231,36,39,.3);transform:translateY(-2px);box-shadow:0 14px 30px -20px rgba(15,18,24,.3)}
-  .match-card.picked{border-color:var(--red);box-shadow:0 0 0 3px rgba(231,36,39,.12)}
-  .match-info{flex:1;min-width:0}
-  .match-info h4{font-size:15px;margin-bottom:3px}
-  .match-info p{font-size:12.3px;color:var(--gray);line-height:1.55}
-  .match-score{flex:none;text-align:right;min-width:88px}
-  .match-score b{display:block;font-size:22px;font-weight:900;color:var(--red);letter-spacing:-.02em}
-  .match-score i{font-style:normal;font-size:11px;color:var(--gray-2)}
-  .match-bar{height:5px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
-  .match-bar u{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red),#F7831F);width:0;transition:width .8s cubic-bezier(.2,.7,.2,1)}
-  .track-head{padding:18px 24px;border-bottom:1px solid var(--line)}
-  .track-head h3{font-size:16px}
-  .track-head p{font-size:12px;color:var(--gray)}
-  .track-body{padding:22px 24px}
-  .track-empty{text-align:center;color:var(--gray-2);font-size:13.5px;padding:26px 6px;line-height:1.8}
-  .tl{list-style:none;margin:0;padding:0}
-  .tl li{position:relative;padding:0 0 20px 26px}
-  .tl li::before{content:"";position:absolute;left:6px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--line-2)}
-  .tl li::after{content:"";position:absolute;left:10px;top:18px;bottom:-2px;width:1.5px;background:var(--line)}
-  .tl li:last-child::after{display:none}
-  .tl li.done::before{background:var(--red);box-shadow:0 0 0 4px rgba(231,36,39,.14)}
-  .tl li.doing::before{background:#F7831F;box-shadow:0 0 0 4px rgba(247,131,31,.18);animation:pulse 1.6s infinite}
-  .tl li.stop::before{background:var(--gray-2)}
-  .tl h5{font-size:13.8px;font-weight:700;color:var(--ink)}
-  .tl li.wait h5{color:var(--gray-2)}
-  .tl p{font-size:12.3px;color:var(--gray);line-height:1.6;margin-top:3px}
-  .tl time{font-size:11px;color:var(--gray-2)}
-  .apply-item{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
-  .apply-item-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
-  .apply-item-head h4{font-size:14.5px}
-  .apply-no{font-size:11px;color:var(--gray-2)}
-  .link-danger{font-size:12px;color:var(--gray-2);cursor:pointer;border:none;background:none;font-family:inherit}
-  .link-danger:hover{color:var(--red)}
-  .demo-note{margin-top:16px;font-size:12px;color:var(--gray-2);line-height:1.7}
+  .career-page{--career-muted:#9A958E;--career-line-strong:#E0D8CB;--career-radius-lg:22px}
+  .career-hero{padding-bottom:76px}
+  .career-hero .career-hero-center{max-width:980px}
+  .career-hero .career-lead{max-width:750px}
+
+  .career-fde-story{display:grid;grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr);gap:72px;align-items:start}
+  .career-fde-statement{position:sticky;top:108px}
+  .career-fde-statement .career-section-head{margin-bottom:0}
+  .career-fde-statement .career-section-head h2{max-width:560px}
+  .career-fde-proof{margin-top:26px;padding:18px 20px;border-left:3px solid var(--red);background:rgba(231,36,39,.045);color:var(--gray);font-size:14px;line-height:1.75}
+  .career-fde-principles{border-top:1px solid var(--line)}
+  .career-fde-principle{display:grid;grid-template-columns:68px minmax(0,1fr);gap:18px;padding:27px 0;border-bottom:1px solid var(--line)}
+  .career-fde-principle .career-num{font-size:13px;font-weight:900;letter-spacing:.12em;color:var(--red);padding-top:3px}
+  .career-fde-principle h3{font-size:20px;margin-bottom:8px}
+  .career-fde-principle p{color:var(--gray);font-size:14.5px;line-height:1.75}
+
+  .career-roles-head{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,390px);gap:48px;align-items:end;margin-bottom:36px}
+  .career-roles-head .career-section-head{margin-bottom:0}
+  .career-roles-context{padding:20px 22px;border-left:3px solid var(--red);background:#fff;border-radius:0 14px 14px 0;color:var(--gray);font-size:13px;line-height:1.75}
+  .career-roles-context strong{display:block;color:var(--ink);font-size:13.5px;margin-bottom:4px}
+  .career-jobs-list{display:grid;gap:18px}
+  .career-job-card{position:relative;overflow:hidden;scroll-margin-top:96px;background:#fff;border:1px solid var(--line);border-radius:var(--career-radius-lg);box-shadow:0 18px 48px -44px rgba(15,18,24,.5);transition:border-color .2s,box-shadow .2s}
+  .career-job-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red);opacity:.22;transition:opacity .2s}
+  .career-job-card[open]{border-color:var(--career-line-strong);box-shadow:0 26px 64px -46px rgba(15,18,24,.42)}
+  .career-job-card[open]::before{opacity:1}
+  .career-job-summary{display:grid;grid-template-columns:58px minmax(0,1fr) auto;gap:24px;align-items:start;padding:30px 32px;list-style:none;cursor:pointer;outline:none}
+  .career-job-summary::-webkit-details-marker{display:none}
+  .career-job-summary:focus-visible{box-shadow:inset 0 0 0 3px rgba(231,36,39,.18)}
+  .career-job-summary>div{min-width:0}
+  .career-job-index{padding-top:5px;color:var(--red);font-size:12px;font-weight:900;letter-spacing:.12em}
+  .career-role-eyebrow{display:block;margin-bottom:8px;color:var(--red);font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+  .career-job-summary h3{font-size:clamp(24px,3vw,34px);margin-bottom:10px;line-height:1.18}
+  .career-role-overview{max-width:850px;color:var(--gray);font-size:14.5px;line-height:1.78;overflow-wrap:anywhere}
+  .career-role-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .career-role-tags span{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--ink);font-size:11.5px;font-weight:700}
+  .career-job-toggle{display:flex;align-items:center;gap:10px;margin-top:2px;color:var(--ink);font-size:12px;font-weight:800;white-space:nowrap}
+  .career-job-toggle::before{content:"查看完整 JD"}
+  .career-job-toggle::after{content:"＋";display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(231,36,39,.08);color:var(--red);font-size:17px}
+  .career-job-card[open] .career-job-toggle::before{content:"收起岗位详情"}
+  .career-job-card[open] .career-job-toggle::after{content:"−"}
+  .career-role-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin:0;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .career-role-meta div{padding:17px 24px;background:#fff}
+  .career-role-meta dt{color:var(--career-muted);font-size:10.5px;font-weight:700;letter-spacing:.08em;margin-bottom:4px}
+  .career-role-meta dd{color:var(--ink);font-size:12.5px;font-weight:700;margin:0}
+  .career-role-content{padding:34px 32px 32px}
+  .career-role-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:46px}
+  .career-role-block{min-width:0}
+  .career-role-block h4{margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--line);font-size:17px;line-height:1.2}
+  .career-duty-list{list-style:none;margin:0;padding:0;counter-reset:duty}
+  .career-duty-list li{counter-increment:duty;position:relative;padding:0 0 20px 42px;color:var(--gray);font-size:13.5px;line-height:1.76}
+  .career-duty-list li::before{content:counter(duty,decimal-leading-zero);position:absolute;left:0;top:1px;color:var(--red);font-size:12px;font-weight:900;letter-spacing:.06em}
+  .career-duty-list li strong{display:block;color:var(--ink);font-size:14px;margin-bottom:3px}
+  .career-requirements{margin:0;padding:0;list-style:none;counter-reset:req}
+  .career-requirements li{counter-increment:req;position:relative;padding:0 0 18px 35px;color:var(--gray);font-size:13.5px;line-height:1.76}
+  .career-requirements li::before{content:counter(req);position:absolute;left:0;top:2px;width:22px;height:22px;display:grid;place-items:center;border-radius:50%;background:rgba(231,36,39,.08);color:var(--red);font-size:11px;font-weight:900}
+  .career-role-footer{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:8px;padding-top:24px;border-top:1px solid var(--line)}
+  .career-role-footer p{max-width:720px;color:var(--career-muted);font-size:12.5px;line-height:1.7}
+  .career-role-apply{white-space:nowrap;flex:none;text-align:center}
+  .career-source-profile{margin:4px 0 24px;padding:22px 24px;border:1px solid #ECE2D5;border-radius:14px;background:#F7F3ED}
+  .career-source-profile h4{font-size:15px;margin-bottom:5px}
+  .career-source-profile>p{color:var(--gray);font-size:12.5px;line-height:1.7}
+  .career-source-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+  .career-source-item{padding:15px 16px;border:1px solid var(--line);border-radius:11px;background:#fff}
+  .career-source-item strong{display:block;color:var(--ink);font-size:12.5px;margin-bottom:5px}
+  .career-source-item span{display:block;color:var(--gray);font-size:11.5px;line-height:1.65}
+
+  .career-application-grid{display:grid;grid-template-columns:minmax(0,.78fr) minmax(520px,1.22fr);gap:64px;align-items:start}
+  .career-application-copy .career-section-head{margin-bottom:24px}
+  .career-application-points{list-style:none;padding:0;margin:0;border-top:1px solid var(--line)}
+  .career-application-points li{display:flex;gap:12px;padding:16px 0;border-bottom:1px solid var(--line);color:var(--gray);font-size:13.5px;line-height:1.65}
+  .career-application-points b{color:var(--red);font-size:12px;letter-spacing:.08em;flex:none}
+  .career-official-status{margin-top:20px;padding:18px 20px;border:1px solid #ECE2D5;border-radius:14px;background:#F7F3ED}
+  .career-official-status strong{display:block;font-size:13.5px;margin-bottom:5px}
+  .career-official-status p{color:var(--gray);font-size:12.5px;line-height:1.7}
+  .career-upload-card{background:#fff;border:1px solid var(--line);border-radius:var(--career-radius-lg);padding:30px;box-shadow:0 22px 50px -42px rgba(15,18,24,.35)}
+  .career-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:18px}
+  .career-form-field label,.career-file-label{display:block;margin-bottom:8px;color:var(--ink);font-size:13px;font-weight:700}
+  .career-field-input{width:100%;height:46px;border:1px solid var(--career-line-strong);border-radius:12px;background:#fff;padding:0 14px;color:var(--ink);font:inherit;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s}
+  .career-field-input:focus{border-color:var(--ink);box-shadow:0 0 0 4px rgba(15,18,24,.06)}
+  .career-drop-zone{position:relative;display:grid;place-items:center;min-height:176px;padding:24px;border:1.5px dashed var(--career-line-strong);border-radius:16px;background:var(--bg);text-align:center;cursor:pointer;outline:none;transition:border-color .2s,background .2s,box-shadow .2s}
+  .career-drop-zone:hover,.career-drop-zone:focus,.career-drop-zone.career-is-dragging{border-color:var(--red);background:rgba(231,36,39,.025);box-shadow:0 0 0 4px rgba(231,36,39,.06)}
+  .career-file-input{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+  .career-upload-mark{width:46px;height:46px;display:grid;place-items:center;margin:0 auto 12px;border-radius:50%;background:rgba(231,36,39,.08);color:var(--red);font-size:24px;font-weight:400}
+  .career-drop-zone strong{display:block;font-size:15px;margin-bottom:4px}
+  .career-drop-zone span{display:block;color:var(--career-muted);font-size:12.5px;line-height:1.6}
+  .career-selected-file{display:flex;align-items:center;gap:13px;margin-top:12px;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#fff}
+  .career-selected-file[hidden]{display:none}
+  .career-file-kind{width:40px;height:40px;display:grid;place-items:center;flex:none;border-radius:10px;background:rgba(231,36,39,.08);color:var(--red);font-size:10px;font-weight:900;letter-spacing:.04em}
+  .career-file-copy{min-width:0;flex:1}
+  .career-file-copy strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+  .career-file-copy span{display:block;color:var(--career-muted);font-size:11.5px;margin-top:2px}
+  .career-file-remove{border:none;background:transparent;color:var(--career-muted);font:inherit;font-size:12px;cursor:pointer;padding:7px}
+  .career-file-remove:hover{color:var(--red)}
+  .career-form-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:18px}
+  .career-upload-feedback{min-height:24px;margin-top:12px;font-size:12.5px;line-height:1.7;color:var(--gray)}
+  .career-upload-feedback.career-error{color:var(--red)}
+  .career-upload-feedback.career-success{color:#237A4B;font-weight:600}
+  .career-upload-boundary{margin-top:16px;padding-top:15px;border-top:1px solid var(--line);color:var(--career-muted);font-size:11.5px;line-height:1.7}
+
+  .career-page .career-section-head{max-width:680px;margin-bottom:40px;counter-increment:sec}
+  .career-page .career-section-head h2{font-size:clamp(30px,3.7vw,44px);font-weight:800;margin-top:18px;line-height:1.14;letter-spacing:-.022em}
+  .career-page .career-section-sub{margin-top:18px;color:var(--gray);font-size:16.5px;line-height:1.75;font-weight:400}
+  .career-page .career-kicker{display:inline-flex;align-items:center;gap:11px;font-size:12.5px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+  .career-page .career-kicker::before{content:counter(sec,decimal-leading-zero);font-weight:800;letter-spacing:.05em;color:var(--red)}
+
+  @media(max-width:960px){
+    .career-page .career-fde-story,.career-page .career-application-grid{grid-template-columns:1fr;gap:40px}
+    .career-page .career-fde-statement{position:static}
+    .career-page .career-roles-head{grid-template-columns:1fr;gap:22px}
+    .career-page .career-role-columns{grid-template-columns:1fr;gap:20px}
+    .career-page .career-application-grid{gap:30px}
+  }
+  @media(max-width:720px){
+    .career-page .career-hero{padding-bottom:54px}
+    .career-page .career-job-summary{grid-template-columns:38px minmax(0,1fr);gap:12px;padding:24px 20px}
+    .career-page .career-job-toggle{grid-column:2;margin-top:3px;justify-self:start}
+    .career-page .career-job-toggle::before{content:"展开岗位详情"}
+    .career-page .career-job-card[open] .career-job-toggle::before{content:"收起岗位详情"}
+    .career-page .career-role-content{padding-left:20px;padding-right:20px}
+    .career-page .career-role-content{padding-top:28px;padding-bottom:30px}
+    .career-page .career-role-meta{grid-template-columns:1fr}
+    .career-page .career-source-grid{grid-template-columns:1fr}
+    .career-page .career-role-footer{align-items:flex-start;flex-direction:column}
+    .career-page .career-role-apply{white-space:normal}
+    .career-page .career-form-grid{grid-template-columns:1fr}
+    .career-page .career-upload-card{padding:22px 18px}
+  }
+  @media(max-width:560px){
+    .career-page .career-fde-principle{grid-template-columns:48px minmax(0,1fr);gap:10px}
+    .career-page .career-role-tags{gap:6px}
+    .career-page .career-role-tags span{font-size:10.5px}
+    .career-page .career-drop-zone{min-height:160px;padding:20px 14px}
+  }
 </style>
 </head>
-<body>
+<body class="career-page">
   <div id="progress"></div>
 
   <nav id="nav">
@@ -99,287 +170,382 @@
   </nav>
 
   <main id="top">
-    <header class="hero hero-sub">
+    <header class="hero hero-sub career-hero">
       <div class="hero-glow" aria-hidden="true"></div>
       <div class="hero-grid-lines" aria-hidden="true"></div>
-      <div class="wrap hero-center">
+      <div class="wrap hero-center career-hero-center">
         <span class="eyebrow">Careers · 人才招聘</span>
-        <h1>AI 招聘 Agent<br><span class="hl">带你直达生态渠道</span></h1>
-        <p class="lead">这是公开的浏览器内交互演示：Agent 可分析示例经历、匹配岗位，并模拟候选人与 HR 两种视角。身份和申请记录只保存在当前浏览器，不会提交到商汤招聘系统。</p>
-        <div class="hero-tags">
-          <span>本地模拟分析</span><i></i><span>岗位智能匹配</span><i></i><span>无需真实账号</span><i></i><span>官方渠道为准</span>
+        <h1>加入商汤 FDE<br><span class="hl">把 AI 装进真实业务</span></h1>
+        <p class="lead career-lead">我们深入客户业务一线，把模型、Agent、语音和知识连接成可运行的 AI 系统；再把项目经验沉淀为伙伴能够复制的产品与方法。</p>
+        <div class="hero-actions">
+          <a href="#career-open-roles" class="btn btn-red">查看 5 个岗位 <span class="ar">↓</span></a>
+          <a href="#career-resume-demo" class="btn btn-dark">体验简历选择</a>
         </div>
+        <div class="hero-tags"><span>客户现场</span><i></i><span>业务系统</span><i></i><span>伙伴复制</span></div>
       </div>
     </header>
 
-    <!-- 三功能卡 -->
-    <section class="sec">
-      <div class="wrap">
-        <div class="grid-3">
-          <div class="info reveal" data-d="0"><div class="n">01</div><h3>简历分析</h3><p>粘贴简历,Agent 生成你的能力画像 —— 分析在浏览器本地完成,内容不会上传。</p></div>
-          <div class="info reveal" data-d="1"><div class="n">02</div><h3>岗位匹配</h3><p>按画像给出各岗位匹配度与推荐理由,AI 读懂简历帮你选,不再盲投。</p></div>
-          <div class="info reveal" data-d="2"><div class="n">03</div><h3>流程演示</h3><p>在当前浏览器内模拟初筛、复核、面试和 Offer 流程，不代表真实招聘进度。</p></div>
+    <section class="sec" id="career-fde-positioning">
+      <div class="wrap career-fde-story">
+        <div class="career-fde-statement reveal">
+          <div class="career-section-head">
+            <span class="career-kicker">SenseTime FDE · 团队定位</span>
+            <h2>不止做 Demo，真正把系统落到业务里</h2>
+            <p class="career-section-sub">商汤生态渠道团队选择平台落地型 FDE：从客户的真实问题出发，贯穿需求诊断、方案设计、系统搭建、上线陪跑与效果复盘。</p>
+          </div>
+          <p class="career-fde-proof">FDE 在这里不只是一个岗位名称，而是连接客户、产品和伙伴的工作方式：先把代表性场景跑通，再把方法沉淀为可复用资产。</p>
+        </div>
+        <div class="career-fde-principles reveal">
+          <article class="career-fde-principle"><span class="career-num">01</span><div><h3>深入业务一线</h3><p>理解客户的流程、数据、权限与系统边界，把模糊需求转成首个值得验证的 AI 场景。</p></div></article>
+          <article class="career-fde-principle"><span class="career-num">02</span><div><h3>对落地结果负责</h3><p>不止展示功能，而是围绕可运行、可验收、可持续运营推动系统进入真实业务。</p></div></article>
+          <article class="career-fde-principle"><span class="career-num">03</span><div><h3>沉淀资产，带动伙伴复制</h3><p>把项目经验变成组件、模板、评测与行业方法，为后续伙伴协同交付提供基础。</p></div></article>
         </div>
       </div>
     </section>
 
-    <!-- 候选人工作台 -->
-    <section class="sec sec-alt">
+    <section class="sec sec-alt" id="career-open-roles">
       <div class="wrap">
-        <div class="sec-head reveal">
-          <span class="kicker">Workbench · 候选人工作台</span>
-          <h2>三步,找到你的位置</h2>
-          <p class="sec-sub">分析经历 → 选择岗位 → 模拟投递；右上角可切换「候选人体验」身份。</p>
+        <div class="career-roles-head reveal">
+          <div class="career-section-head">
+            <span class="career-kicker">Role Map · 5 个岗位需求</span>
+            <h2>从商机到交付，再到持续增长</h2>
+            <p class="career-section-sub">五个岗位围绕同一条业务链协作：发现客户问题、推进方案与 Demo、完成现场交付，再把内容、线索和伙伴经营沉淀为持续增长。</p>
+          </div>
+          <aside class="career-roles-context"><strong>当前为用人需求稿</strong>职责与能力要求已按本轮真实工作补齐；是否正式开放、工作地点及正式投递入口仍需 HR 最终确认。</aside>
         </div>
-        <div class="agent-wrap reveal">
-          <div class="agent-panel">
-            <div class="agent-head">
-              <div class="agent-avatar">A</div>
-              <div><h3>生态渠道 · 招聘 Agent</h3><p>简历分析 → 岗位匹配 → 一键投递</p></div>
-            </div>
-            <div class="agent-body">
-              <div class="agent-msg" id="agentMsg">你好,我是生态渠道的招聘 Agent。把你的简历或经历简介粘贴到下面(或点「用示例试试」),我来分析你适合哪个岗位方向。</div>
-              <textarea class="resume-box" id="resumeInput" placeholder="粘贴简历或经历简介,例如:5 年 B 端销售经验,带过渠道团队,做过 SaaS 产品的伙伴拓展…"></textarea>
-              <div class="agent-actions">
-                <button class="btn btn-red btn-sm" id="analyzeBtn" type="button">开始分析 <span class="ar">→</span></button>
-                <button class="btn btn-ghost btn-sm" id="sampleBtn" type="button">用示例试试</button>
+
+        <div class="career-jobs-list">
+          <details class="career-job-card reveal" id="career-role-fde" open>
+            <summary class="career-job-summary">
+              <span class="career-job-index">01</span>
+              <div>
+                <span class="career-role-eyebrow">Forward Deployed Engineer</span>
+                <h3>FDE 交付工程师</h3>
+                <p class="career-role-overview">深入客户业务现场，将大模型与 AI 产品能力转化为可部署、可验证、可持续迭代的业务解决方案，并把共性经验反哺产品。</p>
+                <div class="career-role-tags"><span>业务翻译</span><span>RAG / Agent</span><span>系统集成</span><span>现场交付</span></div>
               </div>
-              <div id="analysisArea" hidden>
-                <div class="agent-msg" style="margin-top:18px" id="profileMsg"></div>
-                <div class="skill-tags" id="skillTags"></div>
-                <div id="matchList"></div>
-                <div class="agent-actions">
-                  <button class="btn btn-red btn-sm" id="applyBtn" type="button" disabled>投递所选岗位 <span class="ar">↗</span></button>
-                  <span style="font-size:12.5px;color:var(--gray);align-self:center" id="applyHint">点选一个岗位后投递</span>
+              <span class="career-job-toggle" aria-hidden="true"></span>
+            </summary>
+            <dl class="career-role-meta" aria-label="FDE 交付工程师待确认信息">
+              <div><dt>岗位状态</dt><dd>待 HR 确认</dd></div>
+              <div><dt>工作地点</dt><dd>待 HR 确认</dd></div>
+              <div><dt>正式投递入口</dt><dd>待 HR 确认</dd></div>
+            </dl>
+            <div class="career-role-content">
+              <div class="career-role-columns">
+                <section class="career-role-block"><h4>岗位职责</h4><ol class="career-duty-list">
+                  <li><strong>业务理解与方案定义</strong>梳理客户流程、数据、权限和系统边界，将模糊需求拆解为明确的 AI 场景、技术方案和验证目标。</li>
+                  <li><strong>全流程工程交付</strong>推进 Demo / POC 到实际交付，完成模型调用、RAG / Agent 配置、接口对接、部署测试和效果评估。</li>
+                  <li><strong>现场联调与问题闭环</strong>联合客户、销售、伙伴及产品研发，排查接口、数据链路、权限、日志、模型效果与系统稳定性问题。</li>
+                  <li><strong>经验产品化</strong>沉淀交付文档、操作手册、评测方法和可复用组件，并把一线反馈与共性需求带回产品团队。</li>
+                </ol></section>
+                <section class="career-role-block"><h4>任职要求</h4><ol class="career-requirements">
+                  <li>具备 Python 等编程能力，能够完成接口开发、数据处理、自动化脚本和基础服务搭建。</li>
+                  <li>理解大模型、Prompt、RAG、Agent 与模型评测等技术，有相关项目或交付实践。</li>
+                  <li>具备系统集成与问题排查能力，了解 API、数据库、Linux、云环境、容器或企业内部系统对接。</li>
+                  <li>能与业务负责人和技术团队有效沟通，可在客户现场与不确定场景中快速学习、协同推进并对阶段结果负责。</li>
+                </ol></section>
+              </div>
+              <div class="career-role-footer"><p>当前仅展示岗位需求，不代表正式开放；下方按钮只会选择本地演示意向，不会形成申请。</p><a class="btn btn-red career-role-apply" href="#career-resume-demo" data-career-role="fde">选择该岗位体验 <span class="ar">↓</span></a></div>
+            </div>
+          </details>
+
+          <details class="career-job-card reveal" id="career-role-bd">
+            <summary class="career-job-summary">
+              <span class="career-job-index">02</span>
+              <div>
+                <span class="career-role-eyebrow">Ecosystem · Solution Sales</span>
+                <h3>生态招商经理</h3>
+                <p class="career-role-overview">面向企业客户与生态伙伴，通过需求挖掘、场景诊断和 Demo 推进促成合作，并联动 FDE 完成从商机到交付效果验证的闭环。</p>
+                <div class="career-role-tags"><span>KA / 渠道</span><span>解决方案销售</span><span>伙伴协同</span><span>客户经营</span></div>
+              </div>
+              <span class="career-job-toggle" aria-hidden="true"></span>
+            </summary>
+            <dl class="career-role-meta" aria-label="生态招商经理待确认信息">
+              <div><dt>岗位状态</dt><dd>待 HR 确认</dd></div>
+              <div><dt>工作地点</dt><dd>待 HR 确认</dd></div>
+              <div><dt>正式投递入口</dt><dd>待 HR 确认</dd></div>
+            </dl>
+            <div class="career-role-content">
+              <div class="career-role-columns">
+                <section class="career-role-block"><h4>岗位职责</h4><ol class="career-duty-list">
+                  <li><strong>KA 与生态商机开拓</strong>开拓和维护重点企业客户、渠道及行业伙伴，识别高价值业务场景并持续建设有效商机管道。</li>
+                  <li><strong>需求诊断与方案推进</strong>理解客户业务流程和决策链路，完成需求挖掘、场景诊断、方案表达、Demo / 试用推进与商务协同。</li>
+                  <li><strong>串联商机与交付</strong>联动 FDE、产品和伙伴团队，让商机、方案、交付与效果验证顺畅衔接，及时管理预期和风险。</li>
+                  <li><strong>经营客户全生命周期</strong>跟踪企业认证、试用转化、Token 使用、续费和增购等经营信号，复盘进展并沉淀可复制的行业打法。</li>
+                </ol></section>
+                <section class="career-role-block"><h4>任职要求</h4><ol class="career-requirements">
+                  <li>具备企业软件、SaaS、云与 API、系统集成或行业数字化领域的 KA / 渠道销售经验。</li>
+                  <li>不依赖单一关系成交，能开展需求挖掘、场景诊断、解决方案表达和复杂项目推进。</li>
+                  <li>具备跨团队协作与项目管理能力，能够与客户业务方、技术方、伙伴及 FDE 高效配合。</li>
+                  <li>对数据和长期客户价值敏感；具备华南本地行业经验、能够快速推进首批标杆客户者优先。</li>
+                </ol></section>
+              </div>
+              <aside class="career-source-profile">
+                <h4>优先人才来源</h4><p>以下背景更接近本岗位需要的 B2B 场景成交与复杂协作经验。</p>
+                <div class="career-source-grid">
+                  <div class="career-source-item"><strong>企业软件 / SaaS</strong><span>云厂商、CRM、ERP、HR SaaS、客服系统、低代码平台的大客户销售。</span></div>
+                  <div class="career-source-item"><strong>云与 API / 开发者生态</strong><span>公有云、AI API 平台、数据库、中间件、数据平台相关销售。</span></div>
+                  <div class="career-source-item"><strong>数字化转型 / 系统集成</strong><span>大型 SI、咨询实施公司、行业数字化服务商的项目销售。</span></div>
+                  <div class="career-source-item"><strong>场景型行业软件</strong><span>CRM、HR、客服、营销自动化、呼叫中心、知识管理等产品销售。</span></div>
                 </div>
-              </div>
-              <p class="demo-note">演示环境：分析与申请流程均在本机模拟，输入内容不会上传。正式岗位与投递方式请以商汤官方招聘渠道实际发布为准。</p>
+              </aside>
+              <div class="career-role-footer"><p>当前仅展示岗位需求，不代表正式开放；下方按钮只会选择本地演示意向，不会形成申请。</p><a class="btn btn-red career-role-apply" href="#career-resume-demo" data-career-role="bd">选择该岗位体验 <span class="ar">↓</span></a></div>
             </div>
-          </div>
-          <div class="track-panel">
-            <div class="track-head"><h3>本机模拟申请</h3><p>仅展示当前浏览器内的流程体验</p></div>
-            <div class="track-body" id="trackBody"></div>
-          </div>
+          </details>
+
+          <details class="career-job-card reveal" id="career-role-fde-intern">
+            <summary class="career-job-summary">
+              <span class="career-job-index">03</span>
+              <div>
+                <span class="career-role-eyebrow">FDE Internship · AI Delivery</span>
+                <h3>FDE 实习生</h3>
+                <p class="career-role-overview">参与真实业务场景中的 AI 应用验证与交付，在实践中完成从需求理解、Demo 搭建到问题排查和经验沉淀。</p>
+                <div class="career-role-tags"><span>AI 项目实践</span><span>编程基础</span><span>现场协作</span><span>项目表达</span></div>
+              </div>
+              <span class="career-job-toggle" aria-hidden="true"></span>
+            </summary>
+            <dl class="career-role-meta" aria-label="FDE 实习生待确认信息">
+              <div><dt>岗位状态</dt><dd>待 HR 确认</dd></div>
+              <div><dt>工作地点</dt><dd>待 HR 确认</dd></div>
+              <div><dt>正式投递入口</dt><dd>待 HR 确认</dd></div>
+            </dl>
+            <div class="career-role-content">
+              <div class="career-role-columns">
+                <section class="career-role-block"><h4>岗位职责</h4><ol class="career-duty-list">
+                  <li><strong>参与 AI 应用交付</strong>协助理解客户需求，参与大模型、Agent 与 AI 应用的 Demo 搭建、测试、部署和交付。</li>
+                  <li><strong>参与方案验证</strong>开展 Prompt 调优、RAG 配置、接口调用测试、模型效果评估和问题反馈。</li>
+                  <li><strong>协助现场排障</strong>在指导下排查接口、日志、数据链路、权限配置和模型服务等项目问题。</li>
+                  <li><strong>沉淀与反馈</strong>整理部署文档、操作手册、FAQ 和项目复盘，收集一线反馈支持产品持续优化。</li>
+                </ol></section>
+                <section class="career-role-block"><h4>任职要求</h4><ol class="career-requirements">
+                  <li>本科及以上在读，计算机、人工智能、软件工程、自动化等相关专业优先。</li>
+                  <li>熟悉 Python、JavaScript / TypeScript、Java、Go 等至少一门语言；使用过 Codex、Claude Code 等 AI 编程工具完成项目者优先。</li>
+                  <li>能清楚说明课程、竞赛、实习或个人项目的目标、本人贡献、协作过程、结果与实际价值。</li>
+                  <li>对 AI 应用落地和 FDE 工作有真实兴趣，自驱、可靠、愿意协作；每周实习 4 天及以上、连续 6 个月以上优先。</li>
+                </ol></section>
+              </div>
+              <div class="career-role-footer"><p>面试会重点了解 AI 实践、项目表达与协作方式，以及你真正想做的事情和未来职业规划；兴趣与方向匹配比单纯罗列工具更重要。</p><a class="btn btn-red career-role-apply" href="#career-resume-demo" data-career-role="fde-intern">选择该岗位体验 <span class="ar">↓</span></a></div>
+            </div>
+          </details>
+
+          <details class="career-job-card reveal" id="career-role-mkt">
+            <summary class="career-job-summary">
+              <span class="career-job-index">04</span>
+              <div>
+                <span class="career-role-eyebrow">Marketing · Content &amp; Events</span>
+                <h3>市场与内容运营</h3>
+                <p class="career-role-overview">面向 B2B 企服 / SaaS 客群，围绕 AI 产品搭建内容与活动传播矩阵，用高质量内容推动线索增长和品牌心智沉淀。</p>
+                <div class="career-role-tags"><span>内容矩阵</span><span>市场活动</span><span>活动切片</span><span>数据复盘</span></div>
+              </div>
+              <span class="career-job-toggle" aria-hidden="true"></span>
+            </summary>
+            <dl class="career-role-meta" aria-label="市场与内容运营待确认信息">
+              <div><dt>岗位状态</dt><dd>待 HR 确认</dd></div>
+              <div><dt>工作地点</dt><dd>待 HR 确认</dd></div>
+              <div><dt>正式投递入口</dt><dd>待 HR 确认</dd></div>
+            </dl>
+            <div class="career-role-content">
+              <div class="career-role-columns">
+                <section class="career-role-block"><h4>岗位职责</h4><ol class="career-duty-list">
+                  <li><strong>线上矩阵内容运营</strong>制定官网、公众号、小红书等渠道的差异化内容策略与月度排期，完成选题、文案、视觉和短视频制作。</li>
+                  <li><strong>市场活动全案执行</strong>围绕 AI 应用场景和客户痛点策划线上线下活动，完成主题创意、方案撰写、资源协调与现场执行。</li>
+                  <li><strong>活动切片与二次传播</strong>沉淀高光片段、金句和关键 Demo，借助 AI 工具完成切片，并适配官网、公众号、小红书、视频号、B站等渠道分发。</li>
+                  <li><strong>数据复盘与 SOP</strong>跟踪曝光、互动、线索、Demo 预约及转化等 To B 指标，输出周报、月报和活动复盘，沉淀可复用方法。</li>
+                </ol></section>
+                <section class="career-role-block"><h4>任职要求</h4><ol class="career-requirements">
+                  <li>本科及以上学历，具备内容运营或市场运营经验；有 B2B 企服 / SaaS 背景，AI 行业经验优先。</li>
+                  <li>具备扎实的文案与策划能力，能独立完成高质量图文、视觉和短视频内容。</li>
+                  <li>熟悉官网、公众号、小红书等渠道逻辑，具备活动策划、执行及直播或活动切片经验。</li>
+                  <li>熟练使用 AI 文案、生图、剪辑和数据分析工具；数据敏感、自驱，能够跨部门多线程推进。</li>
+                </ol></section>
+              </div>
+              <div class="career-role-footer"><p>当前仅展示岗位需求，不代表正式开放；下方按钮只会选择本地演示意向，不会形成申请。</p><a class="btn btn-red career-role-apply" href="#career-resume-demo" data-career-role="mkt">选择该岗位体验 <span class="ar">↓</span></a></div>
+            </div>
+          </details>
+
+          <details class="career-job-card reveal" id="career-role-ops">
+            <summary class="career-job-summary">
+              <span class="career-job-index">05</span>
+              <div>
+                <span class="career-role-eyebrow">Operations · Leads &amp; Community</span>
+                <h3>线索与私域运营</h3>
+                <p class="career-role-overview">承接市场、活动与生态渠道产生的 B2B 线索，通过规范化管理、精细化培育和销售协同，提升线索流转与商机转化效率。</p>
+                <div class="career-role-tags"><span>CRM 线索</span><span>企微 / 社群</span><span>销售协同</span><span>转化漏斗</span></div>
+              </div>
+              <span class="career-job-toggle" aria-hidden="true"></span>
+            </summary>
+            <dl class="career-role-meta" aria-label="线索与私域运营待确认信息">
+              <div><dt>岗位状态</dt><dd>待 HR 确认</dd></div>
+              <div><dt>工作地点</dt><dd>待 HR 确认</dd></div>
+              <div><dt>正式投递入口</dt><dd>待 HR 确认</dd></div>
+            </dl>
+            <div class="career-role-content">
+              <div class="career-role-columns">
+                <section class="career-role-block"><h4>岗位职责</h4><ol class="career-duty-list">
+                  <li><strong>线索承接与数据治理</strong>统一整理各渠道线索，完成去重、标签、来源记录、基础判断和分层管理，保证数据清晰可追踪。</li>
+                  <li><strong>线索流转与协同</strong>建立分配和跟进机制，协同市场、销售及 FDE 更新进度、回收反馈并升级重点商机。</li>
+                  <li><strong>私域培育与激活</strong>运营企业微信、社群等触点，结合客户阶段设计内容触达、活动邀约、试用跟进和沉默线索唤醒。</li>
+                  <li><strong>漏斗复盘与提效</strong>跟踪响应、有效线索、Demo 预约、试用及后续转化，持续优化运营策略并沉淀可复用 SOP。</li>
+                </ol></section>
+                <section class="career-role-block"><h4>任职要求</h4><ol class="career-requirements">
+                  <li>具备 B2B 企服 / SaaS 线索运营、用户运营、私域运营或销售运营相关经验。</li>
+                  <li>熟悉 CRM、企业微信、表格及常用数据分析工具，能够维护准确、完整的客户和跟进记录。</li>
+                  <li>数据敏感，能够从漏斗变化中识别问题，并推动市场、销售与交付团队协同改进。</li>
+                  <li>具备良好的沟通、执行和流程意识，重视客户信息安全与合规；能用 AI 或自动化工具提升效率者优先。</li>
+                </ol></section>
+              </div>
+              <div class="career-role-footer"><p>当前仅展示岗位需求，不代表正式开放；下方按钮只会选择本地演示意向，不会形成申请。</p><a class="btn btn-red career-role-apply" href="#career-resume-demo" data-career-role="ops">选择该岗位体验 <span class="ar">↓</span></a></div>
+            </div>
+          </details>
         </div>
       </div>
     </section>
 
-    <!-- HR 管理面板 -->
-    <section class="sec">
-      <div class="wrap">
-        <div class="sec-head reveal">
-          <span class="kicker">HR Console · 招聘管理</span>
-          <h2>HR 工作台:申请处理与流程推进</h2>
-          <p class="sec-sub">切换到「HR 流程体验」后可见 —— 可在当前浏览器内模拟复核、面试与 Offer 状态，不连接真实招聘后台。</p>
+    <section class="sec sec-alt" id="career-resume-demo">
+      <div class="wrap career-application-grid">
+        <div class="career-application-copy reveal">
+          <div class="career-section-head">
+            <span class="career-kicker">Resume Demo · 简历选择演示</span>
+            <h2>先体验文件选择，不等于正式投递</h2>
+            <p class="career-section-sub">这里用于确认前端交互和格式提示。正式岗位开放后，请以 HR 确认的官方入口完成投递。</p>
+          </div>
+          <ul class="career-application-points">
+            <li><b>01</b><span>支持 PDF、DOC、DOCX、TXT，单个文件不超过 10 MB。</span></li>
+            <li><b>02</b><span>仅演示本地选择：不读取、不解析、不保存、不上传文件内容。</span></li>
+            <li><b>03</b><span>请勿选择真实简历；如需体验，可使用不含个人信息的空白测试文件。</span></li>
+          </ul>
+          <div class="career-official-status"><strong>正式投递入口：待 HR 确认</strong><p>当前页面没有经过确认的招聘官网、邮箱或联系人，因此不提供对外投递链接。</p></div>
         </div>
-        <div id="hrArea" class="reveal"></div>
-      </div>
-    </section>
 
-    <!-- 岗位方向 -->
-    <section class="sec sec-alt">
-      <div class="wrap">
-        <div class="sec-head reveal">
-          <span class="kicker">Open Roles · 岗位方向</span>
-          <h2>四个方向,和生态一起长大</h2>
-          <p class="sec-sub">以下为生态渠道团队的岗位方向;实际在招岗位与任职要求,以商汤官方招聘渠道发布为准。</p>
-        </div>
-        <div class="grid-2">
-          <div class="info reveal" data-d="0"><div class="lbl">FDE · Forward Deployed Engineer</div><h3>FDE 交付工程师</h3><p>深入客户业务一线:需求翻译、场景设计、Demo 构建、试点陪跑 —— 把大模型能力变成客户的真实业务价值。</p></div>
-          <div class="info reveal" data-d="1"><div class="lbl">BD · Partner Development</div><h3>生态招商经理</h3><p>伙伴开拓与政策落地:发展渠道、ISV 与服务伙伴,共建标杆案例,经营长期伙伴关系。</p></div>
-          <div class="info reveal" data-d="2"><div class="lbl">Marketing · Content &amp; Events</div><h3>市场与内容运营</h3><p>官网、公众号、小红书三渠道内容制作与排期;市场活动策划、切片与二次传播。</p></div>
-          <div class="info reveal" data-d="3"><div class="lbl">Operations · Leads &amp; Community</div><h3>线索与私域运营</h3><p>CRM 线索运营与转化追踪;企业微信社群运营,客户与伙伴的长期触达与孵化。</p></div>
-        </div>
+        <form class="career-upload-card reveal" id="careerResumeForm" novalidate>
+          <div class="career-form-grid">
+            <div class="career-form-field"><label for="careerCandidateAlias">演示称呼（可选）</label><input class="career-field-input" id="careerCandidateAlias" name="candidateAlias" type="text" maxlength="40" autocomplete="off" placeholder="请勿填写真实姓名"></div>
+            <div class="career-form-field"><label for="careerTargetRole">意向岗位（本地演示）</label><select class="career-field-input" id="careerTargetRole" name="targetRole"><option value="fde" selected>FDE 交付工程师</option><option value="bd">生态招商经理</option><option value="fde-intern">FDE 实习生</option><option value="mkt">市场与内容运营</option><option value="ops">线索与私域运营</option></select></div>
+          </div>
+
+          <span class="career-file-label">测试文件</span>
+          <label class="career-drop-zone" id="careerDropZone" for="careerResumeFile" tabindex="0">
+            <input class="career-file-input" id="careerResumeFile" name="resumeFile" type="file" accept=".pdf,.doc,.docx,.txt">
+            <span class="career-upload-mark" aria-hidden="true">＋</span>
+            <strong>点击选择，或把测试文件拖到这里</strong>
+            <span>PDF / DOC / DOCX / TXT · 最大 10 MB</span>
+          </label>
+
+          <div class="career-selected-file" id="careerSelectedFile" hidden>
+            <span class="career-file-kind" id="careerFileKind">PDF</span>
+            <div class="career-file-copy"><strong id="careerFileName"></strong><span id="careerFileMeta"></span></div>
+            <button class="career-file-remove" id="careerRemoveFile" type="button">移除</button>
+          </div>
+
+          <div class="career-form-actions"><button class="btn btn-red" id="careerResumeSubmit" type="submit">确认本地选择 <span class="ar">→</span></button></div>
+          <p class="career-upload-feedback" id="careerUploadFeedback" role="status" aria-live="polite"></p>
+          <p class="career-upload-boundary">本操作仅在当前页面内暂存文件对象；不会读取内容，不会生成申请记录，也不会发送给 HR。离开或刷新页面后不会保留。</p>
+        </form>
       </div>
     </section>
   </main>
 
   <footer>
     <div class="wrap foot-legal">
-      <p class="foot-copy">
-        沪 ICP 备 19044592 号-3 ｜
-        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener"><img src="images/gongan.png" alt="" onerror="this.style.display='none'">沪公网安备 31010402009327 号</a>
-        © 2014–2026 SenseTime. All Rights Reserved. 上海商汤智能科技有限公司
-      </p>
+      <p class="foot-copy">沪 ICP 备 19044592 号-3 ｜ <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener"><img src="images/gongan.png" alt="" onerror="this.style.display='none'">沪公网安备 31010402009327 号</a> © 2014–2026 SenseTime. All Rights Reserved. 上海商汤智能科技有限公司</p>
       <p class="foot-sub">商汤科技 · 大模型生态渠道部 ｜ 上海商汤智能科技有限公司是商汤集团旗下子公司</p>
     </div>
   </footer>
 
-  <script src="./js/data.js"></script>
   <script src="./js/auth.js"></script>
   <script src="./js/main.js"></script>
   <script>
-  /* ---------- 招聘系统(候选人 × HR 双角色,本地模拟) ---------- */
   (function () {
     "use strict";
-    const $ = (s) => document.querySelector(s);
-    const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    const JOBS = [
-      { id: "fde", t: "FDE 交付工程师", brief: "需求翻译、场景设计、Demo 构建、试点陪跑",
-        kw: ["工程", "开发", "代码", "python", "java", "模型", "大模型", "ai", "agent", "算法", "交付", "实施", "demo", "poc", "技术", "prompt", "llm"] },
-      { id: "bd", t: "生态招商经理", brief: "伙伴开拓、政策落地、标杆共建",
-        kw: ["销售", "渠道", "伙伴", "bd", "商务", "客户", "谈判", "招商", "代理", "分销", "kpi", "签约", "saas", "拓展"] },
-      { id: "mkt", t: "市场与内容运营", brief: "三渠道内容制作、活动策划与切片传播",
-        kw: ["内容", "文案", "活动", "新媒体", "公众号", "小红书", "市场", "品牌", "传播", "策划", "短视频", "选题", "编辑"] },
-      { id: "ops", t: "线索与私域运营", brief: "CRM 线索运营、企微社群与长期触达",
-        kw: ["运营", "crm", "社群", "企微", "微信", "数据", "线索", "转化", "用户", "留存", "sop", "增长", "私域"] },
-    ];
-    const SAMPLE = "5 年 B 端销售与渠道经验:负责过 SaaS 产品的代理商体系搭建,发展渠道伙伴 30+,熟悉客户谈判与签约流程;近两年转向 AI 行业,主导过 2 个大模型场景 POC 的商务落地,和交付团队一起给客户做过 demo;会用 CRM 管理线索和商机,平时也写行业公众号文章。";
-    const STORE = "fde_career_apps_v2";
-    /* stage: 0 已投递 → 1 AI 初筛通过 → 2 HR 复核通过 → 3 面试已安排 → 4 Offer;-1 未通过 */
-    const STAGE_NAME = { 0: "已投递", 1: "AI 初筛通过", 2: "HR 复核通过", 3: "面试已安排", 4: "Offer 已发出", "-1": "未通过" };
+    if (window.matchMedia("(max-width: 720px)").matches) {
+      document.querySelectorAll(".career-job-card").forEach((details) => { details.open = false; });
+    }
 
-    const msg = $("#agentMsg"), input = $("#resumeInput"), area = $("#analysisArea");
-    const tagsEl = $("#skillTags"), listEl = $("#matchList"), profileEl = $("#profileMsg");
-    const applyBtn = $("#applyBtn"), trackBody = $("#trackBody"), hrArea = $("#hrArea");
-    let picked = null, lastResult = null;
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    const ALLOWED_EXTENSIONS = new Set(["pdf", "doc", "docx", "txt"]);
+    const form = document.querySelector("#careerResumeForm");
+    const input = document.querySelector("#careerResumeFile");
+    const dropZone = document.querySelector("#careerDropZone");
+    const selectedFileView = document.querySelector("#careerSelectedFile");
+    const fileKind = document.querySelector("#careerFileKind");
+    const fileName = document.querySelector("#careerFileName");
+    const fileMeta = document.querySelector("#careerFileMeta");
+    const removeFile = document.querySelector("#careerRemoveFile");
+    const feedback = document.querySelector("#careerUploadFeedback");
+    const candidateAlias = document.querySelector("#careerCandidateAlias");
+    const targetRole = document.querySelector("#careerTargetRole");
+    let selectedResume = null;
 
-    const loadApps = () => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch (e) { return []; } };
-    const saveApps = (a) => { localStorage.setItem(STORE, JSON.stringify(a)); renderTrack(); renderHR(); };
-    const now = () => new Date().toLocaleString("zh-CN", { hour12: false });
+    const extensionOf = (name) => String(name).split(".").pop().toLowerCase();
+    const formatSize = (bytes) => bytes < 1024 * 1024
+      ? `${Math.max(1, Math.round(bytes / 1024))} KB`
+      : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 
-    /* ---------- 分析 ---------- */
-    $("#sampleBtn").addEventListener("click", () => { input.value = SAMPLE; input.focus(); });
-    $("#analyzeBtn").addEventListener("click", () => {
-      const text = input.value.trim().toLowerCase();
-      if (text.length < 20) { msg.innerHTML = "内容有点少,再多写几句你的经历吧 —— 或者点「<b>用示例试试</b>」看看效果。"; return; }
-      msg.innerHTML = "收到,正在分析你的经历…";
-      setTimeout(() => {
-        const hits = {}; const found = new Set();
-        JOBS.forEach(j => { hits[j.id] = 0; j.kw.forEach(k => { if (text.includes(k)) { hits[j.id] += 1; found.add(k); } }); });
-        const scores = JOBS.map(j => ({ job: j, score: Math.min(96, Math.round(38 + (hits[j.id] / Math.min(j.kw.length, 8)) * 58)) }))
-          .sort((a, b) => b.score - a.score);
-        lastResult = scores;
-        msg.innerHTML = "分析完成!下面是你的能力画像与各岗位匹配度 —— <b>点选一个岗位</b>,就可以一键投递。";
-        profileEl.innerHTML = `从你的经历里,我识别到 <b>${found.size}</b> 个相关能力点;整体看,你和「<b>${esc(scores[0].job.t)}</b>」的气质最接近。`;
-        tagsEl.innerHTML = [...found].slice(0, 12).map(k => `<span>${esc(k)}</span>`).join("") || "<span>通用能力</span>";
-        listEl.innerHTML = scores.map(s => `
-          <div class="match-card" data-id="${s.job.id}" role="button" tabindex="0">
-            <div class="match-info"><h4>${esc(s.job.t)}</h4><p>${esc(s.job.brief)}</p>
-              <div class="match-bar"><u data-w="${s.score}"></u></div></div>
-            <div class="match-score"><b>${s.score}%</b><i>匹配度</i></div>
-          </div>`).join("");
-        area.hidden = false; picked = null; applyBtn.disabled = true;
-        requestAnimationFrame(() => listEl.querySelectorAll(".match-bar u").forEach(u => { u.style.width = u.dataset.w + "%"; }));
-        listEl.querySelectorAll(".match-card").forEach(c => c.addEventListener("click", () => {
-          listEl.querySelectorAll(".match-card").forEach(x => x.classList.toggle("picked", x === c));
-          picked = c.dataset.id; applyBtn.disabled = false;
-        }));
-      }, 700);
+    function showFeedback(message, type) {
+      feedback.textContent = message;
+      feedback.className = `career-upload-feedback${type ? ` career-${type}` : ""}`;
+    }
+
+    function clearSelectedFile(clearInput = true) {
+      selectedResume = null;
+      selectedFileView.hidden = true;
+      fileName.textContent = "";
+      fileMeta.textContent = "";
+      if (clearInput) input.value = "";
+    }
+
+    function chooseFile(file) {
+      showFeedback("", "");
+      if (!file) { clearSelectedFile(); return; }
+      const extension = extensionOf(file.name);
+      if (!ALLOWED_EXTENSIONS.has(extension)) {
+        clearSelectedFile();
+        showFeedback("仅支持 PDF、DOC、DOCX、TXT 格式，请重新选择。", "error");
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        clearSelectedFile();
+        showFeedback("测试文件请控制在不超过 10 MB。", "error");
+        return;
+      }
+      selectedResume = file;
+      fileKind.textContent = extension.toUpperCase();
+      fileName.textContent = file.name;
+      fileMeta.textContent = `${formatSize(file.size)} · 已在本地选择，尚未上传`;
+      selectedFileView.hidden = false;
+    }
+
+    input.addEventListener("change", () => chooseFile(input.files && input.files[0]));
+    removeFile.addEventListener("click", () => { clearSelectedFile(); showFeedback("已移除本地测试文件。", ""); });
+    ["dragenter", "dragover"].forEach((eventName) => dropZone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      dropZone.classList.add("career-is-dragging");
+    }));
+    ["dragleave", "drop"].forEach((eventName) => dropZone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      dropZone.classList.remove("career-is-dragging");
+    }));
+    dropZone.addEventListener("drop", (event) => chooseFile(event.dataTransfer && event.dataTransfer.files[0]));
+    dropZone.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") { event.preventDefault(); input.click(); }
     });
-
-    /* ---------- 投递(需候选人身份) ---------- */
-    applyBtn.addEventListener("click", () => {
-      const sess = window.FDE_AUTH.get();
-      if (!sess || sess.role !== "candidate") {
-        msg.innerHTML = "模拟投递需要切换到「<b>候选人体验</b>」—— 已为你打开身份选择窗口。";
-        window.FDE_AUTH.login("candidate", (s) => { if (s && s.role === "candidate") doApply(s); });
+    document.querySelectorAll("[data-career-role]").forEach((link) => link.addEventListener("click", () => {
+      targetRole.value = link.dataset.careerRole || "mkt";
+    }));
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!selectedResume) {
+        dropZone.focus();
+        showFeedback("请先选择一个不含真实个人信息的测试文件。", "error");
         return;
       }
-      doApply(sess);
+      const roleName = targetRole.options[targetRole.selectedIndex].text;
+      const alias = candidateAlias.value.trim();
+      showFeedback(`已完成本地交互演示${alias ? `：${alias}` : ""} · ${roleName}。尚未上传，也未形成正式申请。`, "success");
+      clearSelectedFile();
+      candidateAlias.value = "";
     });
-    function doApply(sess) {
-      if (!picked || !lastResult) return;
-      const s = lastResult.find(x => x.job.id === picked);
-      const apps = loadApps();
-      if (apps.some(a => a.name === sess.name && a.jobId === s.job.id && a.stage >= 0)) {
-        msg.innerHTML = `你已经投递过「<b>${esc(s.job.t)}</b>」啦,进度看右侧「我的申请」。`; return;
-      }
-      const no = "FDE-" + String(10000 + (apps.length * 137 + s.job.id.length * 41 + sess.name.length * 7) % 89999);
-      apps.unshift({ no, name: sess.name, jobId: s.job.id, job: s.job.t, score: s.score, at: now(), stage: 0, log: [{ t: 0, at: now() }] });
-      saveApps(apps);
-      msg.innerHTML = `已生成「<b>${esc(s.job.t)}</b>」模拟申请。右侧会显示当前浏览器内的演示进度；这不是正式投递。`;
-      setTimeout(() => {
-        const a = loadApps(); const rec = a.find(x => x.no === no);
-        if (rec && rec.stage === 0) { rec.stage = 1; rec.log.push({ t: 1, at: now() }); saveApps(a); }
-      }, 2200);
-    }
-
-    /* ---------- 候选人:我的申请 ---------- */
-    function renderTrack() {
-      const sess = window.FDE_AUTH.get();
-      if (!sess || sess.role !== "candidate") {
-        trackBody.innerHTML = '<div class="track-empty">切换到「候选人体验」后，<br>本机模拟申请与进度会出现在这里</div>'; return;
-      }
-      const mine = loadApps().filter(a => a.name === sess.name);
-      if (!mine.length) {
-        trackBody.innerHTML = '<div class="track-empty">还没有进行中的申请<br>完成左侧分析并投递后,进度会出现在这里</div>'; return;
-      }
-      trackBody.innerHTML = mine.map(a => {
-        const steps = [
-          { n: "已投递", d: `匹配度 ${a.score}%`, at: a.at },
-          { n: "AI 初筛", d: a.stage >= 1 ? "画像与岗位要求匹配,已推送 HR" : "Agent 核对画像中…" },
-          { n: "HR 复核", d: a.stage >= 2 ? "复核通过" : (a.stage === -1 ? "本次未通过,感谢投递 —— 简历已入库,合适岗位会再联系你" : "等待 HR 处理") },
-          { n: "面试安排", d: a.stage >= 3 ? "面试已安排,Agent 将同步时间与准备建议" : "通过复核后安排" },
-          { n: "Offer", d: a.stage >= 4 ? "Offer 已发出,欢迎加入生态渠道!" : "面试通过后发出" },
-        ];
-        const cls = (i) => a.stage === -1 ? (i === 0 || i === 1 ? "done" : (i === 2 ? "stop" : "wait"))
-          : (i <= a.stage ? "done" : (i === a.stage + 1 ? "doing" : "wait"));
-        return `<div class="apply-item">
-          <div class="apply-item-head"><h4>${esc(a.job)}</h4><span class="status-chip s${a.stage === -1 ? "x" : a.stage}">${STAGE_NAME[a.stage]}</span></div>
-          <div class="apply-no">申请编号 ${a.no} · ${esc(a.name)}</div>
-          <ul class="tl" style="margin-top:12px">${steps.map((s, i) =>
-            `<li class="${cls(i)}"><h5>${s.n}</h5><p>${s.d}</p>${s.at ? `<time>${s.at}</time>` : ""}</li>`).join("")}</ul>
-          <button class="link-danger" data-no="${a.no}" type="button">撤回此申请</button>
-        </div>`;
-      }).join("");
-      trackBody.querySelectorAll(".link-danger").forEach(b => b.addEventListener("click", () => {
-        saveApps(loadApps().filter(x => x.no !== b.dataset.no));
-      }));
-    }
-
-    /* ---------- HR:申请处理 ---------- */
-    function renderHR() {
-      const sess = window.FDE_AUTH.get();
-      if (!sess || sess.role !== "hr") {
-        hrArea.innerHTML = '<div class="role-gate">此面板仅用于「HR 流程体验」—— 右上角切换身份即可进入。<br>想体验完整闭环：先生成一份候选人模拟申请，再切换 HR 视角处理。所有数据只在当前浏览器内有效。</div>';
-        return;
-      }
-      const apps = loadApps();
-      if (!apps.length) {
-        hrArea.innerHTML = `<div class="hr-panel"><div class="hr-empty">暂无申请 —— 先退出并以「候选人」身份投递一份,或
-          <button class="link-danger" id="seedBtn" type="button" style="font-size:13.5px;color:var(--red)">生成演示数据</button></div></div>`;
-        const sb = $("#seedBtn");
-        if (sb) sb.addEventListener("click", () => {
-          saveApps([
-            { no: "FDE-73201", name: "演示 · 林一", jobId: "fde", job: "FDE 交付工程师", score: 88, at: now(), stage: 1, log: [] },
-            { no: "FDE-73202", name: "演示 · 陈二", jobId: "mkt", job: "市场与内容运营", score: 76, at: now(), stage: 2, log: [] },
-          ]);
-        });
-        return;
-      }
-      const actions = (a) => {
-        if (a.stage === -1 || a.stage >= 4) return "<span style='font-size:12px;color:var(--gray-2)'>已完结</span>";
-        const btns = [];
-        if (a.stage === 1) btns.push(`<button class="pri" data-no="${a.no}" data-to="2">通过复核</button>`);
-        if (a.stage === 2) btns.push(`<button class="pri" data-no="${a.no}" data-to="3">安排面试</button>`);
-        if (a.stage === 3) btns.push(`<button class="pri" data-no="${a.no}" data-to="4">发送 Offer</button>`);
-        if (a.stage === 0) btns.push("<span style='font-size:12px;color:var(--gray-2)'>AI 初筛中…</span>");
-        if (a.stage >= 1) btns.push(`<button data-no="${a.no}" data-to="-1">婉拒</button>`);
-        return btns.join("");
-      };
-      hrArea.innerHTML = `<div class="hr-panel"><div style="overflow-x:auto"><table class="hr-table">
-        <tr><th>候选人</th><th>岗位</th><th>匹配度</th><th>投递时间</th><th>状态</th><th>操作</th></tr>
-        ${apps.map(a => `<tr>
-          <td><b>${esc(a.name)}</b><br><span style="font-size:11px;color:var(--gray-2)">${a.no}</span></td>
-          <td>${esc(a.job)}</td><td><b>${a.score}%</b></td><td>${a.at}</td>
-          <td><span class="status-chip s${a.stage === -1 ? "x" : a.stage}">${STAGE_NAME[a.stage]}</span></td>
-          <td><div class="hr-actions">${actions(a)}</div></td>
-        </tr>`).join("")}
-      </table></div></div>
-      <p class="demo-note" style="margin-top:12px">演示环境：操作只更新当前浏览器里的模拟申请，不连接商汤招聘系统，也不代表真实招聘结论。</p>`;
-      hrArea.querySelectorAll(".hr-actions button[data-no]").forEach(b => b.addEventListener("click", () => {
-        const apps2 = loadApps(); const rec = apps2.find(x => x.no === b.dataset.no);
-        if (!rec) return;
-        rec.stage = parseInt(b.dataset.to, 10);
-        rec.log = rec.log || []; rec.log.push({ t: rec.stage, at: now() });
-        saveApps(apps2);
-      }));
-    }
-
-    document.addEventListener("fde-auth", () => { renderTrack(); renderHR(); });
-    renderTrack(); renderHR();
   })();
   </script>
 </body>

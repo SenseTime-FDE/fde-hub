@@ -8,7 +8,7 @@ OFDE 官网静态站点。生产站由 GitHub Pages 直接发布仓库 `main` �
 - 产品与方案：`solutions.html` 及四个产品详情页
 - Token Plan：`tokenplan.html`
 - 市场活动：`events.html`
-- 人才招聘：`careers.html`
+- 人才招聘：`careers.html`（5 个岗位需求与本地文件选择演示；不含真实登录或投递）
 - 加入生态：`partners.html`
 - 技术内容中心：`community/`
 - 旧技术交流地址兼容：`forum.html` 跳转至 `community/`
