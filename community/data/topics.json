@@ -1,0 +1,80 @@
+{
+  "topics": [
+    {
+      "id": "agent-runtime",
+      "eyebrow": "ARCHITECTURE",
+      "title": "Agent 架构与运行时",
+      "description": "从 Agent Loop、上下文装配到持久任务，理解一个智能体如何持续、可控地运行。",
+      "articles": [
+        "hermes-agent-architecture-pattern",
+        "react-agent-loop-state-machine",
+        "context-engineering-compression-caching",
+        "durable-agent-task-recovery",
+        "enterprise-agent-platform-principles"
+      ]
+    },
+    {
+      "id": "skill-memory",
+      "eyebrow": "LEARNING LOOP",
+      "title": "Skill、记忆与持续学习",
+      "description": "区分事实记忆、程序性能力与一次性上下文，把项目经验沉淀为可版本化资产。",
+      "articles": [
+        "agent-learning-loop-memory-to-skill",
+        "agent-memory-tier-governance",
+        "agent-skill-engineering-contract",
+        "sales-agent-memory-skill",
+        "demo-to-reusable-skill"
+      ]
+    },
+    {
+      "id": "mcp-security",
+      "eyebrow": "TOOLS & SECURITY",
+      "title": "MCP、工具与安全治理",
+      "description": "围绕协议接入、工具授权、幂等执行与提示词注入，建立模型外部的安全边界。",
+      "articles": [
+        "mcp-enterprise-integration-boundaries",
+        "prompt-injection-defense-in-depth",
+        "tool-call-idempotency",
+        "agent-architecture-selection-guide"
+      ]
+    },
+    {
+      "id": "rag-knowledge",
+      "eyebrow": "KNOWLEDGE",
+      "title": "RAG 与企业知识",
+      "description": "从检索、重排、权限和引用出发，建设能够更新、追溯和持续评测的知识系统。",
+      "articles": [
+        "rag-retrieval-evaluation-playbook",
+        "enterprise-knowledge-traceability",
+        "agent-memory-tier-governance",
+        "context-engineering-compression-caching"
+      ]
+    },
+    {
+      "id": "multi-agent-fde",
+      "eyebrow": "DELIVERY",
+      "title": "多 Agent 与 FDE 交付",
+      "description": "从架构选型、任务委派到风险台账，建立能够验收、复盘和复制的交付闭环。",
+      "articles": [
+        "agent-architecture-selection-guide",
+        "multi-agent-delegation-contract",
+        "media-workflow-case-notes",
+        "fde-from-demand-to-production",
+        "fde-risk-register"
+      ]
+    },
+    {
+      "id": "scenario-evaluation",
+      "eyebrow": "PRACTICE",
+      "title": "场景落地与评测",
+      "description": "用真实任务、人工接管和业务指标检验 Agent，而不是只评估一次模型回答。",
+      "articles": [
+        "agent-evaluation-minimum-loop",
+        "voice-agent-production-checklist",
+        "voice-agent-human-handoff",
+        "sales-agent-acceptance-metrics",
+        "llm-router-cost-quality"
+      ]
+    }
+  ]
+}

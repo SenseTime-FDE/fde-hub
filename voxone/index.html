@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>运营概览 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("index", async (root, ctx) => {
+  const { data, stats, me, model } = ctx;
+  const m = data.metrics, t = m.today;
+  const scScoped = me.perms.viewAll;
+  const maxCalls = Math.max(...m.trend7.map(x=>x.calls));
+  const sceneRows = Object.entries(stats.byScene||{}).sort((a,b)=>b[1]-a[1]);
+  const totalScene = sceneRows.reduce((s,[,v])=>s+v,0)||1;
+  const runningCamps = data.campaigns.filter(c=>c.status==="running");
+  const topAgents = [...data.agents].sort((a,b)=>b.calls-a.calls).slice(0,6);
+
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-voice);display:grid;place-items:center;font-size:22px">🌊</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">语音原生 AI · 客服 / 销售 / 外呼 一体化</div>
+      <div class="sub">一套自研 SenseAudio V2.0 底座 · 30 语言 + 粤语 · 端到端可打断 · ${scScoped?"全场景视图":"本场景视图"}</div>
+    </div>
+    <a class="btn voice" href="workbench.html">🎧 进入坐席工作台</a>
+  </div>
+
+  <div class="stats" style="margin-bottom:16px">
+    <div class="stat"><div class="k">📞 今日会话量</div><div class="v">${VX.fmtNum(t.calls)}</div><div class="d"><span class="up">▲ 环比 +5.4%</span> · 并发峰值 ${t.concurrentPeak}</div></div>
+    <div class="stat voice"><div class="k">🤖 AI 自主解决率</div><div class="v">${t.aiResolveRate}<small>%</small></div><div class="d">目标 ${m.targets.aiResolveRate}% · 留痕口径 ${stats.aiResolveRate}%</div></div>
+    <div class="stat voice"><div class="k">⚡ 平均端到端延迟</div><div class="v">${t.avgLatencyMs}<small>ms</small></div><div class="d"><span class="up">优于目标 ${m.targets.avgLatencyMs}ms</span></div></div>
+    <div class="stat"><div class="k">😊 平均满意度 CSAT</div><div class="v">${t.avgCsat}<small>/5</small></div><div class="d">转人工率 ${t.transferRate}%</div></div>
+    <div class="stat"><div class="k">🌐 活跃语种</div><div class="v">${t.langsActive}</div><div class="d">30 语言 + 粤语可用</div></div>
+    <div class="stat"><div class="k">💰 今日节省人力成本</div><div class="v">¥${VX.fmtNum(t.costSavedRMB)}</div><div class="d">按 AI 自助量折算</div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card pad">
+      <div class="hd"><h3>近 7 日会话量与 AI 自主解决率</h3><div class="sp"></div><span class="chip">📈 趋势</span></div>
+      <div class="spark" style="height:120px">${m.trend7.map(x=>`<div class="b" style="height:${Math.round(x.calls/maxCalls*100)}%" title="${x.d}"><span>${x.calls}</span></div>`).join("")}</div>
+      <div class="row" style="justify-content:space-between;margin-top:6px;color:var(--ink-4);font-size:11px">${m.trend7.map(x=>`<span>${x.d.slice(3)}</span>`).join("")}</div>
+      <div class="hr"></div>
+      <div class="row" style="gap:24px">
+        ${m.trend7.slice(-1).map(x=>`<div><div class="sub">今日 AI 解决率</div><div style="font-size:20px;font-weight:800;color:var(--teal)">${x.ai}%</div></div>`).join("")}
+        <div><div class="sub">今日 CSAT</div><div style="font-size:20px;font-weight:800;color:#fff">${m.trend7.slice(-1)[0].csat}</div></div>
+        <div style="flex:1"></div>
+        <a class="btn sm" href="traces.html">查看会话留痕 →</a>
+      </div>
+    </div>
+    <div class="card pad">
+      <div class="hd"><h3>渠道分布</h3><div class="sp"></div><span class="sub">全渠道统一收口</span></div>
+      <div class="hbars">${m.channels.map(c=>`<div class="hb"><span class="t">${c.k}</span><div class="bar"><i style="width:${c.v*2}%"></i></div><span class="n">${c.v}%</span></div>`).join("")}</div>
+    </div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card pad">
+      <div class="hd"><h3>业务场景分布</h3><div class="sp"></div><span class="sub">${sceneRows.length} 个在跑场景</span></div>
+      <div class="hbars">${sceneRows.map(([s,v])=>`<div class="hb"><span class="t">${VX.scEmoji(s)} ${VX.scLabel(s).split(" / ")[0]}</span><div class="bar coral"><i style="width:${Math.round(v/totalScene*100)}%"></i></div><span class="n">${v}</span></div>`).join("")||'<div class="sub">暂无数据</div>'}</div>
+    </div>
+    <div class="card pad">
+      <div class="between"><div class="hd" style="margin:0"><h3>进行中的外呼任务</h3></div><a class="btn sm" href="outbound.html">全部 →</a></div>
+      <div style="margin-top:12px">
+      ${runningCamps.length?runningCamps.map(c=>{const pct=Math.round(c.done/c.listSize*100);return `
+        <div style="margin-bottom:14px"><div class="barlabel"><span>${VX.esc(c.name)}</span><span>${VX.fmtNum(c.done)}/${VX.fmtNum(c.listSize)} · 转化 ${VX.fmtNum(c.converted)}</span></div><div class="bar"><i style="width:${pct}%"></i></div></div>`;}).join(""):'<div class="empty" style="padding:20px"><div class="ic">📞</div>暂无进行中任务</div>'}
+      </div>
+    </div>
+  </div>
+
+  <div class="card pad" style="margin-bottom:16px">
+    <div class="between"><div class="hd" style="margin:0"><h3>Agent 概况</h3></div><a class="btn sm" href="agents.html">编排 Agent →</a></div>
+    <table class="tb" style="margin-top:8px"><thead><tr><th>Agent</th><th>场景</th><th>模式</th><th>音色</th><th>会话量</th><th>自主解决</th><th>状态</th></tr></thead><tbody>
+    ${topAgents.map(a=>`<tr><td class="nm">${VX.esc(a.name)}</td><td>${VX.scEmoji(a.scenario)} ${VX.scLabel(a.scenario).split(" / ")[0]}</td><td>${VX.modeBadge(a.mode)}</td><td>${VX.esc((data.voices.find(v=>v.id===a.voiceId)||{}).name||"—")}</td><td>${VX.fmtNum(a.calls)}</td><td><b style="color:var(--teal)">${a.resolveRate}%</b></td><td>${VX.statusBadge(a.status)}</td></tr>`).join("")}
+    </tbody></table>
+  </div>
+
+  <div class="card pad" style="background:linear-gradient(120deg,#122c50,rgba(34,199,214,.06))">
+    <div class="between">
+      <div class="row" style="align-items:center;gap:14px">
+        <div style="width:42px;height:42px;border-radius:12px;background:var(--grad-brand);display:grid;place-items:center;font-size:20px">🧠</div>
+        <div><b style="color:#fff;font-size:15px">SenseAudio V2.0 语音大模型矩阵</b><div class="sub">${model.matrix.map(x=>x.name.split(" ")[0]).join(" · ")} · 全栈自研 · 引擎:${model.mode==="live"?"实时端点 Live":"内置(离线可用)"}</div></div>
+      </div>
+      <div class="row">${model.matrix.map(x=>`<span class="chip"><span class="dot g"></span>${x.name.split(" ")[0]}</span>`).join("")}<a class="btn sm" href="model.html">接入配置 →</a></div>
+    </div>
+  </div>`;
+});
+</script>
+</body></html>

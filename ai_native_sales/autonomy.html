@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · 自主度分级</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ===== autonomy.html 页面专属样式（前缀 au-） ===== */
+
+/* 顶栏品牌区（不改 style.css，写在页内） */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px}
+.topnav nav a{padding:7px 11px;font-size:13px}
+.site-footer .foot-brand img{height:18px}
+
+/* ---------- 通用区块 ---------- */
+.au-sec{margin-bottom:46px}
+.au-head{display:flex;align-items:baseline;gap:13px;margin-bottom:16px;flex-wrap:wrap}
+.au-head .no{flex:none;font-size:11px;font-weight:800;letter-spacing:1.5px;color:#fff;background:var(--ink);border-radius:7px;padding:5px 10px}
+.au-head h2{font-size:21px;color:var(--ink);line-height:1.4}
+.au-head h2 .hl{color:var(--warm-d)}
+.au-head p{font-size:12px;color:var(--muted)}
+.au-note{font-size:12px;color:var(--muted);background:var(--sky);border:1px solid var(--sky2);border-radius:12px;padding:11px 16px;margin-top:14px;line-height:1.75}
+.au-note b{color:var(--teal-d)}
+.au-punch{margin-top:16px;background:var(--cream);border:1px solid var(--warm-l);border-radius:16px;padding:16px 22px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.au-punch .lab{flex:none;font-size:10.5px;font-weight:800;letter-spacing:2px;color:#fff;background:var(--warm-d);border-radius:999px;padding:5px 13px}
+.au-punch p{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.65}
+.au-punch p em{font-style:normal;color:var(--warm-d)}
+
+/* ---------- 刻度尺 ---------- */
+.au-ruler{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:20px 26px 18px;box-shadow:var(--shadow-sm);margin-bottom:16px}
+.au-flags{display:grid;grid-template-columns:repeat(5,1fr);height:26px}
+.au-flags div{display:flex;justify-content:center;align-items:flex-start}
+.au-flags .fl{font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:#fff;background:var(--warm-d);border-radius:999px;padding:3px 12px;position:relative;white-space:nowrap}
+.au-flags .fl::after{content:"";position:absolute;left:50%;bottom:-5px;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--warm-d);border-bottom:0}
+.au-track{height:6px;border-radius:3px;margin:6px 10% 0;background:linear-gradient(90deg,var(--sky2),var(--teal-l) 38%,var(--warm) 72%,var(--warm-l))}
+.au-marks{display:grid;grid-template-columns:repeat(5,1fr);margin-top:-13px}
+.au-mark{display:flex;flex-direction:column;align-items:center;text-align:center}
+.au-mark i{display:block;width:20px;height:20px;border-radius:50%;background:var(--white);border:3px solid var(--teal-l);margin-bottom:9px}
+.au-mark.on i{border-color:var(--warm-d);background:var(--warm);box-shadow:0 0 0 5px rgba(194,161,75,.16)}
+.au-mark b{font-size:14px;color:var(--ink);letter-spacing:.5px}
+.au-mark.on b{color:var(--warm-d)}
+.au-mark span{font-size:11px;color:var(--muted);margin-top:1px}
+.au-mark small{display:block;font-size:10.5px;color:var(--teal-d);margin-top:3px;font-weight:700}
+
+/* ---------- 分级总表 ---------- */
+.au-tw{overflow-x:auto;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:var(--shadow-sm)}
+.au-tw .mini-table{min-width:960px;font-size:12.5px}
+.au-tw .mini-table th{padding:9px 12px;font-size:11.5px;letter-spacing:.5px}
+.au-tw .mini-table td{padding:12px;line-height:1.7}
+.au-lv{display:flex;flex-direction:column;gap:3px}
+.au-lv .n{font-size:16px;font-weight:800;color:var(--ink);letter-spacing:.5px;line-height:1.2}
+.au-lv .t{font-size:12px;color:var(--sub);font-weight:600}
+.au-rate{font-weight:800;font-size:14px;color:var(--teal-d);font-variant-numeric:tabular-nums;white-space:nowrap}
+.au-tw tr.hot td{background:#FFFCF3;border-top:1px solid var(--warm-l);border-bottom:1px solid var(--warm-l)}
+.au-tw tr.hot td:first-child{box-shadow:inset 4px 0 0 var(--warm)}
+.au-tw tr.hot .au-lv .n{color:var(--warm-d)}
+.au-tw tr.hot .au-rate{color:var(--warm-d);font-size:15px}
+.au-here{display:table;font-size:10.5px;font-weight:800;letter-spacing:1px;color:#fff;background:var(--warm-d);border-radius:999px;padding:3px 10px;margin-top:7px}
+.au-read{display:flex;gap:10px;align-items:baseline;margin-top:12px;font-size:12.5px;color:var(--sub);line-height:1.7}
+.au-read b{flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.5px;color:var(--teal);align-self:center}
+.au-read em{font-style:normal;color:var(--ink);font-weight:700}
+
+/* ---------- 三个跨越 ---------- */
+.au-leaps{display:grid;grid-template-columns:1fr 1.22fr 1fr;gap:14px;align-items:stretch}
+.au-leap{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:20px 21px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+.au-leap .lp-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:9px}
+.au-leap .lp-jump{font-size:12.5px;font-weight:800;letter-spacing:.5px;color:var(--teal-d);background:var(--sky);border-radius:8px;padding:4px 10px}
+.au-leap .lp-diff{font-size:10.5px;font-weight:800;letter-spacing:1.2px;color:var(--sub);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:3px 10px}
+.au-leap h3{font-size:16px;color:var(--ink);line-height:1.5;margin-bottom:8px}
+.au-leap .lp-sum{font-size:12.5px;color:var(--sub);line-height:1.75}
+.au-leap .lp-bar{height:5px;border-radius:3px;background:var(--sky2);overflow:hidden;margin:13px 0 12px}
+.au-leap .lp-bar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal-l),var(--teal))}
+.au-leap ul{margin:0}
+.au-leap li{list-style:none;position:relative;padding:5px 0 5px 17px;font-size:12.5px;color:var(--sub);line-height:1.7}
+.au-leap li::before{content:"▸";position:absolute;left:0;top:5px;color:var(--teal-l);font-size:10px}
+.au-leap li b{color:var(--ink)}
+.au-leap .lp-foot{margin-top:auto;padding-top:11px;border-top:1px dashed var(--card-b);font-size:11.5px;color:var(--muted);line-height:1.7}
+.au-leap.key{background:linear-gradient(168deg,var(--ink) 0%,var(--ink3) 100%);border-color:var(--ink);color:#fff;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.au-leap.key::after{content:"";position:absolute;right:-90px;top:-100px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(194,161,75,.3),transparent 70%);pointer-events:none}
+.au-leap.key>*{position:relative;z-index:1}
+.au-leap.key .lp-jump{color:#0C2545;background:var(--warm)}
+.au-leap.key .lp-diff{color:#E6C969;background:rgba(230,201,105,.12);border-color:rgba(230,201,105,.45)}
+.au-leap.key h3{color:#fff;font-size:17px}
+.au-leap.key h3 em{font-style:normal;color:#E6C969}
+.au-leap.key .lp-sum{color:#C3D2E2}
+.au-leap.key .lp-bar{background:rgba(255,255,255,.14)}
+.au-leap.key .lp-bar i{background:linear-gradient(90deg,var(--warm),#E6C969)}
+.au-leap.key li{color:#C3D2E2}
+.au-leap.key li::before{color:var(--warm)}
+.au-leap.key li b{color:#fff}
+.au-leap.key .lp-foot{border-top-color:rgba(255,255,255,.16);color:#E6C969;font-weight:700}
+@media(max-width:1080px){.au-leaps{grid-template-columns:1fr}}
+
+/* ---------- 同一件事的四个版本 ---------- */
+.au-scene{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:15px 20px;box-shadow:var(--shadow-sm);display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.au-scene .sc-lab{flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.6px;color:#fff;background:var(--warn);border-radius:999px;padding:4px 12px}
+.au-scene p{font-size:13px;color:var(--sub);line-height:1.7}
+.au-scene p b{color:var(--ink)}
+.au-lanes{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;align-items:stretch}
+.au-lane{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+.au-lane .ln-top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding-bottom:9px;border-bottom:1px solid var(--line);margin-bottom:11px}
+.au-lane .ln-lv{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:.5px}
+.au-lane .ln-nm{font-size:12px;color:var(--sub);font-weight:600}
+.au-lane .ln-sub{width:100%;font-size:11px;color:var(--muted);margin-top:4px}
+.au-lane .ln-sub b{color:var(--teal-d)}
+.au-ev{list-style:none;margin:0;flex:none}
+.au-void{margin-top:10px;border:1px dashed var(--card-b);border-radius:10px;padding:9px 12px;font-size:11.5px;color:var(--muted);line-height:1.7;background:repeating-linear-gradient(135deg,transparent,transparent 7px,rgba(138,131,123,.045) 7px,rgba(138,131,123,.045) 14px)}
+.au-void b{color:var(--sub)}
+.au-ev li{position:relative;padding:0 0 12px 15px;font-size:12px;color:var(--sub);line-height:1.7}
+.au-ev li::before{content:"";position:absolute;left:2px;top:7px;width:7px;height:7px;border-radius:50%;background:var(--sky2);border:1px solid var(--card-b)}
+.au-ev li::after{content:"";position:absolute;left:5px;top:16px;bottom:0;width:1px;background:var(--line)}
+.au-ev li:last-child{padding-bottom:2px}
+.au-ev li:last-child::after{display:none}
+.au-ev li .d{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.6px;color:var(--sub);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 6px;margin-right:5px;vertical-align:1px}
+.au-ev li b{color:var(--ink)}
+.au-lane .ln-foot{margin-top:auto;padding-top:11px;border-top:1px dashed var(--card-b)}
+.au-lane .ln-kv{display:flex;justify-content:space-between;gap:8px;font-size:11.5px;padding:3.5px 0}
+.au-lane .ln-kv span{color:var(--muted);flex:none}
+.au-lane .ln-kv b{color:var(--ink);font-weight:700;text-align:right}
+.au-lane.dead .ln-lv{color:var(--muted)}
+.au-lane.dead .ln-kv b{color:var(--warn)}
+/* L3 泳道：深色高亮 */
+.au-lane.win{background:linear-gradient(170deg,var(--ink) 0%,var(--ink3) 100%);border-color:var(--ink);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.au-lane.win::after{content:"";position:absolute;right:-80px;top:-90px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(194,161,75,.28),transparent 70%);pointer-events:none}
+.au-lane.win>*{position:relative;z-index:1}
+.au-lane.win .ln-top{border-bottom-color:rgba(255,255,255,.16)}
+.au-lane.win .ln-lv{color:#fff}
+.au-lane.win .ln-nm{color:#E6C969}
+.au-lane.win .ln-sub{color:#B8C7D8}
+.au-lane.win .ln-sub b{color:#E6C969}
+.au-lane.win .au-ev li{color:#C3D2E2}
+.au-lane.win .au-ev li b{color:#fff}
+.au-lane.win .au-ev li::before{background:var(--warm);border-color:var(--warm-d)}
+.au-lane.win .au-ev li::after{background:rgba(255,255,255,.18)}
+.au-lane.win .au-ev li .d{color:#0C2545;background:var(--warm);border-color:var(--warm)}
+.au-lane.win .ln-foot{border-top-color:rgba(255,255,255,.16)}
+.au-lane.win .ln-kv span{color:#9FB3C9}
+.au-lane.win .ln-kv b{color:#E6C969}
+.au-lat{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--sky);border:1px solid var(--sky2);border-radius:14px;padding:13px 18px}
+.au-lat .lt-lab{flex:none;font-size:10.5px;font-weight:800;letter-spacing:1.5px;color:var(--teal-d)}
+.au-lat .lt-v{font-size:13px;color:var(--sub);line-height:1.7}
+.au-lat .lt-v b{color:var(--ink);font-variant-numeric:tabular-nums}
+.au-lat .lt-v em{font-style:normal;color:var(--warm-d);font-weight:800}
+@media(max-width:1180px){.au-lanes{grid-template-columns:1fr 1fr}}
+@media(max-width:720px){.au-lanes{grid-template-columns:1fr}}
+
+/* ---------- 自评三问 ---------- */
+.au-quiz{display:grid;grid-template-columns:1fr 336px;gap:16px;align-items:start}
+.au-qs{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:8px 22px 18px;box-shadow:var(--shadow-sm)}
+.au-q{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:17px 0;border-bottom:1px dashed var(--card-b)}
+.au-q:last-child{border-bottom:none}
+.au-q .q-no{flex:none;width:26px;height:26px;border-radius:50%;background:var(--sky);color:var(--teal-d);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.au-q.answered .q-no{background:var(--warm);color:#fff}
+.au-q .q-txt{flex:1;min-width:260px;font-size:14px;color:var(--ink);line-height:1.6}
+.au-q .q-txt small{display:block;font-size:11.5px;color:var(--muted);margin-top:3px;font-weight:400}
+.au-opts{flex:none;display:flex;gap:8px}
+.au-opt{border:1px solid var(--card-b);background:var(--bg);color:var(--sub);font-size:13px;font-weight:700;font-family:inherit;border-radius:999px;padding:7px 20px;cursor:pointer;transition:all .15s}
+.au-opt:hover{border-color:var(--warm-l);color:var(--warm-d);background:var(--white)}
+.au-opt.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.au-opt.on.no{background:var(--warn);border-color:var(--warn)}
+.au-res{background:linear-gradient(168deg,var(--ink) 0%,var(--ink3) 100%);border-radius:18px;padding:22px 22px 18px;color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden;min-height:264px}
+.au-res::after{content:"";position:absolute;right:-90px;top:-100px;width:230px;height:230px;border-radius:50%;background:radial-gradient(circle,rgba(194,161,75,.28),transparent 70%);pointer-events:none}
+.au-res>*{position:relative;z-index:1}
+.au-res .r-lab{font-size:10px;font-weight:800;letter-spacing:2.4px;color:#E6C969}
+.au-res .r-lv{font-size:34px;font-weight:800;letter-spacing:1px;margin:8px 0 2px;line-height:1.2}
+.au-res .r-tt{font-size:15px;font-weight:700;line-height:1.5;margin-bottom:8px}
+.au-res .r-ds{font-size:12.5px;color:#C3D2E2;line-height:1.75}
+.au-res .r-gap{margin-top:13px;padding-top:11px;border-top:1px solid rgba(255,255,255,.16);font-size:12px;color:#C3D2E2;line-height:1.75}
+.au-res .r-gap b{display:block;font-size:10px;font-weight:800;letter-spacing:1.6px;color:#E6C969;margin-bottom:4px}
+.au-res .r-go{display:inline-block;margin-top:11px;font-size:12px;font-weight:700;color:#0C2545;background:var(--warm);border-radius:999px;padding:6px 15px}
+.au-res .r-go:hover{background:#E6C969}
+.au-res .r-reset{margin-top:12px;font-size:11.5px;color:#9FB3C9;background:none;border:none;font-family:inherit;cursor:pointer;padding:0;text-decoration:underline}
+.au-res .r-wait{font-size:12.5px;color:#9FB3C9;line-height:1.8}
+.au-res .r-dots{display:flex;gap:6px;margin:14px 0 10px}
+.au-res .r-dots i{width:34px;height:5px;border-radius:3px;background:rgba(255,255,255,.18)}
+.au-res .r-dots i.on{background:var(--warm)}
+.au-qfoot{margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.75}
+@media(max-width:1080px){.au-quiz{grid-template-columns:1fr}}
+
+/* ---------- 收尾 ---------- */
+.au-end{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.au-end a{display:block;background:var(--white);border:1px solid var(--line);border-radius:16px;padding:17px 19px;box-shadow:var(--shadow-sm);transition:all .15s}
+.au-end a:hover{border-color:var(--warm-l);box-shadow:var(--shadow)}
+.au-end .e-lab{font-size:10px;font-weight:800;letter-spacing:2px;color:var(--teal)}
+.au-end b{display:block;font-size:14.5px;color:var(--ink);margin:6px 0 4px}
+.au-end span{display:block;font-size:12px;color:var(--sub);line-height:1.7}
+.au-end .e-go{display:inline-block;margin-top:8px;font-size:11.5px;font-weight:700;color:var(--warm-d)}
+@media(max-width:900px){.au-end{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html">方案总览</a>
+    <a href="workroom.html">商机作战室</a>
+    <a href="autonomy.html" class="active"><span class="dot"></span>自主度分级</a>
+    <a href="deal.html">商机与团队</a>
+    <a href="boundary.html">人机边界</a>
+    <a href="queue.html">待决队列</a>
+    <a href="capability.html">能力集</a>
+    <a href="platform.html">Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <div class="eyebrow">Autonomy Levels · L0 — L4</div>
+    <h1>先有刻度，再谈 AI ——<br>销售自主度的<span class="hl">五个级别</span></h1>
+    <p class="sub">「这套系统有 AI」是一句无法证伪的话。<b>能证伪的是：不打开它、不点任何按钮，它会不会自己把商机往前推。</b>下面这把尺子把「有 AI」拆成 5 个可判定的级别 —— 判据不是模型强不强、功能多不多，而是<b>系统自己完成了多少动作、人在什么条件下才被叫出场</b>。这把尺子请拿去量所有供应商，也量我们。</p>
+  </div>
+
+  <!-- ============ 01 五级刻度 + 分级总表 ============ -->
+  <section class="au-sec">
+    <div class="au-head"><span class="no">01</span><h2>一把尺子：<span class="hl">L0 — L4 销售自主度</span></h2><p>级别越高，不是 AI 说得越多，是人被系统需要的次数越少</p></div>
+
+    <div class="au-ruler">
+      <div class="au-flags">
+        <div></div><div></div><div></div>
+        <div><span class="fl">本方案交付位置</span></div>
+        <div></div>
+      </div>
+      <div class="au-track"></div>
+      <div class="au-marks">
+        <div class="au-mark"><i></i><b>L0</b><span>手工</span><small>0%</small></div>
+        <div class="au-mark"><i></i><b>L1</b><span>提示</span><small>&lt; 10%</small></div>
+        <div class="au-mark"><i></i><b>L2</b><span>代办</span><small>20 – 40%</small></div>
+        <div class="au-mark on"><i></i><b>L3</b><span>条件自主</span><small>60 – 80%</small></div>
+        <div class="au-mark"><i></i><b>L4</b><span>高度自主</span><small>&gt; 80%</small></div>
+      </div>
+    </div>
+
+    <div class="au-tw">
+      <table class="mini-table">
+        <thead>
+          <tr>
+            <th style="width:118px">级别</th>
+            <th style="width:26%">Agent 做什么</th>
+            <th style="width:24%">人做什么</th>
+            <th style="width:24%">典型形态</th>
+            <th style="width:110px">自主完成率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="au-lv"><span class="n">L0</span><span class="t">手工</span></div></td>
+            <td>无。系统只是一个等着被填写的容器</td>
+            <td>找线索、跟进、记录、汇报，<b>全部人做</b></td>
+            <td>CRM 是一张填报表单</td>
+            <td class="au-rate">0%</td>
+          </tr>
+          <tr>
+            <td><div class="au-lv"><span class="n">L1</span><span class="t">提示</span></div></td>
+            <td>给建议、给话术、给模板 —— 只在人打开它的时候说话</td>
+            <td>仍然自己做全部动作，<b>AI 在旁边说</b></td>
+            <td>「AI CRM」「智能销售助手」</td>
+            <td class="au-rate">&lt; 10%</td>
+          </tr>
+          <tr>
+            <td><div class="au-lv"><span class="n">L2</span><span class="t">代办</span></div></td>
+            <td>端到端完成<b>单点任务</b>：转写纪要、起草方案、扫合同</td>
+            <td><b>逐个任务发起，逐个结果确认</b> —— 人还被拴在流程上</td>
+            <td>目前大多数 AI 销售工具的天花板</td>
+            <td class="au-rate">20 – 40%</td>
+          </tr>
+          <tr class="hot">
+            <td><div class="au-lv"><span class="n">L3</span><span class="t">条件自主</span></div></td>
+            <td>端到端跑完<b>一条业务链路</b>：从信号 → 判断 → 动作 → 留痕，自己决定下一步</td>
+            <td><b>只在四类节点出场</b>，其余时间不被打扰</td>
+            <td>系统自己发起，异常才找人<span class="au-here">本方案交付位置</span></td>
+            <td class="au-rate">60 – 80%</td>
+          </tr>
+          <tr>
+            <td><div class="au-lv"><span class="n">L4</span><span class="t">高度自主</span></div></td>
+            <td>跨商机自主调配资源与人，自主管理整个 pipeline</td>
+            <td>只定目标、边界与例外规则</td>
+            <td>路线图方向，不在本次交付承诺内</td>
+            <td class="au-rate">&gt; 80%</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="au-read"><b>读法</b><span>往下走一行，不是「AI 变聪明了」，是<em>人从流程里退出去了一步</em>。L0 到 L2，人始终是发起者；只有到了 L3，发起者才换成系统，人从「一直在场」变成「被叫到场」。</span></div>
+    </div>
+
+    <div class="au-note"><b>合规与配置说明：</b>级别判定标准、各级阈值与授权范围<b>由企业配置</b>；表中自主完成率为目标态示意区间，非承诺值。每一次自主执行与每一次找人都<b>留痕可审计</b>，可回溯到触发条件、依据来源与授权人。</div>
+  </section>
+
+  <!-- ============ 02 三个跨越 ============ -->
+  <section class="au-sec">
+    <div class="au-head"><span class="no">02</span><h2>三个跨越，难度<span class="hl">完全不同</span></h2><p>把它们当成同一条爬坡看，是绝大多数选型失误的起点</p></div>
+
+    <div class="au-leaps">
+      <div class="au-leap">
+        <div class="lp-top"><span class="lp-jump">L1 → L2</span><span class="lp-diff">工具级</span></div>
+        <h3>从「说」变成「做」</h3>
+        <p class="lp-sum">AI 从旁边提示，变成能把一件事做完 —— 纪要它转、方案它写、合同它扫。</p>
+        <div class="lp-bar"><i style="width:28%"></i></div>
+        <ul>
+          <li>变了的是：<b>输出从建议变成成品</b></li>
+          <li>没变的是：<b>每一件都要人发起、人确认</b>，系统不主动开口</li>
+          <li>难度落在工具层 —— 买一个产品就能到这里</li>
+        </ul>
+        <div class="lp-foot">这一跨买得到。所以它不构成任何一家供应商的护城河。</div>
+      </div>
+
+      <div class="au-leap key">
+        <div class="lp-top"><span class="lp-jump">L2 → L3</span><span class="lp-diff">分水岭</span></div>
+        <h3>从「人发起、人逐个确认」变成<em>「系统发起、异常才找人」</em></h3>
+        <p class="lp-sum">这是最难跨的一步，也是这套方案唯一想解决的问题。绝大多数号称 AI 的销售工具，卡在这里。</p>
+        <div class="lp-bar"><i style="width:100%"></i></div>
+        <ul>
+          <li><b>要有判断力</b> —— 不是「把任务做完」，是在没人问的时候，决定现在最该做的是哪一件</li>
+          <li><b>要有边界</b> —— 说得出四类必须停下来找人的节点；说不清边界，就不敢放权</li>
+          <li><b>要有责任链</b> —— 每一次自主执行、每一次找人、每一次没找人，都可回溯到触发条件与授权人</li>
+          <li><b>要企业愿意交出一部分执行权</b> —— 这不是技术选型，是一次有人签字的授权</li>
+        </ul>
+        <div class="lp-foot">前三条是我们要证明的；第四条是双方要一起走的 —— 所以交付路径设计成逐周放权、每一步可回退。</div>
+      </div>
+
+      <div class="au-leap">
+        <div class="lp-top"><span class="lp-jump">L3 → L4</span><span class="lp-diff">制度级</span></div>
+        <h3>从「单商机自主」到「跨商机调度」</h3>
+        <p class="lp-sum">系统开始跨商机调配资源与人，自主管理整个 pipeline，人只定目标、边界与例外规则。</p>
+        <div class="lp-bar"><i style="width:64%"></i></div>
+        <ul>
+          <li>卡点不在技术，在<b>组织与考核制度</b></li>
+          <li>要动的是分单规则、考核口径与汇报关系</li>
+          <li>没跑稳 L3 的度量，就没有依据谈 L4</li>
+        </ul>
+        <div class="lp-foot">列为路线图方向，不写进本次交付承诺 —— 先把 L3 的数跑出来。</div>
+      </div>
+    </div>
+
+    <div class="au-punch"><span class="lab">一句话</span><p>选型时真正要问的不是「你们有没有 AI」，而是 <em>「你们跨过 L2 → L3 了吗？拿什么证明」</em>。</p></div>
+  </section>
+
+  <!-- ============ 03 同一件事的四个版本（杀手锏） ============ -->
+  <section class="au-sec">
+    <div class="au-head"><span class="no">03</span><h2>同一件事，在四个级别下<span class="hl">是四个完全不同的故事</span></h2><p>场景：一个已经进入商务谈判的商机，停滞了 14 天</p></div>
+
+    <div class="au-scene">
+      <span class="sc-lab">场景设定</span>
+      <p><b>金桥制造 · 年度框架 ¥86 万</b>　商务谈判后停滞 <b>14 天（D28 – D41）</b>：客户不再回消息，价格已让至底价，没有人知道到底卡在哪。<br>下面看这 14 天里，L0 / L1 / L2 / L3 各自会发生什么 —— 请重点看<b>每一栏的主语是谁</b>。</p>
+    </div>
+
+    <div class="au-lanes">
+
+      <div class="au-lane dead">
+        <div class="ln-top"><span class="ln-lv">L0</span><span class="ln-nm">手工</span><span class="ln-sub">主语：<b>没有人</b></span></div>
+        <ul class="au-ev">
+          <li><span class="d">D28</span>停滞开始。系统里这条商机的状态还停在「商务谈判」，<b>没有任何东西发生变化</b>。</li>
+          <li><span class="d">D29 – D41</span>系统不看时间，也不知道「多久没动」意味着什么。它在等人来填。</li>
+          <li><span class="d">月底</span>复盘会上被翻出来：「金桥最近怎么样了？」「我上周问过，还没回。」</li>
+          <li><span class="d">之后</span>补一句跟进，无人知道到底卡在账期还是价格。<b>停滞的 14 天没有留下任何可复盘的东西。</b></li>
+        </ul>
+        <div class="au-void">这一栏下面的空白不是没写完 —— <b>这 14 天里，系统侧确实什么都没有发生。</b></div>
+        <div class="ln-foot">
+          <div class="ln-kv"><span>谁先发现</span><b>没人 · 靠会议撞见</b></div>
+          <div class="ln-kv"><span>系统做了什么</span><b>什么也没做</b></div>
+          <div class="ln-kv"><span>人被打扰</span><b>不被打扰，也不被提醒</b></div>
+        </div>
+      </div>
+
+      <div class="au-lane">
+        <div class="ln-top"><span class="ln-lv">L1</span><span class="ln-nm">提示</span><span class="ln-sub">主语：<b>人（要先打开它）</b></span></div>
+        <ul class="au-ev">
+          <li><span class="d">停滞数日后</span>报表里这条商机出现一个<b>红点</b>：「停滞超阈值」。红点一直在那儿，安静地等人来看。</li>
+          <li><span class="d">此后</span>红点要人打开报表才存在。谁哪天打开，就是哪天发现。</li>
+          <li><span class="d">看到时</span>红点只说「停了」，不说「为什么停」。原因还得人自己去翻纪要、回忆现场。</li>
+          <li><span class="d">动作</span>系统给一段通用跟进话术。<b>话术是通用的，问题是具体的。</b></li>
+        </ul>
+        <div class="au-void">红点之后没有下文 —— <b>没有原因、没有方案、没有动作</b>，剩下的全靠人自己接上。</div>
+        <div class="ln-foot">
+          <div class="ln-kv"><span>谁先发现</span><b>报表 · 被动等人来看</b></div>
+          <div class="ln-kv"><span>系统做了什么</span><b>标了一个红点</b></div>
+          <div class="ln-kv"><span>人被打扰</span><b>要自己去查、自己判断</b></div>
+        </div>
+      </div>
+
+      <div class="au-lane">
+        <div class="ln-top"><span class="ln-lv">L2</span><span class="ln-nm">代办</span><span class="ln-sub">主语：<b>人（要先问）</b></span></div>
+        <ul class="au-ev">
+          <li><span class="d">周会前</span>李芳想起这一单，打开工具问：「金桥制造为什么推不动？」</li>
+          <li><span class="d">当场</span>系统答得很好：调出历史纪要与同类单，指向<b>账期</b>而不是价格。—— 但它是被问出来的。</li>
+          <li><span class="d">再问一次</span>才给出建议方案；<b>再点一次</b>才起草跟进内容；每一步都要人重新发起。</li>
+          <li><span class="d">关键</span>如果这一周李芳没想起来，这一单就<b>继续停着</b>。系统一直知道，但它不说。</li>
+        </ul>
+        <div class="au-void">这一栏的空白最贵 —— <b>能力是够的，缺的只是「没有人先开口」。</b></div>
+        <div class="ln-foot">
+          <div class="ln-kv"><span>谁先发现</span><b>人 · 想起来那一刻</b></div>
+          <div class="ln-kv"><span>系统做了什么</span><b>问什么答什么，答得准</b></div>
+          <div class="ln-kv"><span>人被打扰</span><b>逐个发起、逐个确认</b></div>
+        </div>
+      </div>
+
+      <div class="au-lane win">
+        <div class="ln-top"><span class="ln-lv">L3</span><span class="ln-nm">条件自主 · 本方案</span><span class="ln-sub">主语：<b>商机主 Agent</b></span></div>
+        <ul class="au-ev">
+          <li><span class="d">D28</span>主 Agent 本来就在盯这一单。停滞计时开始，<b>不需要谁去打开什么</b>。</li>
+          <li><span class="d">触发</span>停滞超过企业设定的阈值 —— 命中四类找人节点中的<b>「结果偏离」</b>。</li>
+          <li><span class="d">自己取证</span>D21 二访纪要 00:14:32 周总原话「账期能不能松」；D27 谈判记录价格已让至底价仍未推进；同类 6 单中 5 单在账期让步后 2 周内签约。<b>每条依据都带时间戳，可回到原始记录。</b></li>
+          <li><span class="d">自己判断</span>卡在<b>账期</b>，不在价格。</li>
+          <li><span class="d">自己成案</span>建议授权账期让步到 75 天，换预付 30%，由王强本周内谈。</li>
+          <li><span class="d">才找人</span>把这一条推进李芳的<b>待决队列</b>：判断 · 依据 · 建议 · 三个按钮。<b>D34 李芳点「同意授权」—— 这 14 天里，人只被叫出场这一次。</b></li>
+        </ul>
+        <div class="ln-foot">
+          <div class="ln-kv"><span>谁先发现</span><b>系统 · 停滞当天</b></div>
+          <div class="ln-kv"><span>系统做了什么</span><b>发现 · 取证 · 判断 · 成案</b></div>
+          <div class="ln-kv"><span>人被打扰</span><b>只被问一句：同意授权吗</b></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="au-lat">
+      <span class="lt-lab">信号到动作时延（中位）</span>
+      <span class="lt-v">风险信号出现 → 发出应对动作：现状基线 <b>3.5 天</b>　→　L3 目标态 <em>8 分钟</em>　·　目标态示意，非承诺值</span>
+    </div>
+
+    <div class="au-punch"><span class="lab">看点</span><p>四段故事里，<em>只有最后一段的主语不是人</em>。L0 到 L2 的差别是「人干得快不快」，L2 到 L3 的差别是「还需不需要人先动」。</p></div>
+
+    <div class="au-note"><b>合规与配置说明：</b>停滞阈值、取证范围与授权上限<b>由企业配置</b>；上例中每一条依据都可回溯到原始记录与时间戳，主 Agent 的每一次自主执行与每一次找人<b>全程留痕可审计</b>。拜访录音需提前告知参会方，录音原文默认仅销售本人可见；过程数据用于赋能与组织沉淀，<b>不用于监控个人</b>。涉及法律与商业责任的动作（报价定案、合同签署、对外承诺）必须由授权人确认。</div>
+  </section>
+
+  <!-- ============ 04 自评三问 ============ -->
+  <section class="au-sec">
+    <div class="au-head"><span class="no">04</span><h2>自评三问：<span class="hl">你现在大概在第几级</span></h2><p>三个问题可以拿去问任何一家供应商，也可以拿来问你现在正在用的系统</p></div>
+
+    <div class="au-quiz">
+      <div class="au-qs" id="auQuiz">
+        <div class="au-q" data-qid="q1">
+          <span class="q-no">1</span>
+          <div class="q-txt">不打开系统、不点任何按钮，它会自己往前推进商机吗？<small>答「否」，上限就是 L2 —— 系统再聪明，也要等人来按下开关。</small></div>
+          <div class="au-opts" data-q="q1">
+            <button type="button" class="au-opt" data-v="y">是</button>
+            <button type="button" class="au-opt no" data-v="n">否</button>
+          </div>
+        </div>
+        <div class="au-q" data-qid="q2">
+          <span class="q-no">2</span>
+          <div class="q-txt">它什么时候会主动找人？说得出明确规则吗？<small>说不出，就不是 L3 —— 边界不明确，责任链立不住，放权无从谈起。</small></div>
+          <div class="au-opts" data-q="q2">
+            <button type="button" class="au-opt" data-v="y">说得出</button>
+            <button type="button" class="au-opt no" data-v="n">说不出</button>
+          </div>
+        </div>
+        <div class="au-q" data-qid="q3">
+          <span class="q-no">3</span>
+          <div class="q-txt">上个月它自主完成了多少动作、人纠偏了多少次？<small>答不出，就没有度量 —— 没有度量，自主度就只是一句话。</small></div>
+          <div class="au-opts" data-q="q3">
+            <button type="button" class="au-opt" data-v="y">答得出</button>
+            <button type="button" class="au-opt no" data-v="n">答不出</button>
+          </div>
+        </div>
+        <div class="au-qfoot">这三问只问系统的<b>做法</b>，不问它用了什么模型、有多少功能 —— 换一个更强的模型，答案不会变；把执行权真正交出去，答案才会变。</div>
+      </div>
+
+      <div class="au-res" id="auRes">
+        <div class="r-lab">SELF ASSESSMENT</div>
+        <div class="r-dots" id="auDots"><i></i><i></i><i></i></div>
+        <div class="r-wait" id="auWait">回答左边三个问题，这里会给出你现在大概所处的级别，以及最该先补的那一块。</div>
+        <div id="auOut" style="display:none">
+          <div class="r-lv" id="auLv">L?</div>
+          <div class="r-tt" id="auTt"></div>
+          <div class="r-ds" id="auDs"></div>
+          <div class="r-gap"><b>最该先补的一块</b><span id="auGap"></span></div>
+          <a class="r-go" id="auGo" href="index.html">看细节 →</a>
+          <br><button type="button" class="r-reset" id="auReset">重新自评</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="au-note"><b>说明：</b>此处结论为按上述三问的口径给出的<b>粗判</b>，仅用于沟通对齐，不构成评级结论；正式判定的口径、阈值与取数范围由企业配置，判定过程与依据留痕可审计。</div>
+  </section>
+
+  <!-- ============ 05 接下来看什么 ============ -->
+  <section class="au-sec">
+    <div class="au-head"><span class="no">05</span><h2>这把尺子后面，是<span class="hl">三件必须交代清楚的事</span></h2><p>声称 L3 很容易，把这三件说清楚才算数</p></div>
+    <div class="au-end">
+      <a href="deal.html">
+        <div class="e-lab">WHO RUNS IT</div>
+        <b>谁在自己跑：给商机配一支 Agent 团队</b>
+        <span>不是给人配助理。每个商机自带一个主 Agent，盯 → 判 → 调，7×24 在岗。</span>
+        <span class="e-go">看商机与团队 →</span>
+      </a>
+      <a href="boundary.html">
+        <div class="e-lab">WHEN IT STOPS</div>
+        <b>什么时候停下来找人：四类节点</b>
+        <span>要人脸出面 · 要人担责 · AI 没把握 · 结果偏离。这四类之外，系统不找人。</span>
+        <span class="e-go">看人机边界 →</span>
+      </a>
+      <a href="roadmap.html">
+        <div class="e-lab">HOW TO GET THERE</div>
+        <b>自主度怎么一周一周涨上去</b>
+        <span>从只读观察起步，逐周放权、每一步可回退；第 30 天对表验收，再决定是否进 L3。</span>
+        <span class="e-go">看落地路线 →</span>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+
+<script>
+(function () {
+  var quiz = document.getElementById('auQuiz');
+  if (!quiz) return;
+  var dots  = document.getElementById('auDots'),
+      wait  = document.getElementById('auWait'),
+      out   = document.getElementById('auOut'),
+      elLv  = document.getElementById('auLv'),
+      elTt  = document.getElementById('auTt'),
+      elDs  = document.getElementById('auDs'),
+      elGap = document.getElementById('auGap'),
+      elGo  = document.getElementById('auGo'),
+      reset = document.getElementById('auReset');
+
+  var ans = {};
+
+  var R = {
+    l1: {
+      lv: 'L1 一带',
+      tt: '系统只在你打开它的时候说话',
+      ds: '它会给建议、给话术、给模板，但所有动作仍然由人发起、由人完成；也没有任何关于「它自己做了多少」的度量。这一级的价值上限，是让人打字快一点。',
+      gap: '先让系统有一个自己的执行主体 —— 有东西在没人看着的时候仍然盯着商机，才谈得上自主度。',
+      go: '看商机与团队 →', href: 'deal.html'
+    },
+    l2: {
+      lv: 'L2',
+      tt: '能把单点任务做完，但每一件都要人先发起',
+      ds: '纪要它转、方案它写、合同它扫，做得也不错 —— 问题是它不会自己开口。人一忙、一休假、一忘记，这条商机就停在那里，而系统其实一直知道。这是目前大多数 AI 销售工具的天花板。',
+      gap: '把「发起权」从人交到系统手里：由系统持续盯、自己判断该做什么，只在四类节点回头找人。',
+      go: '看人机边界 →', href: 'boundary.html'
+    },
+    l25: {
+      lv: 'L2 与 L3 之间',
+      tt: '系统会自己动，但说不清它什么时候会来找人',
+      ds: '自己动是好事，说不清边界就是风险 —— 该停的地方没停，是事故；不该停的地方老停，人还是被拴在流程上。边界说不清，责任链就立不住，企业也不敢把执行权再往前交一步。',
+      gap: '把「什么情况必须找人」写成明确规则并可配置：要人脸出面 · 要人担责 · AI 没把握 · 结果偏离，四类之外不打扰人。',
+      go: '看人机边界 →', href: 'boundary.html'
+    },
+    nom: {
+      lv: 'L3 的做法，但级别判不了',
+      tt: '做法够得着 L3，缺的是度量',
+      ds: '系统会自己推进，也说得出什么时候找人 —— 但说不出上个月它自主完成了多少动作、人纠偏了多少次。没有这两个数，自主度是一句无法证实也无法证伪的话，更没办法逐周往上放权。',
+      gap: '先把两个数跑出来：Agent 自主完成率与人工纠偏率，按月出一张成绩单，再谈级别与放权节奏。',
+      go: '看落地路线 →', href: 'roadmap.html'
+    },
+    l3: {
+      lv: 'L3',
+      tt: '系统自己发起，异常才找人，而且说得出数',
+      ds: '它自己往前推商机，找人有明确规则，每个月说得出自主完成了多少、人纠偏了多少次 —— 你已经跨过了最难的那一步。接下来要守住的是：让这三件事持续成立，而不是上线那一个月成立。',
+      gap: '把度量做成常态：每个 Agent 每月一张成绩单（自主完成率 · 人工纠偏率 · 建议采纳率 · 单位成本），连续不达标就换掉。',
+      go: '看能力集 →', href: 'capability.html'
+    }
+  };
+
+  function verdict() {
+    if (ans.q1 === 'n') { return ans.q3 === 'y' ? R.l2 : R.l1; }
+    if (ans.q2 === 'n') { return R.l25; }
+    if (ans.q3 === 'n') { return R.nom; }
+    return R.l3;
+  }
+
+  function paint() {
+    var n = 0, i;
+    if (ans.q1) n++; if (ans.q2) n++; if (ans.q3) n++;
+    var ds = dots.getElementsByTagName('i');
+    for (i = 0; i < ds.length; i++) {
+      if (i < n) { ds[i].className = 'on'; } else { ds[i].className = ''; }
+    }
+    if (n < 3) {
+      wait.style.display = '';
+      out.style.display = 'none';
+      wait.innerHTML = n === 0
+        ? '回答左边三个问题，这里会给出你现在大概所处的级别，以及最该先补的那一块。'
+        : '还差 ' + (3 - n) + ' 个问题。';
+      return;
+    }
+    var r = verdict();
+    wait.style.display = 'none';
+    out.style.display = '';
+    elLv.textContent = r.lv;
+    elTt.textContent = r.tt;
+    elDs.textContent = r.ds;
+    elGap.textContent = r.gap;
+    elGo.textContent = r.go;
+    elGo.setAttribute('href', r.href);
+  }
+
+  quiz.addEventListener('click', function (e) {
+    var btn = e.target;
+    while (btn && btn !== quiz && !(btn.classList && btn.classList.contains('au-opt'))) { btn = btn.parentNode; }
+    if (!btn || btn === quiz) return;
+    var wrap = btn.parentNode, q = wrap.getAttribute('data-q');
+    ans[q] = btn.getAttribute('data-v');
+    var sibs = wrap.getElementsByTagName('button'), i;
+    for (i = 0; i < sibs.length; i++) { sibs[i].classList.remove('on'); }
+    btn.classList.add('on');
+    var row = wrap.parentNode;
+    if (row && row.classList) { row.classList.add('answered'); }
+    paint();
+  });
+
+  reset.addEventListener('click', function () {
+    ans = {};
+    var opts = quiz.getElementsByClassName('au-opt'), i;
+    for (i = 0; i < opts.length; i++) { opts[i].classList.remove('on'); }
+    var rows = quiz.getElementsByClassName('au-q');
+    for (i = 0; i < rows.length; i++) { rows[i].classList.remove('answered'); }
+    paint();
+  });
+
+  paint();
+})();
+</script>
+</body>
+</html>

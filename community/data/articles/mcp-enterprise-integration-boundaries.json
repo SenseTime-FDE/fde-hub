@@ -1,0 +1,80 @@
+{
+  "id": "mcp-enterprise-integration-boundaries",
+  "category": "engineering",
+  "typeLabel": "技术文章",
+  "title": "MCP 企业接入指南：协议、权限与工具边界",
+  "summary": "MCP 解决的是 AI 应用与外部数据、工具和工作流之间的标准连接问题；真正进入企业环境，还要补齐身份、授权、审批、审计与故障隔离。",
+  "author": "OFDE 技术团队",
+  "date": "2026-08-15",
+  "updatedAt": "2026-08-15",
+  "readTime": "12 分钟",
+  "featured": true,
+  "tags": ["MCP", "Agent", "工具调用", "权限治理"],
+  "sections": [
+    {
+      "heading": "MCP 解决什么问题",
+      "paragraphs": [
+        "Model Context Protocol 是 AI 应用连接外部系统的开放协议。它统一了能力发现、上下文交换和工具调用的接口，使不同 Host 可以用一致方式接入文件、数据库、业务 API 或工作流。",
+        "MCP 不负责决定业务是否应该自动化，也不替代企业自身的身份、审批和数据治理。协议接通只代表链路可用，不代表能力已经可以安全上线。"
+      ]
+    },
+    {
+      "heading": "理解 Host、Client 与 Server",
+      "paragraphs": [
+        "Host 是承载 AI 体验并执行安全策略的应用；Client 由 Host 管理，通常与一个 Server 保持独立连接；Server 对外提供聚焦的数据或能力。完整对话、跨 Server 编排和最终授权应保留在 Host 侧。"
+      ],
+      "list": [
+        "Host：管理连接、用户同意、上下文聚合和调用策略",
+        "Client：完成会话初始化、能力协商和消息路由",
+        "Server：提供专注的资源、提示模板或工具",
+        "业务系统：继续负责真实身份、权限和数据一致性"
+      ]
+    },
+    {
+      "heading": "Resources、Prompts 与 Tools 不应混用",
+      "list": [
+        "Resources：由应用选择并加入上下文的数据，例如文件、知识条目和业务记录",
+        "Prompts：由用户主动选择的任务模板或标准工作流入口",
+        "Tools：模型可建议调用的可执行函数，例如查询、创建或修改业务对象"
+      ],
+      "paragraphs": [
+        "只读资料优先建模为 Resource；涉及业务副作用的动作必须建模为 Tool，并声明参数、权限、错误和幂等语义。不要把写操作伪装成读取，也不要让一个万能工具接受任意 SQL、命令或 URL。"
+      ]
+    },
+    {
+      "heading": "企业接入的六道安全门",
+      "list": [
+        "身份：调用主体必须映射到真实用户、组织或服务账号",
+        "最小授权：按租户、角色、数据范围和动作限制能力",
+        "执行确认：发送、删除、支付和外部承诺等高风险动作由人确认",
+        "参数校验：服务端重新校验对象、范围、状态与业务规则",
+        "审计：记录用户、模型、工具、参数摘要、结果和版本",
+        "隔离：单个 Server 异常不得获得其他 Server 的上下文或拖垮整个 Agent"
+      ]
+    },
+    {
+      "heading": "从一个只读场景开始",
+      "paragraphs": [
+        "首个 MCP 接入应选择范围清晰、数据可脱敏、没有写副作用的查询场景。先验证连接稳定性、权限过滤、返回结构和引用追溯，再逐步开放需要确认的写工具。",
+        "验收时既要测试正常调用，也要测试越权对象、缺少参数、Server 超时、能力版本不兼容和用户拒绝授权。"
+      ],
+      "list": [
+        "能力清单与实际暴露内容一致",
+        "用户能理解本次将读取什么、执行什么",
+        "拒绝授权后不会绕过确认继续执行",
+        "断开单个 Server 后其余内容仍可使用",
+        "每次业务动作都能还原到具体调用主体"
+      ]
+    },
+    {
+      "heading": "参考与适用边界",
+      "paragraphs": [
+        "本文依据 Model Context Protocol 官方架构及 Server primitives 说明整理，重点是企业接入方法，不代表 OFDE 当前已经交付某个 MCP 平台或 Server 市场。具体协议版本、传输方式和授权能力应在实施时重新核对官方规范。"
+      ],
+      "list": [
+        "官方架构：https://modelcontextprotocol.io/specification/2025-06-18/architecture",
+        "Server 能力概览：https://modelcontextprotocol.io/specification/2025-06-18/server/index"
+      ]
+    }
+  ]
+}

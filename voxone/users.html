@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>账号与权限 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("users", async (root, ctx) => {
+  const { me } = ctx;
+  const canManage = !!me.perms.manageUsers;
+  const DEFAULT_PW = "voxone@2026";
+
+  // ---- 常量:角色 / 场景 / 权限矩阵(与后端 auth.js 一致,展示态)----
+  const ROLES = [["superadmin","平台管理员"],["ops_admin","运营管理员"],["team_lead","坐席主管"],["agent","坐席/一线"],["analyst","质检/分析"],["viewer","观察员"]];
+  const SCENES = [["ecom","跨境电商"],["app","出海App"],["fintech","金融科技"],["local","本地生活"],["auto","汽车保险"]];
+  const ROLE_BADGE = { superadmin:"coral", ops_admin:"ai", team_lead:"run", agent:"on", analyst:"warn", viewer:"off" };
+  const roleLabel = (r) => (ROLES.find((x)=>x[0]===r)||[r,r])[1];
+  const scShort = (s) => VX.scLabel(s).split(" / ")[0];
+
+  const PERM_COLS = [
+    ["manageUsers","管理账号"],["manageAgents","编排Agent"],["editConfig","编辑配置"],
+    ["runOutbound","外呼"],["useWorkbench","工作台"],["qa","质检"],
+    ["manageModel","模型"],["manageIntegration","对接"],["viewAll","全局可见"],
+  ];
+  const ROLE_PERMS = {
+    superadmin:{manageUsers:1,manageAgents:1,editConfig:1,runOutbound:1,useWorkbench:1,qa:1,manageModel:1,manageIntegration:1,viewAll:1},
+    ops_admin: {manageUsers:0,manageAgents:1,editConfig:1,runOutbound:1,useWorkbench:1,qa:1,manageModel:0,manageIntegration:1,viewAll:1},
+    team_lead: {manageUsers:0,manageAgents:1,editConfig:1,runOutbound:1,useWorkbench:1,qa:1,manageModel:0,manageIntegration:0,viewAll:0},
+    agent:     {manageUsers:0,manageAgents:0,editConfig:0,runOutbound:0,useWorkbench:1,qa:0,manageModel:0,manageIntegration:0,viewAll:0},
+    analyst:   {manageUsers:0,manageAgents:0,editConfig:0,runOutbound:0,useWorkbench:0,qa:1,manageModel:0,manageIntegration:0,viewAll:1},
+    viewer:    {manageUsers:0,manageAgents:0,editConfig:0,runOutbound:0,useWorkbench:0,qa:0,manageModel:0,manageIntegration:0,viewAll:1},
+  };
+  const yes = '<span style="color:var(--ok);font-weight:800">✓</span>';
+  const no  = '<span class="muted">·</span>';
+
+  // ---- 数据 ----
+  let users = ctx.users || (await VX.api("/api/users")).users || [];
+
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">👥</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">账号与权限</div>
+      <div class="sub">RBAC · 角色 × 业务场景 · 共 <b id="uCount">${users.length}</b> 个账号 · 初始密码 <span class="mono">${VX.esc(DEFAULT_PW)}</span></div>
+    </div>
+    ${canManage ? '<button id="newU" class="btn pri">+ 新建账号</button>' : ""}
+  </div>
+
+  <div class="card pad" style="margin-bottom:16px">
+    <div class="hd"><h3>角色权限模型</h3><div class="sp"></div><span class="chip">6 个内置角色 · 双维度 RBAC</span></div>
+    <div style="overflow-x:auto">
+      <table class="tb" style="min-width:720px">
+        <thead><tr><th>角色</th>${PERM_COLS.map((c)=>`<th style="text-align:center">${c[1]}</th>`).join("")}</tr></thead>
+        <tbody>
+        ${ROLES.map(([rv,rl])=>`<tr>
+          <td>${VX.badge(rl, ROLE_BADGE[rv]||"off")}</td>
+          ${PERM_COLS.map((c)=>`<td style="text-align:center">${ROLE_PERMS[rv][c[0]] ? yes : no}</td>`).join("")}
+        </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>
+    <div class="notice" style="margin-top:12px">✓ = 该角色具备对应能力。<b>全局可见</b>为否时,用户仅能看到其「可见场景」范围内的数据;账号与模型密钥管理仅平台管理员可用。</div>
+  </div>
+
+  <div class="card pad">
+    <div class="hd"><h3>账号列表</h3><div class="sp"></div><span class="sub">账号 · 姓名 · 职务 · 角色 · 可见场景</span></div>
+    <div style="overflow-x:auto">
+      <table class="tb" style="min-width:820px">
+        <thead><tr><th>账号</th><th>姓名</th><th>职务</th><th>角色</th><th>可见场景</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody id="uTbody"></tbody>
+      </table>
+    </div>
+  </div>`;
+
+  // ---- 渲染用户表 ----
+  function renderUsers() {
+    const tb = VX.$("#uTbody", root);
+    tb.innerHTML = users.map((u)=>{
+      const isAdmin = u.username === "admin";
+      const scChips = (u.scenarios||[]).includes("*")
+        ? '<span class="chip">🌐 全部</span>'
+        : ((u.scenarios||[]).map((s)=>`<span class="chip">${VX.scEmoji(s)} ${VX.esc(scShort(s))}</span>`).join(" ") || '<span class="muted">—</span>');
+      const acts = canManage ? `<div class="row" style="gap:6px;flex-wrap:nowrap;justify-content:flex-end">
+          <button class="btn sm" data-act="edit" data-u="${VX.esc(u.username)}">编辑</button>
+          <button class="btn sm ghost" data-act="reset" data-u="${VX.esc(u.username)}">重置密码</button>
+          <button class="btn sm danger" data-act="del" data-u="${VX.esc(u.username)}" ${isAdmin ? 'disabled title="平台管理员不可删除"' : ""}>删除</button>
+        </div>` : '<div style="text-align:right" class="muted">—</div>';
+      return `<tr>
+        <td class="mono">${VX.esc(u.username)}</td>
+        <td class="nm">${VX.esc(u.name||"—")}</td>
+        <td>${VX.esc(u.title||"—")}</td>
+        <td>${VX.badge(roleLabel(u.role), ROLE_BADGE[u.role]||"off")}</td>
+        <td>${scChips}</td>
+        <td>${acts}</td>
+      </tr>`;
+    }).join("");
+    const c = VX.$("#uCount", root); if (c) c.textContent = users.length;
+  }
+  renderUsers();
+
+  // ---- 操作:重置密码 / 删除(委托绑定,tbody 常驻)----
+  VX.$("#uTbody", root).onclick = (e) => {
+    const btn = e.target.closest("button[data-act]"); if (!btn || btn.disabled) return;
+    const u = users.find((x)=>x.username === btn.dataset.u); if (!u) return;
+    const act = btn.dataset.act;
+    if (act === "edit") openModal(u);
+    else if (act === "reset") doReset(u);
+    else if (act === "del") doDelete(u);
+  };
+
+  function doReset(u) {
+    VX.confirm(`确定将账号「${u.username}」的密码重置为初始密码?`, async () => {
+      try { const r = await VX.api("/api/users/resetpw","POST",{username:u.username}); VX.toast("密码已重置为 "+r.defaultPw,"ok"); }
+      catch (e) { VX.toast(e.message,"err"); }
+    }, "重置密码");
+  }
+  function doDelete(u) {
+    if (u.username === "admin") return;
+    VX.confirm(`确定删除账号「${u.username}」(${u.name||""})?此操作不可恢复。`, async () => {
+      try { const r = await VX.api("/api/users/delete","POST",{username:u.username}); users = r.users; renderUsers(); VX.toast("账号已删除","ok"); }
+      catch (e) { VX.toast(e.message,"err"); }
+    }, "删除");
+  }
+
+  // ---- 新建 / 编辑弹窗 ----
+  function openModal(edit) {
+    const isEdit = !!edit;
+    const cur = edit || { username:"", name:"", title:"", role:"agent", scenarios:["ecom"] };
+    const scSet = new Set(cur.scenarios||[]);
+    const body = VX.el(`<div>
+      <div class="two" style="gap:12px">
+        <label class="fld"><span class="lb">账号 username</span>
+          <input id="fU" class="mono" value="${VX.esc(cur.username)}" ${isEdit ? "readonly" : ""} placeholder="如 seat_th"/></label>
+        <label class="fld"><span class="lb">角色</span>
+          <select id="fR">${ROLES.map(([v,l])=>`<option value="${v}" ${v===cur.role?"selected":""}>${l}</option>`).join("")}</select></label>
+      </div>
+      <div class="two" style="gap:12px">
+        <label class="fld"><span class="lb">姓名</span><input id="fN" value="${VX.esc(cur.name||"")}" placeholder="真实姓名"/></label>
+        <label class="fld"><span class="lb">职务</span><input id="fT" value="${VX.esc(cur.title||"")}" placeholder="如 跨境电商坐席主管"/></label>
+      </div>
+      <div class="fld"><span class="lb">可见场景</span>
+        <div id="fSc" class="row" style="gap:8px;flex-wrap:wrap">
+          <label class="chip" style="cursor:pointer;gap:6px"><input type="checkbox" value="*" style="width:auto" ${scSet.has("*")?"checked":""}/>🌐 全部场景</label>
+          ${SCENES.map(([v,l])=>`<label class="chip" style="cursor:pointer;gap:6px"><input type="checkbox" value="${v}" style="width:auto" ${scSet.has(v)?"checked":""}/>${VX.scEmoji(v)} ${l}</label>`).join("")}
+        </div>
+      </div>
+      ${isEdit ? "" : `<label class="fld"><span class="lb">初始密码(可留空)</span><input id="fP" type="text" placeholder="留空则用默认 ${VX.esc(DEFAULT_PW)}"/></label>`}
+    </div>`);
+
+    // '*' 与具体场景互斥
+    const scWrap = VX.$("#fSc", body);
+    const allCb = scWrap.querySelector('input[value="*"]');
+    const others = VX.$$('input[type="checkbox"]', scWrap).filter((o)=>o.value !== "*");
+    const syncSc = () => { const all = allCb.checked; others.forEach((o)=>{ o.disabled = all; if (all) o.checked = false; }); };
+    allCb.onchange = syncSc; syncSc();
+
+    const foot = VX.el(`<button class="btn pri">${isEdit ? "保存修改" : "创建账号"}</button>`);
+    const m = VX.modal({ title: isEdit ? "编辑账号 · "+cur.username : "新建账号", body, footer: foot });
+
+    foot.onclick = async () => {
+      const username = VX.$("#fU", body).value.trim();
+      const role = VX.$("#fR", body).value;
+      const name = VX.$("#fN", body).value.trim();
+      const title = VX.$("#fT", body).value.trim();
+      const scenarios = allCb.checked ? ["*"] : others.filter((o)=>o.checked).map((o)=>o.value);
+      if (!isEdit) {
+        if (!username) return VX.toast("请填写账号 username","err");
+        if (!/^[A-Za-z0-9_]+$/.test(username)) return VX.toast("账号仅限字母 / 数字 / 下划线","err");
+        if (users.some((u)=>u.username === username)) return VX.toast("账号已存在","err");
+      }
+      if (!scenarios.length) return VX.toast("请至少选择一个可见场景","err");
+      const payload = { username, role, name, title, scenarios };
+      if (!isEdit) { const pw = VX.$("#fP", body).value; if (pw) payload.password = pw; }
+      try {
+        const r = await VX.api("/api/users","POST",payload);
+        users = r.users; renderUsers(); m.close();
+        VX.toast(isEdit ? "账号已更新" : "账号已创建,初始密码 "+DEFAULT_PW, "ok");
+      } catch (e) { VX.toast(e.message,"err"); }
+    };
+  }
+
+  if (canManage) { const nb = VX.$("#newU", root); if (nb) nb.onclick = () => openModal(null); }
+});
+</script>
+</body></html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>合规与数据权属 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ---------- 本页特有样式 ---------- */
+.rl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rl { border: 1px solid var(--cbord); border-radius: 10px; padding: 12px 16px; background: var(--soft2); cursor: pointer; transition: border-color .15s; }
+.rl:hover { border-color: var(--gold); }
+.rl-top { display: flex; align-items: center; gap: 10px; }
+.rl-num { width: 24px; height: 24px; flex: none; border-radius: 50%; background: var(--navy); color: var(--gold-soft); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.rl-top b { color: var(--navy); font-size: 13.5px; flex: 1; }
+.rl-detail { display: none; margin: 8px 0 0 34px; font-size: 12px; color: var(--muted); border-left: 2px solid var(--gold-soft); padding-left: 10px; }
+.rl.open .rl-detail { display: block; }
+.rl-toggle { font-size: 11px; color: var(--faint); flex: none; }
+.role-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.role-card { border: 1px solid var(--cbord); border-radius: 10px; overflow: hidden; background: #fff; }
+.role-card .rc-head { background: var(--navy); color: #fff; padding: 10px 16px; display: flex; align-items: center; gap: 8px; }
+.role-card .rc-head b { font-size: 13.5px; }
+.role-card .rc-head .rc-tag { margin-left: auto; font-size: 10.5px; color: var(--dark-faint); }
+.role-card.hrbp .rc-head { background: var(--steel); }
+.role-card ul { list-style: none; padding: 12px 16px; }
+.role-card li { font-size: 12.5px; padding: 6px 0; border-bottom: 1px dashed var(--line); display: flex; gap: 8px; align-items: flex-start; }
+.role-card li:last-child { border-bottom: none; }
+.role-card li .ok { color: var(--green); font-weight: 700; flex: none; }
+.role-card li .no { color: var(--red); font-weight: 700; flex: none; }
+.tabbar { display: flex; gap: 6px; margin-left: auto; }
+.tabbar .tab { border: 1px solid var(--cbord); background: #fff; border-radius: 999px; font-size: 11.5px; padding: 3px 12px; cursor: pointer; color: var(--muted); font-family: inherit; }
+.tabbar .tab.on { background: var(--navy); color: #fff; border-color: var(--navy); font-weight: 700; }
+.promises { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.promise { background: #fff; border: 1px solid var(--cbord); border-top: 3px solid var(--gold); border-radius: 10px; padding: 16px 18px; }
+.promise .pm-icon { font-size: 20px; }
+.promise b { display: block; color: var(--navy); font-size: 14px; margin: 6px 0 4px; }
+.promise p { font-size: 12px; color: var(--muted); }
+.promise .clause { display: inline-block; margin-top: 10px; font-size: 11px; color: var(--amber); background: var(--gold-bg); border: 1px solid var(--gold-soft); border-radius: 999px; padding: 2px 10px; font-weight: 700; }
+.mono { font-family: "SF Mono", Menlo, monospace; font-size: 12px; color: var(--steel); white-space: nowrap; }
+@media (max-width: 900px) { .rl-grid, .role-cards, .promises { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html">🤖 AI 专员对话</a>
+      <a href="profile.html">🎯 岗位画像共建</a>
+      <a href="screening.html">🗂 简历筛选与分发</a>
+      <a href="evaluation.html">📝 证据链评估报告</a>
+      <a href="board.html">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html">📊 面试质检</a>
+      <a href="compliance.html" class="on">🛡 合规与数据权属</a>
+      <a href="platform.html">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>合规与数据权属</h1><span class="crumb">AI 招聘专员 / 管理与合规 / 合规中心</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+
+      <div class="page-head">
+        <h2>合规中心</h2>
+        <p>七条红线全程内置于产品机制，AI 结论一律为「建议」，任何录用／淘汰动作均需人工确认。数据权属以合同条款约定，可审计、可导出、可删除。</p>
+      </div>
+
+      <!-- KPI 行 -->
+      <div class="kpis">
+        <div class="kpi"><b>100<em>%</em></b><span>告知同意覆盖率（近 30 天全部面试场次）</span></div>
+        <div class="kpi"><b>12,438<em> 条</em></b><span>审计日志（近 30 天，保留 ≥ 180 天）</span></div>
+        <div class="kpi"><b>2<em> 件</em></b><span>数据导出请求（均于 24 小时内完成）</span></div>
+        <div class="kpi"><b>0<em> 条</em></b><span>待删除到期数据（超期简历自动清理）</span></div>
+      </div>
+
+      <!-- 七条红线 -->
+      <div class="panel">
+        <div class="p-head"><b>七条红线 · 产品机制内置</b><span class="hint">点击每条查看对应产品机制 · 与方案主页口径一致</span></div>
+        <div class="p-body">
+          <div class="rl-grid">
+            <div class="rl" onclick="this.classList.toggle('open')">
+              <div class="rl-top"><span class="rl-num">1</span><b>AI 只出「建议」，不做录用决定</b><span class="pill green">产品机制已启用</span><span class="rl-toggle">▾</span></div>
+              <div class="rl-detail">录用／淘汰按钮均为「需人工确认」语义，系统不存在任何自动通过或自动淘汰链路，最终决定人为 HRBP 或用人部门负责人。</div>
+            </div>
+            <div class="rl" onclick="this.classList.toggle('open')">
+              <div class="rl-top"><span class="rl-num">2</span><b>低分候选人不自动淘汰</b><span class="pill green">产品机制已启用</span><span class="rl-toggle">▾</span></div>
+              <div class="rl-detail">综合评分低于 3.0 的候选人（如顾北辰 2.4）自动进入人工复核池，由 HRBP 复核后才能做出淘汰确认。</div>
+            </div>
+            <div class="rl" onclick="this.classList.toggle('open')">
+              <div class="rl-top"><span class="rl-num">3</span><b>录制事前告知同意</b><span class="pill green">产品机制已启用</span><span class="rl-toggle">▾</span></div>
+              <div class="rl-detail">面试邀请函内置告知条款，候选人未确认同意则无法开启录制；不同意即转人工流程，同意记录见下方「告知同意管理」。</div>
+            </div>
+            <div class="rl" onclick="this.classList.toggle('open')">
+              <div class="rl-top"><span class="rl-num">4</span><b>敏感特征技术禁用</b><span class="pill green">产品机制已启用</span><span class="rl-toggle">▾</span></div>
+              <div class="rl-detail">性别、婚育、地域、健康等特征及其代理变量在技术层面禁用，不进入画像卡与任何评分特征；评分卡仅围绕岗位胜任力五维。</div>
+            </div>
+            <div class="rl" onclick="this.classList.toggle('open')">
+              <div class="rl-top"><span class="rl-num">5</span><b>不做人的生物分析</b><span class="pill green">产品机制已启用</span><span class="rl-toggle">▾</span></div>
+              <div class="rl-detail">不做人脸微表情、情绪识别、声纹性格推断；视觉模型只解析屏幕共享与文档内容，只看内容、不看人。</div>
+            </div>
+            <div class="rl" onclick="this.classList.toggle('open')">
+              <div class="rl-top"><span class="rl-num">6</span><b>无出处不输出</b><span class="pill green">产品机制已启用</span><span class="rl-toggle">▾</span></div>
+              <div class="rl-detail">评估报告中每条结论必须溯源到原话时间戳或简历原文出处，给不出出处的结论不会写入报告。</div>
+            </div>
+            <div class="rl" onclick="this.classList.toggle('open')">
+              <div class="rl-top"><span class="rl-num">7</span><b>分级权限 + 全量审计</b><span class="pill green">产品机制已启用</span><span class="rl-toggle">▾</span></div>
+              <div class="rl-detail">部门只见本岗位、质检明细仅面试官本人可见；查看、导出、确认、删除等全部操作写入审计日志，保留不少于 180 天。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 告知同意 + 分级权限 -->
+      <div class="cols c32 mt">
+        <div class="panel">
+          <div class="p-head"><b>告知同意管理</b><span class="hint">最近 5 场面试 · 覆盖率 100%</span></div>
+          <div class="p-body" style="padding:0;">
+            <table class="tbl">
+              <thead><tr><th>候选人</th><th>面试场次</th><th>告知方式</th><th>同意时间</th><th>状态</th></tr></thead>
+              <tbody>
+                <tr><td><b>陈砚秋</b></td><td>二面 · 刘慕青（技术总监）</td><td>邀请函条款 v2.1</td><td class="mono">08-08 10:12</td><td><span class="pill green">已同意</span></td></tr>
+                <tr><td><b>林晚晴</b></td><td>一面 · 待安排</td><td>邀请函条款 v2.1</td><td class="mono">08-09 09:26</td><td><span class="pill green">已同意</span></td></tr>
+                <tr><td><b>沈知远</b></td><td>一面 · 王梓航（资深工程师）</td><td>邀请函条款 v2.1</td><td class="mono">08-06 15:40</td><td><span class="pill green">已同意</span></td></tr>
+                <tr><td><b>苏念安</b></td><td>一面 · 王梓航（资深工程师）</td><td>邀请函条款 v2.0</td><td class="mono">08-04 11:05</td><td><span class="pill green">已同意</span></td></tr>
+                <tr><td><b>顾北辰</b></td><td>人工复核 · 补充约谈</td><td>邀请函条款 v2.0</td><td class="mono">08-03 16:48</td><td><span class="pill green">已同意</span></td></tr>
+              </tbody>
+            </table>
+            <p class="muted" style="padding:10px 16px;">同意记录随面试档案归档；候选人撤回同意后，对应录制数据进入删除队列并在审计日志留痕。</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="p-head"><b>数据可见范围速查</b><span class="hint">悬停角色卡查看说明</span></div>
+          <div class="p-body">
+            <p class="muted" style="margin-bottom:10px;">最小可见原则：每个角色只看到完成本职工作所需的数据，质检明细仅面试官本人可见。</p>
+            <div class="evi"><span class="who">示例</span>王梓航（一面官）打开陈砚秋二面材料时，系统提示：<b style="color:var(--navy);">「该场次不在您的访问范围内」</b>，并将访问尝试写入审计日志。</div>
+            <div class="evi"><span class="who">示例</span>刘慕青查看本人质检报告时可见逐题明细；赵一宁（HRBP）侧仅显示<b style="color:var(--navy);">团队汇总趋势</b>，不显示个人明细。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 分级权限三角色卡 -->
+      <div class="panel mt">
+        <div class="p-head"><b>分级权限</b><span class="hint">RBAC 角色出厂预置 · 可按客户组织结构调整</span></div>
+        <div class="p-body">
+          <div class="role-cards">
+            <div class="role-card" title="用人部门：仅本岗位候选人">
+              <div class="rc-head"><b>用人部门</b><span class="rc-tag">HIRING&nbsp;TEAM</span></div>
+              <ul>
+                <li><span class="ok">✓</span>仅可见本岗位（如高级后端工程师）候选人与评估建议</li>
+                <li><span class="ok">✓</span>可对候选人提交面评意见，参与录用确认</li>
+                <li><span class="no">✕</span>不可见其他岗位数据，不可导出原始简历</li>
+              </ul>
+            </div>
+            <div class="role-card" title="面试官：本人场次与本人质检报告">
+              <div class="rc-head"><b>面试官</b><span class="rc-tag">INTERVIEWER</span></div>
+              <ul>
+                <li><span class="ok">✓</span>仅可见本人场次的候选人材料与证据链报告</li>
+                <li><span class="ok">✓</span>质检明细报告仅本人可见，用于自我改进</li>
+                <li><span class="no">✕</span>不可见他人场次评分与他人质检数据</li>
+              </ul>
+            </div>
+            <div class="role-card hrbp" title="HRBP／管理员：全量数据与审计">
+              <div class="rc-head"><b>HRBP／管理员</b><span class="rc-tag">ADMIN</span></div>
+              <ul>
+                <li><span class="ok">✓</span>全量岗位与候选人数据、人工复核池处理权限</li>
+                <li><span class="ok">✓</span>审计日志查询与数据导出（默认脱敏、全程留痕）</li>
+                <li><span class="ok">✓</span>录用／淘汰建议的最终人工确认权</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 审计日志 -->
+      <div class="panel mt">
+        <div class="p-head"><b>审计日志</b>
+          <div class="tabbar" id="auditTabs">
+            <button class="tab on" data-act="all">全部</button>
+            <button class="tab" data-act="view">查看</button>
+            <button class="tab" data-act="export">导出</button>
+            <button class="tab" data-act="confirm">确认</button>
+            <button class="tab" data-act="delete">删除</button>
+          </div>
+        </div>
+        <div class="p-body" style="padding:0;">
+          <table class="tbl" id="auditTbl">
+            <thead><tr><th>时间</th><th>操作人</th><th>动作</th><th>对象</th></tr></thead>
+            <tbody>
+              <tr data-act="export"><td class="mono">08-09 14:32</td><td><b>赵一宁</b>（HRBP）</td><td><span class="pill blue">导出</span></td><td>高级后端工程师岗位评估数据（已脱敏，请求 24 小时内完成）</td></tr>
+              <tr data-act="view"><td class="mono">08-09 11:07</td><td><b>刘慕青</b>（二面官）</td><td><span class="pill navy">查看</span></td><td>本人场次质检明细报告（陈砚秋 · 二面，仅本人可见）</td></tr>
+              <tr data-act="view"><td class="mono">08-08 17:26</td><td><b>王梓航</b>（一面官）</td><td><span class="pill navy">查看</span></td><td>沈知远 一面证据链评估报告（综合 3.8 · 建议进入二面）</td></tr>
+              <tr data-act="confirm"><td class="mono">08-08 09:41</td><td><b>赵一宁</b>（HRBP）</td><td><span class="pill amber">确认</span></td><td>周远帆 AI 淘汰建议（2.1）· 已人工确认并发送婉拒沟通</td></tr>
+              <tr data-act="delete"><td class="mono">08-07 16:03</td><td><b>系统</b>（定时任务）</td><td><span class="pill red">删除</span></td><td>超期简历原文清理巡检 · 本期到期 0 份，无数据删除</td></tr>
+            </tbody>
+          </table>
+          <p class="muted" style="padding:10px 16px;">审计日志不可篡改，保留不少于 180 天；导出动作默认脱敏，含操作人、时间与数据范围三要素。</p>
+        </div>
+      </div>
+
+      <!-- 数据权属四项承诺 -->
+      <div class="panel mt">
+        <div class="p-head"><b>数据权属四项承诺</b><span class="hint">写入商务合同 · 交付即生效</span></div>
+        <div class="p-body">
+          <div class="promises">
+            <div class="promise">
+              <span class="pm-icon">🏷</span>
+              <b>数据归客户所有</b>
+              <p>简历、面试录制、评估结果等全部业务数据权属归客户，商汤仅按约定提供处理服务。</p>
+              <span class="clause">合同条款 §7.1</span>
+            </div>
+            <div class="promise">
+              <span class="pm-icon">📦</span>
+              <b>随时可导出</b>
+              <p>支持标准格式全量导出，导出请求 24 小时内完成交付；合作终止时协助完成数据迁出。</p>
+              <span class="clause">合同条款 §7.2</span>
+            </div>
+            <div class="promise">
+              <span class="pm-icon">🚫</span>
+              <b>默认不用于训练</b>
+              <p>客户数据默认不进入任何模型训练；如需开启须书面授权，并单独约定范围与期限。</p>
+              <span class="clause">合同条款 §7.3</span>
+            </div>
+            <div class="promise">
+              <span class="pm-icon">🧱</span>
+              <b>跨客户隔离</b>
+              <p>独立租户隔离，支持私有化部署、数据不出域；不同客户数据物理隔离、互不可见。</p>
+              <span class="clause">合同条款 §7.4</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="footnote">演示数据均为虚构 · 商汤科技 · 大模型生态渠道部</p>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  var tabs = document.querySelectorAll('#auditTabs .tab');
+  var rows = document.querySelectorAll('#auditTbl tbody tr');
+  tabs.forEach(function (t) {
+    t.addEventListener('click', function () {
+      tabs.forEach(function (x) { x.classList.remove('on'); });
+      t.classList.add('on');
+      var act = t.getAttribute('data-act');
+      rows.forEach(function (r) {
+        r.style.display = (act === 'all' || r.getAttribute('data-act') === act) ? '' : 'none';
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

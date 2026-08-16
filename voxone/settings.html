@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>系统设置 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("settings", async (root, ctx) => {
+  const { me, model } = ctx;
+  const canAudit = !!(me.perms.manageUsers || me.perms.viewAll);
+  const isSuper = me.role === "superadmin";
+
+  // 可见场景:['*'] → 全部;否则场景 chips
+  const scenes = me.scenarios || [];
+  const sceneChips = scenes.includes("*")
+    ? `<span class="chip">🌐 全部场景</span>`
+    : (scenes.length
+        ? scenes.map(s => `<span class="chip">${VX.scEmoji(s)} ${VX.esc(VX.scLabel(s))}</span>`).join(" ")
+        : `<span class="sub">—</span>`);
+
+  // 引擎模式(实时端点 / 内置引擎)
+  const engine = model.mode === "live" ? "实时端点 Live" : "内置引擎(离线可用)";
+
+  // 审计日志:仅有权限时拉取
+  let auditRows = [];
+  if (canAudit) {
+    try { const r = await VX.api("/api/audit"); auditRows = r.audit || []; }
+    catch (e) { /* 忽略拉取失败,下面走空态 */ }
+  }
+
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">⚙️</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">系统设置</div>
+      <div class="sub">修改密码 · 审计日志 · 数据</div>
+    </div>
+  </div>
+
+  <div class="two" style="align-items:start;margin-bottom:16px">
+    <!-- 账户信息 -->
+    <div class="card pad">
+      <div class="hd"><h3>👤 账户信息</h3><div class="sp"></div><span class="badge ai">${VX.esc(me.roleLabel)}</span></div>
+      <div class="kv"><span class="k">账号</span><span class="v mono">${VX.esc(me.username)}</span></div>
+      <div class="kv"><span class="k">姓名</span><span class="v">${VX.esc(me.name || "—")}</span></div>
+      <div class="kv"><span class="k">职务</span><span class="v">${VX.esc(me.title || "—")}</span></div>
+      <div class="kv"><span class="k">角色</span><span class="v">${VX.esc(me.roleLabel)}</span></div>
+      <div class="kv"><span class="k">可见场景</span><span class="v" style="max-width:62%;display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end">${sceneChips}</span></div>
+      <div style="margin-top:14px"><button class="btn pri" id="chpw">🔑 修改密码</button></div>
+    </div>
+
+    <!-- 平台信息 -->
+    <div class="card pad">
+      <div class="hd"><h3>🌊 平台信息</h3><div class="sp"></div><span class="chip"><span class="dot ${model.mode === "live" ? "g" : "b"}"></span>${VX.esc(engine)}</span></div>
+      <div class="kv"><span class="k">产品</span><span class="v">声渡 VoxOne</span></div>
+      <div class="kv"><span class="k">底座</span><span class="v">SenseAudio V2.0(30 语言 + 粤语)</span></div>
+      <div class="kv"><span class="k">引擎模式</span><span class="v">${VX.esc(engine)}</span></div>
+      <div class="kv"><span class="k">出品</span><span class="v">商汤科技 · 大模型生态渠道部</span></div>
+      <div class="notice" style="margin-top:14px">一套自研 SenseAudio V2.0 底座 · 端到端全双工可打断 · 客服 / 销售 / 外呼一体化。</div>
+    </div>
+  </div>
+
+  ${canAudit ? `
+  <div class="card pad" style="margin-bottom:16px">
+    <div class="hd"><h3>🗂️ 审计日志</h3><div class="sp"></div><span class="sub">最近 ${VX.fmtNum(auditRows.length)} 条操作留痕</span></div>
+    ${auditRows.length ? `
+    <div style="overflow-x:auto">
+      <table class="tb">
+        <thead><tr><th style="width:130px">时间</th><th style="width:120px">操作人</th><th style="width:150px">动作</th><th>详情</th></tr></thead>
+        <tbody>
+          ${auditRows.map(a => `<tr>
+            <td class="mono" style="white-space:nowrap;color:var(--ink-2)">${VX.esc(VX.fmtTs(a.ts))}</td>
+            <td class="nm">${VX.esc(a.actor || "—")}</td>
+            <td><span class="tag">${VX.esc(a.action || "—")}</span></td>
+            <td class="muted">${VX.esc(a.detail || "") || "—"}</td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+    </div>` : `<div class="empty"><div class="ic">🗂️</div>暂无审计记录</div>`}
+  </div>` : ""}
+
+  ${isSuper ? `
+  <div class="card pad" style="border-color:rgba(255,107,107,.4)">
+    <div class="hd"><h3>⚠️ 数据重置</h3><div class="sp"></div><span class="badge bad">危险操作</span></div>
+    <div class="sub" style="margin-bottom:14px">将业务数据与会话留痕恢复为初始种子(不影响账号)。此操作不可撤销,请谨慎执行。</div>
+    <button class="btn danger" id="resetbtn">🗑️ 重置全部业务数据</button>
+  </div>` : ""}`;
+
+  // ---- 事件绑定 ----
+  VX.$("#chpw", root).onclick = () => VX.changePw();
+
+  const resetBtn = VX.$("#resetbtn", root);
+  if (resetBtn) {
+    resetBtn.onclick = () => VX.confirm("确认重置全部业务数据与留痕?", async () => {
+      try {
+        await VX.api("/api/reset", "POST");
+        VX.toast("已重置,即将刷新页面", "ok");
+        setTimeout(() => location.reload(), 900);
+      } catch (e) { VX.toast(e.message, "err"); }
+    }, "确认重置");
+  }
+});
+</script>
+</body></html>

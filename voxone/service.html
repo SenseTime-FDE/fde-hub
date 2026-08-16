@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI 客服 · Inbound · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("service", async (root, ctx) => {
+  const { data, stats, me } = ctx;
+  const s = stats, t = data.metrics.today, tg = data.metrics.targets;
+  const $ = VX.$;
+
+  // —— 概览口径(均来自 ctx.stats,已按角色场景裁剪)——
+  const svcCount   = (s.byMode && s.byMode.service) || 0;
+  const aiResolved = s.aiResolved || 0;
+  const transfer   = s.transferred || 0;
+  const funnelTot  = (aiResolved + transfer) || s.total || 1;
+  const aiPct      = Math.round((aiResolved / funnelTot) * 100);
+  const trPct      = Math.round((transfer / funnelTot) * 100);
+
+  // 语种分布
+  const langRows  = Object.entries(s.byLang || {}).sort((a, b) => b[1] - a[1]);
+  const langTotal = langRows.reduce((x, [, v]) => x + v, 0) || 1;
+
+  // —— 初次拉取近期客服会话(mode=service · API 已按角色场景过滤)——
+  const first = await VX.api("/api/calls?mode=service");
+  let rows = first.calls || [];
+  const chList = [...new Set(rows.map((r) => r.channel))]; // 稳定的渠道下拉集
+
+  const scShort = (id) => VX.scEmoji(id) + " " + VX.scLabel(id).split(" / ")[0];
+  const whoLabel = (r) => (r === "user" ? "客户" : r === "ai" ? "AI" : "系统");
+  const resolvedBadge = (rb) => rb === "ai" ? VX.badge("AI", "ai") : rb === "human" ? VX.badge("转人工", "coral") : "—";
+
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-voice);display:grid;place-items:center;font-size:22px">💬</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">AI 客服 · Inbound 智能服务</div>
+      <div class="sub">全渠道自主解决 · 坐席 Copilot · 工单质检 · ${me.perms.viewAll ? "全场景视图" : "本场景视图"}</div>
+    </div>
+    <a class="btn voice" href="workbench.html">🎧 去工作台接入</a>
+  </div>
+
+  <div class="stats" style="margin-bottom:16px">
+    <div class="stat"><div class="k">💬 客服会话量</div><div class="v">${VX.fmtNum(svcCount)}</div><div class="d">今日进线 ${VX.fmtNum(t.calls)} · 留痕 ${VX.fmtNum(s.total)} 通</div></div>
+    <div class="stat voice"><div class="k">🤖 AI 自主解决率</div><div class="v">${s.aiResolveRate}<small>%</small></div><div class="d">目标 ${tg.aiResolveRate}% · 转人工 ${VX.fmtNum(transfer)} 通</div></div>
+    <div class="stat voice"><div class="k">⏱️ 平均处理时长</div><div class="v">${VX.fmtDur(s.avgDurationSec)}</div><div class="d">端到端延迟 ${s.avgLatencyMs}ms</div></div>
+    <div class="stat"><div class="k">😊 平均满意度</div><div class="v">${s.avgCsat}<small>/5</small></div><div class="d">质检均分 ${s.avgQa}</div></div>
+  </div>
+
+  <div class="three" style="margin-bottom:16px">
+    <div class="card pad">
+      <div class="hd"><h3>自助解决漏斗</h3><div class="sp"></div><span class="sub">进线 → AI → 人工</span></div>
+      <div class="row" style="gap:18px;margin-bottom:14px">
+        <div><div class="sub">进线总量</div><div style="font-size:20px;font-weight:800;color:#fff">${VX.fmtNum(funnelTot)}</div></div>
+        <div><div class="sub">AI 自助</div><div style="font-size:20px;font-weight:800;color:var(--teal)">${VX.fmtNum(aiResolved)}</div></div>
+        <div><div class="sub">转人工</div><div style="font-size:20px;font-weight:800;color:var(--coral-2)">${VX.fmtNum(transfer)}</div></div>
+      </div>
+      <div style="margin-bottom:12px">
+        <div class="barlabel"><span>AI 自主解决</span><span>${aiPct}%</span></div>
+        <div class="bar"><i style="width:${aiPct}%"></i></div>
+      </div>
+      <div>
+        <div class="barlabel"><span>转人工坐席</span><span>${trPct}%</span></div>
+        <div class="bar coral"><i style="width:${trPct}%"></i></div>
+      </div>
+    </div>
+
+    <div class="card pad">
+      <div class="hd"><h3>渠道分布</h3><div class="sp"></div><span class="sub">全渠道收口</span></div>
+      <div class="hbars">${data.metrics.channels.map((c) => `<div class="hb"><span class="t">${VX.esc(c.k)}</span><div class="bar"><i style="width:${Math.min(c.v * 2, 100)}%"></i></div><span class="n">${c.v}%</span></div>`).join("")}</div>
+    </div>
+
+    <div class="card pad">
+      <div class="hd"><h3>语种分布</h3><div class="sp"></div><span class="sub">留痕会话</span></div>
+      <div class="hbars">${langRows.length ? langRows.map(([k, v]) => `<div class="hb"><span class="t">${VX.esc(VX.LANG[k] || k)}</span><div class="bar coral"><i style="width:${Math.round((v / langTotal) * 100)}%"></i></div><span class="n">${v}</span></div>`).join("") : '<div class="sub">暂无数据</div>'}</div>
+    </div>
+  </div>
+
+  <div class="card pad">
+    <div class="between" style="flex-wrap:wrap;gap:10px">
+      <div class="hd" style="margin:0"><h3>近期客服会话</h3><span class="chip" id="cnt">${rows.length} 条</span></div>
+      <div class="row" style="gap:10px">
+        <input id="q" placeholder="搜索意图 / 客户 / 转写 / 结果…" style="width:240px"/>
+        <select id="chsel" style="width:150px"><option value="">全部渠道</option>${chList.map((ch) => `<option value="${ch}">${VX.esc(VX.CH[ch] || ch)}</option>`).join("")}</select>
+      </div>
+    </div>
+    <div id="tbwrap" style="margin-top:12px"></div>
+  </div>`;
+
+  // —— 表格渲染 ——
+  function tableHtml(list) {
+    return `<table class="tb"><thead><tr>
+      <th>时间</th><th>场景</th><th>渠道</th><th>客户</th><th>意图</th><th>结果</th><th>解决方</th><th>CSAT</th>
+    </tr></thead><tbody>
+    ${list.map((c, i) => `<tr data-idx="${i}" style="cursor:pointer">
+      <td class="mono" style="white-space:nowrap">${VX.fmtTs(c.ts)}</td>
+      <td style="white-space:nowrap">${scShort(c.scenario)}</td>
+      <td>${VX.esc(VX.CH[c.channel] || c.channel)}</td>
+      <td>${VX.esc(c.customer || "—")}</td>
+      <td class="nm">${VX.esc(c.intent || "—")}</td>
+      <td>${VX.esc(c.outcome || "—")}</td>
+      <td>${resolvedBadge(c.resolvedBy)}</td>
+      <td>${c.csat != null ? "★ " + c.csat : "—"}</td>
+    </tr>`).join("")}
+    </tbody></table>`;
+  }
+  const EMPTY = '<div class="empty"><div class="ic">🔍</div><h3>没有匹配的会话</h3><p class="sub">试试更换渠道或清空搜索词。</p></div>';
+
+  function paint(list) {
+    rows = list;
+    $("#cnt").textContent = list.length + " 条";
+    const wrap = $("#tbwrap");
+    if (!list.length) { wrap.innerHTML = EMPTY; return; }
+    wrap.innerHTML = tableHtml(list);
+    VX.$$("tr[data-idx]", wrap).forEach((tr) => { tr.onclick = () => openDetail(rows[+tr.dataset.idx]); });
+  }
+
+  async function renderTable() {
+    const q = $("#q").value.trim(), ch = $("#chsel").value;
+    const params = new URLSearchParams({ mode: "service" });
+    if (q) params.set("q", q);
+    if (ch) params.set("channel", ch);
+    try { const res = await VX.api("/api/calls?" + params.toString()); paint(res.calls || []); }
+    catch (e) { VX.toast(e.message, "err"); }
+  }
+
+  // —— 会话详情弹窗 ——
+  function openDetail(c) {
+    if (!c) return;
+    const bubbles = (c.transcript || []).map((m) => `<div class="bub ${m.role}"><div class="meta">${whoLabel(m.role)}</div><div>${VX.esc(m.text)}</div></div>`).join("")
+      || '<div class="sub">无转写记录</div>';
+    const kv = (k, v) => `<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+    const body = `
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        <span class="chip">${scShort(c.scenario)}</span>
+        ${VX.modeBadge(c.mode)}
+        <span class="chip">${VX.esc(VX.CH[c.channel] || c.channel)}</span>
+        <span class="chip">${VX.esc(VX.LANG[c.lang] || c.lang)}</span>
+        ${resolvedBadge(c.resolvedBy)}
+      </div>
+      <div class="two" style="gap:0 18px">
+        <div>
+          ${kv("客户", VX.esc(c.customer || "—"))}
+          ${kv("意图", VX.esc(c.intent || "—"))}
+          ${kv("结果", VX.esc(c.outcome || "—"))}
+          ${kv("命中 SOP", VX.esc(c.sopTitle || "—"))}
+        </div>
+        <div>
+          ${kv("处理坐席", VX.esc(c.actorName || "—"))}
+          ${kv("时长 · 轮次", VX.fmtDur(c.durationSec) + " · " + (c.turns || 0) + " 轮")}
+          ${kv("端到端延迟", (c.latencyMs || "—") + " ms")}
+          ${kv("CSAT · 质检", (c.csat != null ? "★ " + c.csat : "—") + " · " + (c.qaScore != null ? c.qaScore : "—"))}
+        </div>
+      </div>
+      ${(c.tags && c.tags.length) ? `<div class="row" style="gap:6px;margin:6px 0 2px">${c.tags.map((x) => `<span class="tag">${VX.esc(x)}</span>`).join("")}</div>` : ""}
+      <div class="hr"></div>
+      <div class="sub" style="margin-bottom:10px">🗣️ 对话转写</div>
+      <div class="chat">${bubbles}</div>`;
+    VX.modal({ title: (c.intent || "会话详情") + " · " + VX.fmtTs(c.ts), body, wide: true });
+  }
+
+  // —— 事件绑定 ——
+  let tmr;
+  $("#q").addEventListener("input", () => { clearTimeout(tmr); tmr = setTimeout(renderTable, 280); });
+  $("#q").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); clearTimeout(tmr); renderTable(); } });
+  $("#chsel").addEventListener("change", renderTable);
+
+  paint(rows);
+});
+</script>
+</body></html>

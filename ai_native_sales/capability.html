@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · 能力集</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ============ capability 页专属样式（cb- 前缀） ============ */
+/* 品牌区（不改 style.css，写在页内） */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px;flex-wrap:nowrap}
+.topnav nav a{padding:7px 11px;font-size:13px}
+.site-footer .foot-brand img{height:18px}
+
+.cb-sec{margin-bottom:46px}
+.cb-head{display:flex;align-items:baseline;gap:13px;margin-bottom:16px;flex-wrap:wrap}
+.cb-head .no{flex:none;font-size:11px;font-weight:800;letter-spacing:1.5px;color:#fff;background:var(--ink);border-radius:7px;padding:5px 10px}
+.cb-head h2{font-size:21px;color:var(--ink)}
+.cb-head h2 .hl{color:var(--warm-d)}
+.cb-head p{font-size:12px;color:var(--muted)}
+
+/* ---------- 01 六类能力 ---------- */
+.cb-caps{grid-template-columns:repeat(3,1fr);gap:14px}
+.cb-caps .cap{padding:16px 17px 14px;background:var(--white);box-shadow:var(--shadow-sm)}
+.cb-caps .cap.key{border-color:var(--warm-l);background:#FFFDF7}
+.cb-capline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px}
+.cb-capline b{margin-bottom:0;font-size:14.5px}
+.cb-kv{margin-top:8px}
+.cb-kv i{font-style:normal;display:block;font-size:10px;font-weight:800;letter-spacing:1.5px;color:var(--teal);margin-bottom:2px}
+.cb-caps .cap.key .cb-kv i{color:var(--warm-d)}
+.cb-kv span{font-size:12px;color:var(--sub);line-height:1.6;display:block}
+.cb-kv span b{display:inline;font-size:12px;color:var(--ink)}
+@media(max-width:1080px){.cb-caps{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.cb-caps{grid-template-columns:1fr}}
+.cb-band{margin-top:16px;background:var(--ink);border-radius:14px;padding:16px 20px;color:#fff;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.cb-band .lab{flex:none;font-size:10.5px;font-weight:800;letter-spacing:2px;color:#E3C569;border:1px solid rgba(230,201,105,.45);border-radius:999px;padding:4px 12px}
+.cb-band p{flex:1;min-width:260px;font-size:12.5px;color:#B8C7D8;line-height:1.7}
+.cb-band p b{color:#fff}
+.cb-band p em{font-style:normal;color:#E3C569;font-weight:700}
+.cb-more{margin-top:12px;font-size:12.5px}
+.cb-more a{font-weight:700;color:var(--teal-d)}
+.cb-more a:hover{color:var(--warm-d)}
+
+/* ---------- 02 查询工作台 ---------- */
+.cb-ws{display:grid;grid-template-columns:1.35fr .85fr;gap:18px;align-items:start}
+@media(max-width:1080px){.cb-ws{grid-template-columns:1fr}}
+.cb-console{background:var(--white);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-sm);overflow:hidden}
+.cb-cbar{display:flex;align-items:center;gap:9px;background:linear-gradient(120deg,var(--ink) 0%,var(--ink3) 100%);color:#fff;padding:11px 16px}
+.cb-cbar .dotset{display:flex;gap:5px}
+.cb-cbar .dotset i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22)}
+.cb-cbar b{font-size:13px;letter-spacing:.5px}
+.cb-cbar span{margin-left:auto;font-size:10.5px;color:#B8C7D8;letter-spacing:1px}
+.cb-cin{margin:14px 16px 0;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:10px 14px;font-size:13.5px;color:var(--ink);display:flex;gap:9px;align-items:baseline}
+.cb-cin .pr{flex:none;color:var(--warm-d);font-weight:800}
+.cb-cin .cur{display:inline-block;width:2px;height:14px;background:var(--teal);vertical-align:-2px;margin-left:2px;animation:cbBlink 1.1s step-end infinite}
+@keyframes cbBlink{0%,100%{opacity:1}50%{opacity:0}}
+.cb-qs{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px 4px}
+.cb-q{font-family:inherit;font-size:12px;border:1px solid var(--line);background:var(--bg);color:var(--sub);border-radius:999px;padding:6px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px}
+.cb-q:hover{border-color:var(--teal-l);color:var(--teal-d)}
+.cb-q.on{background:var(--ink);border-color:var(--ink);color:#fff;font-weight:600}
+.cb-q .who{flex:none;font-size:10px;font-weight:800;border-radius:999px;padding:1px 7px;background:var(--sky);color:var(--teal-d)}
+.cb-q.on .who{background:rgba(255,255,255,.16);color:#E3C569}
+.cb-q.warnq .who{background:#FBEAEA;color:var(--warn)}
+.cb-q.on.warnq .who{background:rgba(255,255,255,.16);color:#F3B0AD}
+.cb-answers{padding:6px 16px 16px}
+.cb-answer[hidden]{display:none!important}
+.cb-ansmeta{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0 10px;font-size:11px;color:var(--muted)}
+.cb-ansmeta .who{font-weight:700;color:var(--ink)}
+.cb-ansmeta .scope{background:var(--sky);color:var(--teal-d);border-radius:999px;padding:2px 9px;font-weight:700}
+.cb-seg{border-top:1px dashed var(--card-b);padding:9px 0 8px;display:grid;grid-template-columns:78px 1fr;gap:12px;align-items:start}
+.cb-seg:first-of-type{border-top:none}
+@media(max-width:700px){.cb-seg{grid-template-columns:1fr;gap:4px}}
+.cb-lab{font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--muted);padding-top:3px}
+.cb-seg.concl .cb-lab{color:var(--warm-d)}
+.cb-seg.concl p{font-size:14px;color:var(--sub);line-height:1.6}
+.cb-seg.concl p b{color:var(--ink);font-size:15px}
+.cb-seg p{font-size:12.5px;color:var(--sub);line-height:1.65}
+.cb-seg p b{color:var(--ink)}
+.cb-ev{list-style:none}
+.cb-ev li{position:relative;font-size:12.5px;color:var(--sub);line-height:1.65;padding:3px 0 3px 15px}
+.cb-ev li::before{content:"▸";position:absolute;left:0;top:3px;color:var(--teal-l);font-size:11px}
+.cb-ev .src{display:inline-block;font-size:10.5px;font-weight:700;color:var(--teal-d);background:var(--sky);border-radius:5px;padding:1px 7px;margin-right:6px;vertical-align:1px}
+.cb-ev .src.warm{color:var(--warm-d);background:var(--cream)}
+.cb-ev em{font-style:normal;font-size:10.5px;color:var(--muted);margin-left:4px}
+.cb-next p{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.cb-next p b{color:var(--warm-d)}
+.cb-next a{font-weight:700;color:var(--teal-d)}
+.cb-next a:hover{color:var(--warm-d)}
+.cb-ansfoot{margin-top:10px;padding-top:8px;border-top:1px solid var(--line);font-size:10.5px;color:var(--muted);display:flex;gap:5px;align-items:center}
+.cb-ansfoot::before{content:"⛁";color:var(--teal-l)}
+.cb-block{background:#FBEAEA;border:1px solid #F3C4C2;border-radius:11px;padding:12px 14px;font-size:13px;color:var(--warn);font-weight:700;line-height:1.6;margin-top:8px}
+.cb-blocklist{list-style:none;margin-top:10px}
+.cb-blocklist li{position:relative;font-size:12.5px;color:var(--sub);line-height:1.65;padding:3.5px 0 3.5px 16px}
+.cb-blocklist li::before{content:"—";position:absolute;left:0;top:3.5px;color:var(--muted);font-size:11px}
+.cb-blocklist li b{color:var(--ink)}
+.cb-caption{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.7}
+.cb-caption b{color:var(--teal-d)}
+.cb-perm .pitem{border-top:1px dashed var(--card-b);padding:9px 0}
+.cb-perm .pitem:first-of-type{border-top:none;padding-top:2px}
+.cb-perm .pitem b{display:block;font-size:13px;color:var(--ink);margin-bottom:2px}
+.cb-perm .pitem span{font-size:12px;color:var(--sub);line-height:1.6;display:block}
+
+/* ---------- 03 能力不锁定 ---------- */
+.cb-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:980px){.cb-3col{grid-template-columns:1fr}}
+.cb-mcard{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm)}
+.cb-mcard .ic{width:36px;height:36px;border-radius:11px;background:var(--sky);color:var(--teal-d);display:grid;place-items:center;font-size:17px;margin-bottom:10px}
+.cb-mcard.warm .ic{background:var(--cream);color:var(--warm-d)}
+.cb-mcard h3{font-size:15px;color:var(--ink);margin-bottom:6px}
+.cb-mcard p{font-size:12.5px;color:var(--sub);line-height:1.7}
+.cb-mcard p b{color:var(--ink)}
+.cb-roles{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.cb-roles span{font-size:11px;font-weight:600;color:var(--teal-d);background:var(--sky);border:1px solid var(--sky2);border-radius:999px;padding:3px 10px}
+.cb-mcard.warm .cb-roles span{color:var(--warm-d);background:var(--cream);border-color:var(--warm-l)}
+
+/* ---------- 04 记分卡 ---------- */
+.cb-scroll{overflow-x:auto}
+.cb-scroll .mini-table{min-width:820px}
+.cb-scroll .mini-table td:first-child{white-space:nowrap}
+.cb-legend{display:flex;gap:14px;flex-wrap:wrap;margin:10px 2px 0;font-size:11.5px;color:var(--muted)}
+.cb-legend i{font-style:normal;margin-right:4px}
+.cb-legend .ok{color:var(--ok);font-weight:700}
+.cb-legend .gd{color:#A9761F;font-weight:700}
+.cb-legend .wn{color:var(--warn);font-weight:700}
+
+/* ---------- 05 A/B 择优 ---------- */
+.cb-flow{margin-bottom:16px}
+.cb-ab{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:900px){.cb-ab{grid-template-columns:1fr}}
+.cb-abcard{background:var(--white);border:1px solid var(--line);border-radius:15px;padding:16px 18px;box-shadow:var(--shadow-sm)}
+.cb-abcard.win{border-color:var(--warm-l);background:#FFFDF7}
+.cb-abcard .al{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:1.5px;border-radius:999px;padding:3px 11px;background:var(--sky);color:var(--teal-d);margin-bottom:8px}
+.cb-abcard.win .al{background:var(--cream);color:var(--warm-d)}
+.cb-abcard b{display:block;font-size:14.5px;color:var(--ink);margin-bottom:4px}
+.cb-abcard span{display:block;font-size:12px;color:var(--sub);line-height:1.65}
+.cb-verdict{background:var(--cream);border:1px solid var(--warm-l);border-radius:14px;padding:15px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.cb-verdict .lab{flex:none;font-size:10.5px;font-weight:800;letter-spacing:2px;color:#fff;background:var(--warm-d);border-radius:999px;padding:5px 13px}
+.cb-verdict p{flex:1;min-width:260px;font-size:13px;color:var(--sub);line-height:1.7}
+.cb-verdict p b{color:var(--ink)}
+
+/* ---------- 收尾 note ---------- */
+.cb-note{background:var(--sky);border:1px solid var(--sky2);border-radius:14px;padding:14px 18px;font-size:12.5px;color:var(--sub);line-height:1.75}
+.cb-note b{color:var(--teal-d)}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html">方案总览</a>
+    <a href="workroom.html">商机作战室</a>
+    <a href="autonomy.html">自主度分级</a>
+    <a href="deal.html">商机与团队</a>
+    <a href="boundary.html">人机边界</a>
+    <a href="queue.html">待决队列</a>
+    <a href="capability.html" class="active"><span class="dot"></span>能力集</a>
+    <a href="platform.html">Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <div class="eyebrow">Capability Set · 六类能力 · 效果本位</div>
+    <h1>能力是可替换的 —— <span class="hl">交付的是效果，不是型号清单</span></h1>
+    <p class="sub">六类能力子 Agent 是<b>商机主 Agent 手里的工具</b>，不是给人用的六个模块：什么时候调、调哪一个、结果够不够好，都由主 Agent 按商机推进的需要决定，人不用记得它们存在。能力背后接的是哪个模型、哪套实现，随时可换 —— <b>同一任务多方案并跑、按效果择优、连续不达标就换掉</b>。本页给出六类能力、客户点名的「数据分析」工作台，以及让「换掉」有据可依的能力记分卡。</p>
+  </div>
+
+  <!-- ============ 01 六类能力子 Agent ============ -->
+  <section class="cb-sec">
+    <div class="cb-head"><span class="no">01</span><h2>六类能力子 Agent：<span class="hl">主 Agent 什么时候调它，它交回什么</span></h2><p>每一格的主语都是主 Agent —— 不是「销售可以用它做什么」</p></div>
+    <div class="cap-grid cb-caps">
+      <div class="cap">
+        <div class="ic">🔍</div>
+        <div class="cb-capline"><b>研究与触达</b></div>
+        <div class="cb-kv"><i>主 Agent 何时调它</i><span>新商机建档当刻，以及每次判断「该触达了」的时候 —— 不等人想起来查资料。</span></div>
+        <div class="cb-kv"><i>它交回什么</i><span>画像匹配与背调结论、决策链梳理、<b>一户一稿</b>的触达内容，直接写入商机档案。</span></div>
+      </div>
+      <div class="cap">
+        <div class="ic">🎙</div>
+        <div class="cb-capline"><b>现场记录与理解</b></div>
+        <div class="cb-kv"><i>主 Agent 何时调它</i><span>人被调度到场的那几次（首访、二访、谈判），它随人进场，全程在线。</span></div>
+        <div class="cb-kv"><i>它交回什么</i><span>拜访实时转写、分角色纪要、<b>需求与异议抽取</b> —— 人走出会议室时，档案已经更新完。</span></div>
+      </div>
+      <div class="cap key">
+        <div class="ic">📊</div>
+        <div class="cb-capline"><b>数据分析</b><span class="tag warm">客户点名 · 下节展开</span></div>
+        <div class="cb-kv"><i>主 Agent 何时调它</i><span>每一次「判」之前先问它；人也随时可以直接问，同一个入口。</span></div>
+        <div class="cb-kv"><i>它交回什么</i><span>客户、商机、合同、纪要、案例、报价、竞品<b>一个入口问到</b>，返回带依据的结论，不是一堆报表。</span></div>
+      </div>
+      <div class="cap">
+        <div class="ic">📄</div>
+        <div class="cb-capline"><b>内容生成</b></div>
+        <div class="cb-kv"><i>主 Agent 何时调它</i><span>里程碑推进到需要对外交付物时直接下发任务，不等人开始写。</span></div>
+        <div class="cb-kv"><i>它交回什么</i><span>方案、标书、报价单、对外邮件的成稿；<b>对外发出前按边界规则送人确认</b>。</span></div>
+      </div>
+      <div class="cap">
+        <div class="ic">⚖️</div>
+        <div class="cb-capline"><b>条款与风险</b></div>
+        <div class="cb-kv"><i>主 Agent 何时调它</i><span>合同或标书文本一出现、一变更，立即触发比对，不靠人送审。</span></div>
+        <div class="cb-kv"><i>它交回什么</i><span>合同<b>逐条比对企业红线</b>的风险清单、投标合规与废标自检结果。</span></div>
+      </div>
+      <div class="cap">
+        <div class="ic">💰</div>
+        <div class="cb-capline"><b>回款与履约</b></div>
+        <div class="cb-kv"><i>主 Agent 何时调它</i><span>签约当日自动把商机移交给它接管 —— 不需要任何人记得这件事。</span></div>
+        <div class="cb-kv"><i>它交回什么</i><span>回款节点跟踪、<b>逾期预警</b>、履约里程碑；异常直接推进待决队列。</span></div>
+      </div>
+    </div>
+    <div class="cb-band">
+      <span class="lab">口径提醒</span>
+      <p>这是六种<em>能力</em>，不是六个「模块」：它们没有各自的首页和入口，<b>不对应任何一个人的岗位</b>。唯一的调用方是商机主 Agent，唯一的留痕是调用记录 —— 把它们画成组织架构里的六个格子，就又回到了「人的流程数字化」。</p>
+    </div>
+    <div class="cb-more">主 Agent 怎么「盯 · 判 · 调」这六类能力，看 <a href="deal.html">商机与团队 →</a></div>
+  </section>
+
+  <!-- ============ 02 数据分析 ============ -->
+  <section class="cb-sec">
+    <div class="cb-head"><span class="no">02</span><h2>数据分析：<span class="hl">答的是结论，不是报表</span></h2><p>客户点名能力单独展开 —— 四段式应答：结论 / 依据（带来源与时间戳）/ 风险 / 建议下一步</p></div>
+    <div class="cb-ws">
+
+      <div class="cb-console">
+        <div class="cb-cbar"><div class="dotset"><i></i><i></i><i></i></div><b>查询工作台</b><span>示意 · 点下方问题试试</span></div>
+        <div class="cb-cin"><span class="pr">›</span><span id="cbInput">金桥制造这单停了两周，卡在哪？</span><span class="cur"></span></div>
+        <div class="cb-qs">
+          <button type="button" class="cb-q on" data-a="cbA1" data-q="金桥制造这单停了两周，卡在哪？"><span class="who">李芳 · 主管</span>金桥制造卡在哪？</button>
+          <button type="button" class="cb-q" data-a="cbA2" data-q="华南的转化率缺口在哪一环？"><span class="who">陈远 · 总监</span>华南缺口在哪一环？</button>
+          <button type="button" class="cb-q" data-a="cbA3" data-q="这个月回款完成得怎么样？"><span class="who">张总 · 总经理</span>本月回款怎么样？</button>
+          <button type="button" class="cb-q warnq" data-a="cbA4" data-q="把华南各单的报价明细拉给我"><span class="who">王强 · 销售</span>拉华南报价明细（越权）</button>
+        </div>
+        <div class="cb-answers">
+
+          <div class="cb-answer" id="cbA1">
+            <div class="cb-ansmeta"><span class="who">提问人：李芳 · 华东一组主管</span><span class="scope">按「主管 · 华东一组」权限范围应答</span></div>
+            <div class="cb-seg concl"><div class="cb-lab">结论</div><p><b>卡在账期，不在价格。</b>价格已让至底价仍未推进，客户方的迟疑集中在付款条件上。</p></div>
+            <div class="cb-seg"><div class="cb-lab">依据</div>
+              <ul class="cb-ev">
+                <li><span class="src">二访纪要</span>周总原话「账期能不能松」<em>D21 · 00:14:32</em></li>
+                <li><span class="src">谈判记录</span>价格已让至底价，客户仍未推进<em>D27</em></li>
+                <li><span class="src warm">同类比对</span>同类 6 单中 5 单在账期让步后 2 周内签约</li>
+              </ul>
+            </div>
+            <div class="cb-seg"><div class="cb-lab">风险</div><p>商务谈判已停滞 <b>14 天</b>（D28 起）—— 这是主 Agent 自动发现并升级的，不是人报上来的。</p></div>
+            <div class="cb-seg cb-next"><div class="cb-lab">建议下一步</div><p>授权<b>账期让步到 75 天，换预付 30%</b>，由王强本周内谈 —— 该建议已进入你的<a href="queue.html">待决队列 →</a></p></div>
+            <div class="cb-ansfoot">本次应答引用 3 条原始记录，均可点回原文 · 查询已留痕</div>
+          </div>
+
+          <div class="cb-answer" id="cbA2" hidden>
+            <div class="cb-ansmeta"><span class="who">提问人：陈远 · 销售总监（分管华东 / 华南）</span><span class="scope">按「总监 · 两大区」权限范围应答</span></div>
+            <div class="cb-seg concl"><div class="cb-lab">结论</div><p>缺口在<b>谈判→签约环节：华南 48%</b>，同环节全公司为 62%，是全流程最大的一段落差。</p></div>
+            <div class="cb-seg"><div class="cb-lab">依据</div>
+              <ul class="cb-ev">
+                <li><span class="src">转化漏斗</span>线索→商机 18% · 方案→谈判 54% · 谈判→签约 62%<em>本月</em></li>
+                <li><span class="src">分区对比</span>华南谈判→签约 48%，显著低于整体<em>本月</em></li>
+              </ul>
+            </div>
+            <div class="cb-seg"><div class="cb-lab">风险</div><p>这一环直接压住签约与回款 —— 当月已回款 780 万（65%），落后时间进度（73%）8 个百分点。</p></div>
+            <div class="cb-seg cb-next"><div class="cb-lab">建议下一步</div><p>调取华南谈判环节的<b>输单与停滞纪要做归因</b>；若争议集中在条款，可让「条款与风险」能力对该环节在谈合同逐条比对。</p></div>
+            <div class="cb-ansfoot">本次应答引用 2 类统计口径，均可下钻到单条商机 · 查询已留痕</div>
+          </div>
+
+          <div class="cb-answer" id="cbA3" hidden>
+            <div class="cb-ansmeta"><span class="who">提问人：张总 · 总经理</span><span class="scope">按「总经理 · 全公司」权限范围应答</span></div>
+            <div class="cb-seg concl"><div class="cb-lab">结论</div><p>已回款 <b>780 万 / 目标 1,200 万（65%）</b>，落后时间进度（73%）<b>8 个百分点</b>。</p></div>
+            <div class="cb-seg"><div class="cb-lab">依据</div>
+              <ul class="cb-ev">
+                <li><span class="src">回款台账</span>当月已到账 780 万，目标 1,200 万<em>本月</em></li>
+                <li><span class="src">管道视图</span>碗里 310 万 / 12 单 · 锅里 890 万 / 37 单 · 地里 156 条线索<em>当前</em></li>
+              </ul>
+            </div>
+            <div class="cb-seg"><div class="cb-lab">风险</div><p>缺口须从碗里 12 单中补齐，其中含已停滞 14 天的<b>金桥制造 ¥86 万</b>。</p></div>
+            <div class="cb-seg cb-next"><div class="cb-lab">建议下一步</div><p>碗里停滞单优先 —— 金桥制造的<b>账期授权建议</b>已在李芳的待决队列中待拍板，无需另行布置。</p></div>
+            <div class="cb-ansfoot">本次应答引用 2 类台账，均可下钻到单据 · 查询已留痕</div>
+          </div>
+
+          <div class="cb-answer" id="cbA4" hidden>
+            <div class="cb-ansmeta"><span class="who">提问人：王强 · 华东一组销售</span><span class="scope">按「销售 · 本人名下」权限范围应答</span></div>
+            <div class="cb-block">⊘ 本次查询已拦截 —— 你当前的角色无权查看华南区商机的报价数据。</div>
+            <ul class="cb-blocklist">
+              <li><b>拦截即留痕：</b>这次尝试作为一条权限事件记录在案，可被审计追溯。</li>
+              <li><b>要用可申请：</b>如业务确需，可向分管总监陈远发起临时授权申请，批准后限时限范围放行。</li>
+              <li><b>你能问什么：</b>自己名下商机的全部过程数据、本组共享案例与公开知识库 —— 问「金桥制造卡在哪」不受任何限制。</li>
+            </ul>
+            <div class="cb-ansfoot">权限矩阵由企业配置，系统只负责执行与留痕</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="panel cb-perm">
+        <h3>按角色权限应答，越权拦截</h3>
+        <div class="pitem"><b>同一个问题，不同角色，不同答案范围</b><span>李芳问，看到全组；王强问，只看到自己名下。应答范围随角色走，不随话术走。</span></div>
+        <div class="pitem"><b>越权不是报错，是一条被记录的事件</b><span>拦截、申请、授权、放行，全链路留痕可审计 —— 试试左侧王强那条查询。</span></div>
+        <div class="pitem"><b>敏感字段自动脱敏</b><span>联系方式、报价、合同金额等字段，按企业规则脱敏后才进入模型调用。</span></div>
+        <div class="pitem"><b>模型调用不留存客户业务数据</b><span>调用即用即走；数据的采集、保存、查看范围由企业规则配置。</span></div>
+        <div class="note"><b>合规边界：</b>录音需提前告知参会方，录音原文默认仅销售本人可见；过程数据用于赋能与组织沉淀，<b>不用于监控个人</b>。</div>
+      </div>
+
+    </div>
+    <div class="cb-caption">这个入口不只是给人用的：<b>主 Agent 每一次「判」之前，先调它把信号问清楚</b> —— 人和主 Agent 引用的是同一套依据、同一条留痕。</div>
+  </section>
+
+  <!-- ============ 03 能力不锁定 ============ -->
+  <section class="cb-sec">
+    <div class="cb-head"><span class="no">03</span><h2>能力不锁定：<span class="hl">不绑定任何模型，不绑定任何 Agent</span></h2><p>合同里写的是效果指标，不是某个型号 —— 型号会过时，效果口径不会</p></div>
+    <div class="cb-3col">
+      <div class="cb-mcard">
+        <div class="ic">◎</div>
+        <h3>模型可替换</h3>
+        <p>方案里只有三类模型角色，每一类背后具体接哪一个，<b>随时可换、换了无感</b> —— 评价它们的只有效果，不是出身。</p>
+        <div class="cb-roles"><span>语言模型</span><span>语音与声纹模型</span><span>企业私有化模型</span></div>
+      </div>
+      <div class="cb-mcard warm">
+        <div class="ic">⌘</div>
+        <h3>Agent 可替换</h3>
+        <p>同一任务允许<b>多套实现并跑</b>，按赢单贡献 / 成功率 / 人工纠偏率 / 成本自动择优；胜者转正，败者归档、可随时召回。</p>
+        <div class="cb-roles"><span>并跑</span><span>对账</span><span>择优</span><span>可回退</span></div>
+      </div>
+      <div class="cb-mcard">
+        <div class="ic">⛁</div>
+        <h3>已有资产直接纳管</h3>
+        <p>企业已有的私有化推理服务、已经在用的第三方 Agent，<b>OpenAI 兼容协议填一个地址即纳管</b>，进同一套记分卡、同台比效果。</p>
+        <div class="cb-roles"><span>填地址即接入</span><span>同台计分</span></div>
+      </div>
+    </div>
+    <div class="cb-band">
+      <span class="lab">为什么全站不写型号</span>
+      <p>本方案全套材料<b>不出现任何模型型号名</b> —— 这不是遗漏，是立场：今天最好的型号，明天未必还是；把企业绑在某个型号上，等于绑在一个时间点上。<em>交付承诺写在效果指标上，谁达标用谁。</em></p>
+    </div>
+  </section>
+
+  <!-- ============ 04 能力记分卡 ============ -->
+  <section class="cb-sec">
+    <div class="cb-head"><span class="no">04</span><h2>能力记分卡：<span class="hl">每个 Agent 每月一张成绩单</span></h2><p>让「换掉」有据可依 —— 连续不达标就下架，不看关系，只看这张表</p></div>
+    <div class="panel">
+      <div class="cb-scroll">
+        <table class="mini-table">
+          <thead>
+            <tr><th>能力 Agent</th><th>本月自主完成率</th><th>人工纠偏率</th><th>建议采纳率</th><th>单位成本</th><th>状态</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><b>研究与触达</b></td><td><span class="tag ok">达标</span></td><td><span class="tag ok">达标</span></td><td><span class="tag ok">达标</span></td><td>较上月持平</td><td><span class="tag ok">在用</span></td></tr>
+            <tr><td><b>现场记录与理解</b></td><td><span class="tag ok">达标</span></td><td><span class="tag ok">达标</span></td><td><span class="tag ok">达标</span></td><td>较上月 ↓</td><td><span class="tag ok">在用</span></td></tr>
+            <tr><td><b>数据分析</b></td><td><span class="tag ok">达标</span></td><td><span class="tag ok">达标</span></td><td><span class="tag ok">达标</span></td><td>较上月持平</td><td><span class="tag ok">在用</span></td></tr>
+            <tr><td><b>内容生成</b></td><td><span class="tag teal">A/B 并跑对账中</span></td><td><span class="tag teal">对账中</span></td><td><span class="tag teal">对账中</span></td><td>对账中</td><td><span class="tag gold">灰度 · 见下节</span></td></tr>
+            <tr><td><b>条款与风险</b></td><td><span class="tag ok">达标</span></td><td><span class="tag gold">接近阈值</span></td><td><span class="tag ok">达标</span></td><td>较上月持平</td><td><span class="tag ok">在用</span></td></tr>
+            <tr><td><b>回款与履约（当前实现）</b></td><td><span class="tag warn">连续不达标</span></td><td><span class="tag warn">连续不达标</span></td><td><span class="tag gold">接近阈值</span></td><td>较上月 ↑</td><td><span class="tag warn">待下架</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cb-legend"><span><i class="ok">达标</i>高于验收阈值</span><span><i class="gd">接近阈值</i>进入观察名单</span><span><i class="wn">连续不达标</i>触发下架替换</span></div>
+      <div class="note"><b>为什么这张表不放具体数值：</b>记分卡上的每一个数字都必须来自企业上线后的真实运行统计，阈值在第 2 周共同确认的验收表中约定 —— 本页只演示机制，不虚构成绩。<b>下架换掉的是能力背后的实现</b>：主 Agent 的调用方式不变，一线无感；记分卡数据来自 <a href="platform.html" style="font-weight:700;color:var(--teal-d)">Agent 平台的观测与审计层 →</a></div>
+    </div>
+  </section>
+
+  <!-- ============ 05 择优是怎么发生的 ============ -->
+  <section class="cb-sec">
+    <div class="cb-head"><span class="no">05</span><h2>择优是怎么发生的：<span class="hl">同一个任务，两套实现，跑一个月对账</span></h2><p>以「方案初稿生成」为例 —— 机制示意，不含具体数值，判定权重由企业配置</p></div>
+    <div class="panel">
+      <div class="flow cb-flow">
+        <div class="f-step"><div class="n">1</div><b>双路下发</b><span>主 Agent 把同一任务同时发给两套实现</span></div>
+        <div class="f-arrow">→</div>
+        <div class="f-step"><div class="n">2</div><b>各出一稿 · 盲选</b><span>评审环节不知道稿子出自谁，选中即定稿</span></div>
+        <div class="f-arrow">→</div>
+        <div class="f-step"><div class="n">3</div><b>月末对账</b><span>采用、纠偏、赢单贡献、成本四维记账</span></div>
+        <div class="f-arrow">→</div>
+        <div class="f-step hot"><div class="n">4</div><b>胜者转正</b><span>败者归档可召回，切换留痕</span></div>
+      </div>
+      <div class="cb-ab">
+        <div class="cb-abcard">
+          <span class="al">实现 A · 在用</span>
+          <b>通用语言模型 + 标准生成链路</b>
+          <span>并跑期间照常出稿；每一稿是否被选中、被人改了多少，逐条记账。</span>
+        </div>
+        <div class="cb-abcard win">
+          <span class="al">实现 B · 挑战</span>
+          <b>企业私有化模型 + 企业案例库检索增强</b>
+          <span>同一任务同步出稿，与 A 一起进入盲选 —— 客户只会收到定稿，不会收到两份。</span>
+        </div>
+      </div>
+      <div class="cb-scroll">
+        <table class="mini-table">
+          <thead>
+            <tr><th>对账维度</th><th>实现 A（在用）</th><th>实现 B（挑战）</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><b>定稿采用</b> —— 盲选中被选为终稿</td><td>落后</td><td><span class="tag ok">领先</span></td></tr>
+            <tr><td><b>人工纠偏</b> —— 定稿前被人改动的次数与幅度</td><td>偏多</td><td><span class="tag ok">更少</span></td></tr>
+            <tr><td><b>赢单贡献</b> —— 稿件进入投标与签约链路的占比</td><td>落后</td><td><span class="tag ok">领先</span></td></tr>
+            <tr><td><b>单位成本</b> —— 单次生成的合计成本</td><td><span class="tag teal">更低</span></td><td>偏高</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cb-verdict">
+        <span class="lab">判定</span>
+        <p>按企业配置的权重对账，<b>赢单贡献与纠偏率优先</b>于单次成本 —— 本例中<b>实现 B 转正在用，实现 A 归档、可随时召回</b>。切换由平台完成并留痕，主 Agent 的调用方式一个字不改，一线无感。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="cb-note"><b>本页说明：</b>页面中全部机制与状态为目标态示意、非承诺值，记分卡与对账不含虚构数值；模型调用不留存客户业务数据，敏感字段自动脱敏；查询与调用按角色权限应答，越权访问一律拦截并留痕；<b>自主执行的边界、阈值与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计</b>。</div>
+</main>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+
+<script>
+(function () {
+  var chips = document.querySelectorAll('.cb-q');
+  var answers = document.querySelectorAll('.cb-answer');
+  var input = document.getElementById('cbInput');
+  chips.forEach(function (ch) {
+    ch.addEventListener('click', function () {
+      chips.forEach(function (c) { c.classList.remove('on'); });
+      ch.classList.add('on');
+      input.textContent = ch.getAttribute('data-q');
+      var id = ch.getAttribute('data-a');
+      answers.forEach(function (a) { a.hidden = (a.id !== id); });
+    });
+  });
+})();
+</script>
+</body>
+</html>

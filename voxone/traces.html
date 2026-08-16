@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>会话留痕 · 质检 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("traces", async (root, ctx) => {
+  const { me } = ctx;
+  const $ = VX.$, $$ = VX.$$;
+  const viewAll = !!me.perms.viewAll;
+  const canQa = !!me.perms.qa;
+  const ALL_SC = ["ecom", "app", "fintech", "local", "auto"];
+  const myScenes = viewAll ? ALL_SC : (me.scenarios || []).filter(s => s !== "*");
+  const CH_OPTS = ["voice", "web", "whatsapp", "wechat", "line"];
+
+  let CALLS = [], STATS = {};
+
+  // ---- 静态骨架 ----
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">🗂️</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">会话留痕 · 质检</div>
+      <div class="sub">全量转写留痕 · 质检打分 · 主题与情绪洞察 · ${viewAll ? "全场景视图" : "本场景视图"}</div>
+    </div>
+    ${canQa ? '<span class="chip"><span class="dot g"></span>质检权限已开启</span>' : '<span class="chip">只读复盘</span>'}
+  </div>
+
+  <div class="card pad" style="margin-bottom:16px">
+    <div class="row" style="align-items:flex-end;gap:12px">
+      <label class="fld" style="flex:1;min-width:220px;margin:0"><span class="lb">🔍 搜索</span><input id="fQ" placeholder="意图 / 客户 / 转写内容 / 处理人 / 结果…"/></label>
+      <label class="fld" style="margin:0;min-width:170px"><span class="lb">业务场景</span><select id="fSc">
+        <option value="">全部场景</option>
+        ${myScenes.map(s => `<option value="${s}">${VX.scEmoji(s)} ${VX.esc(VX.scLabel(s))}</option>`).join("")}
+      </select></label>
+      <label class="fld" style="margin:0;min-width:130px"><span class="lb">模式</span><select id="fMd">
+        <option value="">全部模式</option>
+        <option value="service">${VX.MODE.service}</option><option value="sales">${VX.MODE.sales}</option><option value="outbound">${VX.MODE.outbound}</option>
+      </select></label>
+      <label class="fld" style="margin:0;min-width:130px"><span class="lb">渠道</span><select id="fCh">
+        <option value="">全部渠道</option>
+        ${CH_OPTS.map(c => `<option value="${c}">${VX.esc(VX.CH[c] || c)}</option>`).join("")}
+      </select></label>
+      <label class="fld" style="margin:0;min-width:130px"><span class="lb">解决方</span><select id="fRb">
+        <option value="">全部</option><option value="ai">AI 自助</option><option value="human">转人工</option>
+      </select></label>
+    </div>
+  </div>
+
+  <div class="stats" id="tStats" style="margin-bottom:16px"></div>
+  <div class="two" id="tInsights" style="margin-bottom:16px"></div>
+
+  <div class="card pad">
+    <div class="hd"><h3>🗂️ 全量会话留痕</h3><div class="sp"></div><span class="sub" id="tCount">—</span></div>
+    <div id="tTable" style="overflow-x:auto"></div>
+  </div>`;
+
+  // ---- 渲染:统计卡 ----
+  function renderStats() {
+    const s = STATS || {};
+    $("#tStats").innerHTML = `
+      <div class="stat"><div class="k">🗂️ 留痕总量</div><div class="v">${VX.fmtNum(s.total)}</div><div class="d">全量转写可追溯</div></div>
+      <div class="stat voice"><div class="k">🤖 AI 自主解决率</div><div class="v">${s.aiResolveRate ?? 0}<small>%</small></div><div class="d">转人工 ${VX.fmtNum(s.transferred)} 通</div></div>
+      <div class="stat"><div class="k">📋 平均质检分</div><div class="v">${s.avgQa ? s.avgQa : "—"}<small>/100</small></div><div class="d">已质检口径</div></div>
+      <div class="stat voice"><div class="k">⏱️ 平均时长</div><div class="v">${VX.fmtDur(s.avgDurationSec)}</div><div class="d">平均延迟 ${s.avgLatencyMs || 0}ms</div></div>
+      <div class="stat"><div class="k">⚡ 打断(barge-in)</div><div class="v">${VX.fmtNum(s.bargeIn)}<small>通</small></div><div class="d">全双工可插话</div></div>`;
+  }
+
+  // ---- 渲染:主题 / 情绪洞察(从当前 calls 聚合)----
+  function renderInsights() {
+    const intentCnt = {}, tagCnt = {};
+    for (const c of CALLS) {
+      const k = c.intent || "(未标注)";
+      intentCnt[k] = (intentCnt[k] || 0) + 1;
+      for (const t of (c.tags || [])) tagCnt[t] = (tagCnt[t] || 0) + 1;
+    }
+    const topIntents = Object.entries(intentCnt).sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const maxI = Math.max(1, ...topIntents.map(x => x[1]));
+    const topTags = Object.entries(tagCnt).sort((a, b) => b[1] - a[1]).slice(0, 14);
+
+    const intentHtml = topIntents.length
+      ? `<div class="hbars">${topIntents.map(([k, n]) => `<div class="hb"><span class="t" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${VX.esc(k)}">${VX.esc(k)}</span><div class="bar coral"><i style="width:${Math.round(n / maxI * 100)}%"></i></div><span class="n">${n}</span></div>`).join("")}</div>`
+      : '<div class="empty" style="padding:22px"><div class="ic">📊</div>暂无数据</div>';
+
+    const tagHtml = topTags.length
+      ? `<div class="row" style="gap:8px">${topTags.map(([t, n]) => `<span class="chip">${VX.esc(t)} <b style="color:var(--ink-0)">${n}</b></span>`).join("")}</div>`
+      : '<div class="empty" style="padding:22px"><div class="ic">🏷️</div>暂无标签</div>';
+
+    $("#tInsights").innerHTML = `
+      <div class="card pad">
+        <div class="hd"><h3>意图 Top</h3><div class="sp"></div><span class="sub">当前筛选 ${CALLS.length} 通</span></div>
+        ${intentHtml}
+      </div>
+      <div class="card pad">
+        <div class="hd"><h3>情绪 / 标签分布</h3><div class="sp"></div><span class="sub">聚合当前留痕标签</span></div>
+        ${tagHtml}
+      </div>`;
+  }
+
+  const qaCell = (q) => {
+    if (q == null) return '<span class="muted">未质检</span>';
+    const col = q >= 90 ? "var(--ok)" : q >= 80 ? "var(--warn)" : "var(--bad)";
+    return `<b style="color:${col}">${q}</b>`;
+  };
+
+  // ---- 渲染:主表 ----
+  function renderTable() {
+    $("#tCount").textContent = CALLS.length ? `共 ${VX.fmtNum(CALLS.length)} 条` : "无匹配";
+    if (!CALLS.length) {
+      $("#tTable").innerHTML = '<div class="empty"><div class="ic">🗂️</div><h3>没有匹配的会话留痕</h3><p class="sub">试试调整筛选条件或清空搜索关键词</p></div>';
+      return;
+    }
+    const rows = CALLS.map(c => `
+      <tr data-id="${c.id}" style="cursor:pointer">
+        <td style="white-space:nowrap">${VX.fmtTs(c.ts)}</td>
+        <td style="white-space:nowrap">${VX.scEmoji(c.scenario)} ${VX.esc(VX.scLabel(c.scenario).split(" / ")[0])}</td>
+        <td>${VX.modeBadge(c.mode)}</td>
+        <td style="white-space:nowrap">${VX.esc(VX.CH[c.channel] || c.channel)}</td>
+        <td>${VX.esc(c.customer || "—")}</td>
+        <td class="nm">${VX.esc(c.intent || "—")}</td>
+        <td class="muted">${VX.esc(c.outcome || "—")}</td>
+        <td>${c.resolvedBy === "ai" ? VX.badge("AI 自助", "ai") : VX.badge("转人工", "coral")}</td>
+        <td>${c.csat != null ? c.csat + " ★" : "—"}</td>
+        <td>${qaCell(c.qaScore)}</td>
+      </tr>`).join("");
+    $("#tTable").innerHTML = `<table class="tb">
+      <thead><tr><th>时间</th><th>场景</th><th>模式</th><th>渠道</th><th>客户</th><th>意图</th><th>结果</th><th>解决方</th><th>CSAT</th><th>质检分</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+    $$("#tTable tbody tr").forEach(tr => tr.onclick = () => openDetail(tr.dataset.id));
+  }
+
+  // ---- 详情弹窗 + 质检 ----
+  async function openDetail(id) {
+    let call;
+    try { const r = await VX.api("/api/call?id=" + encodeURIComponent(id)); call = r.call; }
+    catch (e) { VX.toast(e.message, "err"); return; }
+
+    const meta = [
+      ["时间", VX.fmtTs(call.ts)],
+      ["场景", VX.scEmoji(call.scenario) + " " + VX.scLabel(call.scenario)],
+      ["模式", VX.MODE[call.mode] || call.mode],
+      ["渠道", VX.CH[call.channel] || call.channel],
+      ["语种", VX.LANG[call.lang] || call.lang],
+      ["音色", call.voiceName || "—"],
+      ["Agent", call.agentName || "—"],
+      ["处理人", call.actorName || "—"],
+      ["时长", VX.fmtDur(call.durationSec)],
+      ["轮次", (call.turns || 0) + " 轮"],
+      ["端到端延迟", (call.latencyMs || 0) + " ms"],
+      ["是否打断", call.bargeIn ? "是 · barge-in" : "否"],
+      ["解决方", call.resolvedBy === "ai" ? "AI 自助" : "转人工"],
+      ["命中 SOP", call.sopTitle || "—"],
+    ];
+    const metaRows = meta.map(([k, v]) => `<div class="kv"><span class="k">${k}</span><span class="v" style="max-width:62%;text-align:right">${VX.esc(v)}</span></div>`).join("");
+
+    const chat = (call.transcript || []).map(m => {
+      const role = m.role === "user" ? "user" : m.role === "ai" ? "ai" : "sys";
+      const who = role === "user" ? "客户" : role === "ai" ? "AI" : "系统";
+      return `<div class="bub ${role}"><div class="meta">${who}</div><div>${VX.esc(m.text)}</div></div>`;
+    }).join("") || '<div class="sub">无转写内容</div>';
+
+    const tags = (call.tags || []).length
+      ? (call.tags || []).map(t => `<span class="chip">${VX.esc(t)}</span>`).join("")
+      : '<span class="sub">无标签</span>';
+
+    const qaBlock = canQa ? `
+      <div class="hr"></div>
+      <div class="panel" style="background:#0f2547">
+        <div class="hd" style="margin-bottom:10px"><h3 style="font-size:14px">📋 质检打分</h3></div>
+        <div class="row" style="align-items:flex-end;gap:12px">
+          <label class="fld" style="margin:0;width:130px"><span class="lb">质检分(0–100)</span><input id="qaScore" type="number" min="0" max="100" value="${call.qaScore != null ? call.qaScore : ""}" placeholder="0-100"/></label>
+          <label class="fld" style="margin:0;flex:1;min-width:180px"><span class="lb">标签(逗号分隔)</span><input id="qaTags" value="${VX.esc((call.tags || []).join(", "))}" placeholder="如:自助解决, 情绪正向"/></label>
+          <button class="btn pri" id="qaSave">保存质检</button>
+        </div>
+      </div>` : "";
+
+    const node = VX.el(`<div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 24px;margin-bottom:2px">${metaRows}</div>
+      <div class="hr"></div>
+      <div class="between" style="margin-bottom:10px"><span class="sub">💬 对话转写 · ${call.turns || 0} 轮 · ${VX.fmtDur(call.durationSec)}</span><span>${call.resolvedBy === "ai" ? VX.badge("AI 自助", "ai") : VX.badge("转人工", "coral")}</span></div>
+      <div class="chat">${chat}</div>
+      <div class="hr"></div>
+      <div class="sub" style="margin-bottom:8px">标签</div>
+      <div class="row" style="gap:8px">${tags}</div>
+      ${qaBlock}
+    </div>`);
+
+    const m = VX.modal({ title: "会话详情 · " + (call.intent || "留痕"), body: node, wide: true });
+
+    if (canQa) {
+      $("#qaSave", node).onclick = async () => {
+        const raw = $("#qaScore", node).value.trim();
+        const score = Number(raw);
+        if (raw === "" || isNaN(score) || score < 0 || score > 100) { VX.toast("质检分需为 0–100 的数字", "err"); return; }
+        const tagArr = $("#qaTags", node).value.split(",").map(s => s.trim()).filter(Boolean);
+        try {
+          await VX.api("/api/qa", "POST", { id: call.id, qaScore: score, tags: tagArr });
+          VX.toast("质检已保存", "ok");
+          m.close();
+          fetchCalls();
+        } catch (e) { VX.toast(e.message, "err"); }
+      };
+    }
+  }
+
+  // ---- 拉取数据 ----
+  async function fetchCalls() {
+    const params = new URLSearchParams();
+    const sc = $("#fSc").value, md = $("#fMd").value, ch = $("#fCh").value, rb = $("#fRb").value, q = $("#fQ").value.trim();
+    if (sc) params.set("scenario", sc);
+    if (md) params.set("mode", md);
+    if (ch) params.set("channel", ch);
+    if (rb) params.set("resolvedBy", rb);
+    if (q) params.set("q", q);
+    try {
+      const resp = await VX.api("/api/calls?" + params.toString());
+      CALLS = resp.calls || [];
+      STATS = resp.stats || {};
+    } catch (e) {
+      VX.toast(e.message, "err");
+      CALLS = []; STATS = {};
+    }
+    renderStats(); renderInsights(); renderTable();
+  }
+
+  // ---- 事件绑定 ----
+  let deb;
+  $("#fQ").oninput = () => { clearTimeout(deb); deb = setTimeout(fetchCalls, 350); };
+  $("#fQ").onkeydown = (e) => { if (e.key === "Enter") { clearTimeout(deb); fetchCalls(); } };
+  $("#fSc").onchange = fetchCalls;
+  $("#fMd").onchange = fetchCalls;
+  $("#fCh").onchange = fetchCalls;
+  $("#fRb").onchange = fetchCalls;
+
+  await fetchCalls();
+});
+</script>
+</body></html>

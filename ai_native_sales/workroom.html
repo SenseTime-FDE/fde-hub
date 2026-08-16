@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · 商机作战室</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ============ workroom 页专属样式（wr- 前缀） ============ */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px;flex-wrap:nowrap}
+.topnav nav a{padding:7px 10px;font-size:12.5px}
+.site-footer .foot-brand img{height:18px}
+
+/* ---------- 顶部控制条 ---------- */
+.wr-ctrl{position:sticky;top:62px;z-index:90;background:rgba(252,249,245,.94);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:10px 28px 12px}
+.wr-ctrl-in{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.wr-btn{font-family:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);border-radius:9px;padding:7px 14px;cursor:pointer;background:var(--white);color:var(--sub);transition:all .15s;white-space:nowrap}
+.wr-btn:hover{border-color:var(--teal-l);color:var(--teal-d)}
+.wr-btn:active{transform:scale(.97)}
+.wr-btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.wr-btn.primary:hover{background:var(--ink2);border-color:var(--ink2);color:#fff}
+.wr-btn.gold{background:var(--warm);border-color:var(--warm);color:#fff}
+.wr-btn.gold:hover{background:var(--warm-d);border-color:var(--warm-d);color:#fff}
+.wr-btn[disabled]{opacity:.4;pointer-events:none}
+.wr-prog{flex:1;min-width:250px;padding:8px 10px 2px}
+.wr-track{position:relative;height:8px;background:var(--sky2);border-radius:4px}
+.wr-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,var(--teal),var(--teal-l));border-radius:4px;transition:width .3s}
+.wr-mark{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--warm);border:2.5px solid #fff;box-shadow:0 1px 4px rgba(12,37,69,.35);transform:translate(-50%,-50%);cursor:pointer;z-index:2;transition:transform .15s}
+.wr-mark:hover{transform:translate(-50%,-50%) scale(1.25)}
+.wr-mark.done{background:var(--ok)}
+.wr-prog-lab{display:flex;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);margin-top:5px}
+.wr-ctrl-note{flex:none;font-size:10.5px;color:var(--muted);max-width:180px;line-height:1.45}
+
+/* ---------- 主体三区 ---------- */
+.wr-wrap{max-width:1280px;margin:0 auto;padding:20px 28px 60px;display:grid;grid-template-columns:296px 1fr;gap:20px;align-items:start}
+@media (max-width:1020px){.wr-wrap{grid-template-columns:1fr}}
+.wr-rail{position:sticky;top:136px;display:flex;flex-direction:column;gap:13px;max-height:calc(100vh - 156px);overflow-y:auto;scrollbar-width:thin}
+@media (max-width:1020px){.wr-rail{position:static;max-height:none}}
+.wr-card{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow-sm)}
+.wr-card h4{font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--muted);margin-bottom:10px}
+
+/* 左栏 · 商机卡 */
+.wr-deal-name{font-size:15.5px;font-weight:700;color:var(--ink);line-height:1.4}
+.wr-deal-name .amt{color:var(--warm-d)}
+.wr-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.wr-kpi{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.wr-kpi .v{font-size:19px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.2}
+.wr-kpi .v em{font-style:normal;font-size:11px;font-weight:600;color:var(--muted);margin-left:2px}
+.wr-kpi .l{font-size:10px;color:var(--muted);margin-top:1px}
+.wr-kpi.hot .v{color:var(--warm-d)}
+.wr-msbar{height:6px;background:var(--sky);border-radius:3px;overflow:hidden;margin-top:6px}
+.wr-msbar i{display:block;height:100%;background:linear-gradient(90deg,var(--warm),var(--warm-l));border-radius:3px;width:0;transition:width .3s}
+.wr-deal-note{font-size:10.5px;color:var(--muted);background:var(--sky);border-radius:8px;padding:7px 10px;margin-top:11px;line-height:1.55}
+
+/* 左栏 · Agent 名册 */
+.wr-roster{list-style:none}
+.wr-roster li{display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12px;color:var(--sub)}
+.wr-roster li:last-child{border-bottom:none}
+.wr-roster .rb{flex:none;width:24px;height:24px;border-radius:8px;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.wr-roster b{color:var(--ink);font-size:12.5px;font-weight:600;flex:1}
+.wr-roster b small{display:block;font-size:10px;color:var(--muted);font-weight:500}
+.wr-st{flex:none;font-size:10px;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--bg);color:var(--muted)}
+.wr-st.run{background:var(--sky);color:var(--teal-d);animation:wrPulse 1.2s infinite}
+.wr-st.done{background:#E7F5EE;color:var(--ok)}
+@keyframes wrPulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* 左栏 · 决策留痕 */
+.wr-log{list-style:none}
+.wr-log li{font-size:11.5px;color:var(--sub);line-height:1.55;padding:6px 0 6px 14px;border-bottom:1px dashed var(--line);position:relative}
+.wr-log li:last-child{border-bottom:none}
+.wr-log li::before{content:"✓";position:absolute;left:0;top:7px;color:var(--warm-d);font-size:10px;font-weight:800}
+.wr-log .lt{font-size:10px;font-weight:700;color:var(--teal-d);margin-right:5px}
+.wr-log .ltype{display:inline-block;font-size:9.5px;font-weight:700;color:var(--warm-d);background:var(--cream);border-radius:5px;padding:0 6px;margin-left:4px;vertical-align:1px}
+.wr-log-empty{font-size:11.5px;color:var(--muted);line-height:1.6}
+.wr-log-note{font-size:10.5px;color:var(--muted);background:var(--cream);border-radius:8px;padding:7px 10px;margin-top:10px;line-height:1.55}
+.wr-log-note b{color:var(--warm-d)}
+
+/* ---------- 活动流 ---------- */
+.wr-feed{display:flex;flex-direction:column;gap:12px;min-height:60vh;overflow-x:auto}
+.wr-daychip{align-self:center;font-size:10.5px;font-weight:800;letter-spacing:1.5px;color:#fff;background:var(--ink);border-radius:999px;padding:3px 14px;margin:8px 0 2px}
+.wr-msg{display:flex;gap:10px;align-items:flex-start;animation:msgIn .3s ease both}
+.wr-msg.noanim{animation:none}
+.wr-av{flex:none;width:34px;height:34px;border-radius:10px;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.wr-bd{flex:1;min-width:0;max-width:760px;background:var(--white);border:1px solid var(--line);border-radius:13px;padding:11px 15px;box-shadow:var(--shadow-sm)}
+.wr-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+.wr-meta b{font-size:12.5px;color:var(--ink)}
+.wr-meta .tm{font-size:10.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.wr-cnt{font-size:10px;font-weight:800;color:var(--teal-d);background:var(--sky);border-radius:999px;padding:1px 8px;white-space:nowrap}
+.wr-txt{font-size:13px;color:var(--sub);line-height:1.7}
+.wr-txt b{color:var(--ink);font-weight:600}
+.wr-txt .hl{color:var(--warm-d);font-weight:600}
+.wr-milestone .wr-bd{border-left:3px solid var(--warm)}
+/* 产物折叠 */
+.wr-outbtn{display:inline-block;margin-top:7px;font-size:11.5px;font-weight:600;color:var(--teal-d);background:none;border:none;font-family:inherit;padding:0;cursor:pointer}
+.wr-outbtn:hover{color:var(--warm-d)}
+.wr-prod{margin-top:8px;background:var(--bg);border:1px dashed var(--card-b);border-radius:10px;padding:10px 13px;font-size:12px;color:var(--sub);line-height:1.7}
+.wr-prod b{color:var(--ink)}
+.wr-prod .q{display:block;border-left:3px solid var(--teal-l);padding:2px 0 2px 10px;margin:5px 0;color:var(--ink);font-size:12px}
+.wr-prod .q small{display:block;color:var(--muted);font-size:10px}
+.wr-prod .rk{display:block;padding:5px 0;border-bottom:1px dashed var(--line)}
+.wr-prod .rk:last-child{border-bottom:none}
+.wr-prod .rk .no{display:inline-block;font-size:9.5px;font-weight:800;color:#fff;background:var(--warm-d);border-radius:5px;padding:0 6px;margin-right:6px}
+/* 压缩卡 */
+.wr-fold .wr-bd{background:var(--bg);border-style:dashed;cursor:pointer}
+.wr-fold .wr-bd:hover{border-color:var(--teal-l)}
+.wr-fold .arr{font-size:10px;color:var(--muted);margin-left:auto;flex:none}
+.wr-folditems{display:none;margin-top:8px;padding-top:8px;border-top:1px dashed var(--card-b);list-style:none}
+.wr-fold.open .wr-folditems{display:block}
+.wr-folditems li{position:relative;font-size:12px;color:var(--sub);line-height:1.65;padding:2.5px 0 2.5px 15px}
+.wr-folditems li::before{content:"▸";position:absolute;left:0;top:4px;color:var(--teal-l);font-size:10px}
+.wr-folditems li em{font-style:normal;font-size:10.5px;font-weight:700;color:var(--teal-d);background:var(--sky);border-radius:5px;padding:0 6px;margin-left:5px}
+/* AI 没把握 特别卡 */
+.wr-hesi .wr-bd{border:1.5px dashed var(--teal);background:#F4F8FC}
+.wr-hesi-badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:1px;color:#fff;background:var(--teal-d);border-radius:7px;padding:3px 10px;margin-bottom:6px}
+.wr-conf{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:11.5px;color:var(--sub)}
+.wr-conf .bar{flex:1;max-width:220px;height:7px;background:var(--sky2);border-radius:4px;position:relative;overflow:visible}
+.wr-conf .bar i{display:block;height:100%;width:61%;background:var(--teal);border-radius:4px}
+.wr-conf .bar em{position:absolute;left:75%;top:-3px;bottom:-3px;width:2px;background:var(--warn);font-size:0}
+/* 决策卡 */
+.wr-dec .wr-bd{border:1.5px solid var(--warm);background:#FFFDF7;box-shadow:0 6px 22px rgba(194,161,75,.18);max-width:760px}
+.wr-dec-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.wr-dec-no{flex:none;font-size:11px;font-weight:800;color:#fff;background:var(--warm-d);border-radius:7px;padding:3px 9px;letter-spacing:.5px}
+.wr-dec-head h3{font-size:14.5px;color:var(--ink);flex:1;min-width:200px;line-height:1.45}
+.wr-role{font-size:10.5px;font-weight:700;color:var(--teal-d);background:var(--sky);border-radius:999px;padding:2px 10px}
+.wr-seg{border-top:1px dashed var(--warm-l);padding:8px 0;display:grid;grid-template-columns:74px 1fr;gap:10px;align-items:start}
+@media (max-width:640px){.wr-seg{grid-template-columns:1fr;gap:3px}}
+.wr-lab{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--warm-d);padding-top:2px}
+.wr-seg p{font-size:12.5px;color:var(--sub);line-height:1.65}
+.wr-seg p b{color:var(--ink)}
+.wr-ev{list-style:none}
+.wr-ev li{position:relative;font-size:12px;color:var(--sub);line-height:1.65;padding:2.5px 0 2.5px 15px}
+.wr-ev li::before{content:"▸";position:absolute;left:0;top:4px;color:var(--warm);font-size:10px}
+.wr-ev .src{display:inline-block;font-size:10px;font-weight:700;color:var(--teal-d);background:var(--sky);border-radius:5px;padding:0 6px;margin-right:5px}
+.wr-dbtns{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+.wr-dbtn{font-family:inherit;font-size:12.5px;font-weight:600;border:1px solid var(--line);border-radius:9px;padding:8px 16px;cursor:pointer;background:var(--white);color:var(--sub);transition:all .15s}
+.wr-dbtn:hover{border-color:var(--teal-l);color:var(--teal-d)}
+.wr-dbtn.primary{background:var(--warm);border-color:var(--warm);color:#fff}
+.wr-dbtn.primary:hover{background:var(--warm-d);border-color:var(--warm-d)}
+.wr-dbtn:active{transform:scale(.97)}
+.wr-dec-note{font-size:10.5px;color:var(--muted);margin-top:7px;line-height:1.5}
+.wr-res{margin-top:10px;background:#F1F8F4;border:1px solid #CFE7DA;border-radius:10px;padding:9px 13px;font-size:12px;color:#2C6B4E;line-height:1.65}
+.wr-res b{color:inherit}
+.wr-slider{display:none;margin-top:10px;background:var(--cream);border:1px solid var(--warm-l);border-radius:10px;padding:11px 14px}
+.wr-slider.on{display:block}
+.wr-slider .sl-row{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--sub)}
+.wr-slider input[type=range]{flex:1;accent-color:var(--warm-d)}
+.wr-slider .sl-val{font-size:15px;font-weight:800;color:var(--warm-d);font-variant-numeric:tabular-nums;min-width:56px;text-align:right}
+.wr-slider .sl-hint{font-size:10.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+/* 复盘屏 */
+.wr-recap{background:var(--ink);color:#fff;border-radius:18px;padding:24px 26px;box-shadow:var(--shadow);animation:msgIn .4s ease both}
+.wr-recap h3{font-size:19px;margin-bottom:4px}
+.wr-recap h3 em{font-style:normal;color:#E3C569}
+.wr-recap .sub{font-size:12px;color:#B8C7D8;margin-bottom:14px}
+.wr-recap-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.wr-recap-stats .s{flex:1;min-width:130px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:11px 14px}
+.wr-recap-stats .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.wr-recap-stats .v em{font-style:normal;font-size:12px;font-weight:600;color:var(--teal-l);margin-left:2px}
+.wr-recap-stats .s.gold .v{color:#E3C569}
+.wr-recap-stats .l{font-size:10.5px;color:#B8C7D8;margin-top:1px}
+.wr-recap h5{font-size:11px;font-weight:800;letter-spacing:1.5px;color:var(--teal-l);margin:14px 0 7px}
+.wr-recap ol{list-style:none}
+.wr-recap ol li{font-size:12.5px;color:#DCE5EF;line-height:1.7;padding:4px 0;border-bottom:1px dashed rgba(255,255,255,.12)}
+.wr-recap ol li:last-child{border-bottom:none}
+.wr-recap ol .d{display:inline-block;font-size:10px;font-weight:800;color:var(--ink);background:#E3C569;border-radius:5px;padding:0 7px;margin-right:7px}
+.wr-recap ol .ty{display:inline-block;font-size:10px;font-weight:700;color:#E3C569;border:1px solid rgba(227,197,105,.5);border-radius:5px;padding:0 7px;margin-left:6px}
+.wr-recap .types{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:640px){.wr-recap .types{grid-template-columns:1fr}}
+.wr-recap .types div{background:rgba(255,255,255,.06);border-radius:10px;padding:9px 12px;font-size:11.5px;color:#DCE5EF;line-height:1.6}
+.wr-recap .types b{display:block;color:#E3C569;font-size:12px}
+.wr-recap .close-line{margin-top:16px;font-size:15.5px;font-weight:700;text-align:center}
+.wr-recap .close-line em{font-style:normal;color:#E3C569}
+.wr-recap .exits{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;justify-content:center}
+.wr-recap .exits a{font-size:12.5px;font-weight:700;border-radius:999px;padding:9px 20px;background:var(--warm);color:#fff}
+.wr-recap .exits a:hover{background:var(--warm-d)}
+.wr-recap .exits a.ghost{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25)}
+.wr-recap .rc-note{margin-top:13px;font-size:10.5px;color:#8FA3B8;text-align:center;line-height:1.6}
+/* 开场卡 */
+.wr-start{text-align:center;background:var(--white);border:1px solid var(--line);border-radius:18px;padding:34px 24px;box-shadow:var(--shadow-sm)}
+.wr-start h3{font-size:18px;color:var(--ink);margin-bottom:6px}
+.wr-start p{font-size:12.5px;color:var(--sub);max-width:560px;margin:0 auto 16px;line-height:1.7}
+.wr-start p b{color:var(--warm-d)}
+.wr-check{max-width:1280px;margin:0 auto;padding:0 28px 18px;font-size:11px;color:var(--muted);text-align:center}
+.wr-check b{color:var(--ok)}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html">方案总览</a>
+    <a href="workroom.html" class="active"><span class="dot"></span>商机作战室</a>
+    <a href="autonomy.html">自主度分级</a>
+    <a href="deal.html">商机与团队</a>
+    <a href="boundary.html">人机边界</a>
+    <a href="queue.html">待决队列</a>
+    <a href="capability.html">能力集</a>
+    <a href="platform.html">Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<!-- ============ 顶部控制条 ============ -->
+<div class="wr-ctrl">
+  <div class="wr-ctrl-in">
+    <button type="button" class="wr-btn primary" id="wrPlay">▶ 播放</button>
+    <button type="button" class="wr-btn" id="wrSpeed">1x</button>
+    <button type="button" class="wr-btn gold" id="wrNext">⏭ 跳到下一个需要你的时刻</button>
+    <button type="button" class="wr-btn" id="wrRestart">↺ 重新开始</button>
+    <div class="wr-prog">
+      <div class="wr-track" id="wrTrack"><div class="wr-fill" id="wrFill"></div></div>
+      <div class="wr-prog-lab"><span>D1</span><span>金色圆点 = 需要你的 6 个时刻，可点击快进</span><span>D45</span></div>
+    </div>
+    <div class="wr-ctrl-note">45 天实况为目标态示意回放，非真实客户数据；决策与自主执行均留痕可审计。</div>
+  </div>
+</div>
+
+<div class="wr-wrap">
+
+  <!-- ============ 左栏 ============ -->
+  <aside class="wr-rail">
+    <div class="wr-card">
+      <h4>商机档案</h4>
+      <div class="wr-deal-name">金桥制造 · 年度框架 <span class="amt">¥86 万</span></div>
+      <div class="wr-kpis">
+        <div class="wr-kpi"><div class="v" id="wrDay">D0</div><div class="l">当前天数（模拟）</div></div>
+        <div class="wr-kpi hot"><div class="v"><span id="wrTemp">68</span><em>℃</em></div><div class="l">客温</div></div>
+      </div>
+      <div class="wr-kpi" style="margin-top:8px">
+        <div class="v"><span id="wrMs">0</span><em>/16</em></div><div class="l">里程碑</div>
+        <div class="wr-msbar"><i id="wrMsBar"></i></div>
+      </div>
+      <div class="wr-deal-note">合规：录音已提前告知参会方；过程数据用于赋能与组织沉淀，不用于监控个人。</div>
+    </div>
+
+    <div class="wr-card">
+      <h4>Agent 团队名册</h4>
+      <ul class="wr-roster" id="wrRoster"></ul>
+    </div>
+
+    <div class="wr-card">
+      <h4>你的决策留痕</h4>
+      <ul class="wr-log" id="wrLog"></ul>
+      <div class="wr-log-empty" id="wrLogEmpty">还没有决策 —— 需要你的时刻到来时，流会暂停等你。</div>
+      <div class="wr-log-note"><b>这就是审计。</b>每一次拍板：谁、模拟时刻、决了什么、属于哪类节点，逐条留痕，复盘时逐条对账。</div>
+    </div>
+  </aside>
+
+  <!-- ============ 中栏 · 活动流 ============ -->
+  <section class="wr-feed" id="wrFeed">
+    <div class="wr-start" id="wrStart">
+      <h3>金桥制造 ¥86 万 · 45 天实况回放</h3>
+      <p>你将亲眼看一支 Agent 团队怎么把这单端到端往前推 —— Agent 自主执行 <b>137 个动作</b>；而<b>需要人的 6 个时刻</b>，由你亲手来决策：出面、担责、拍板授权。流会在每个时刻暂停等你。</p>
+      <button type="button" class="wr-btn gold" id="wrStartBtn" style="font-size:14px;padding:10px 26px">▶ 开始 45 天回放</button>
+    </div>
+  </section>
+
+</div>
+
+<div class="wr-check" id="wrCheck"></div>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ===================== Agent 定义 ===================== */
+  var AGENTS = {
+    main:  { name: '商机主 Agent', ab: '主', color: 'var(--ink)' },
+    res:   { name: '研究与触达', ab: '研', color: 'var(--teal)' },
+    rec:   { name: '现场记录与理解', ab: '记', color: 'var(--ink2)' },
+    data:  { name: '数据分析', ab: '数', color: 'var(--teal-d)' },
+    gen:   { name: '内容生成', ab: '文', color: 'var(--ink3)' },
+    risk:  { name: '条款与风险', ab: '险', color: 'var(--warm-d)' },
+    pay:   { name: '回款与履约', ab: '款', color: 'var(--ok)' },
+    sys:   { name: '系统', ab: '统', color: 'var(--muted)' },
+    human: { name: '人 · 出场', ab: '人', color: 'var(--warm)' }
+  };
+  var ROSTER = [
+    { k: 'main', role: '盯 · 判 · 调，对推进结果负责' },
+    { k: 'res',  role: '背调 · 决策链 · 一户一稿触达' },
+    { k: 'rec',  role: '转写 · 分轨 · 需求异议抽取' },
+    { k: 'data', role: '同类比对 · 带依据的结论' },
+    { k: 'gen',  role: '方案 · 报价 · 对外邮件' },
+    { k: 'risk', role: '合同红线比对 · 合规自检' },
+    { k: 'pay',  role: '回款节点 · 履约里程碑' }
+  ];
+
+  /* ===================== 状态机 ===================== */
+  var state = {
+    idx: 0,          // 事件指针
+    playing: false,
+    waiting: false,  // 决策卡挂起中
+    speed: 1,
+    day: 0, temp: 68, ms: 0,
+    days: 75,        // 账期授权天数（决策⑤可改 60–90）
+    correction: 0,   // 人工纠偏次数（决策②调低报价）
+    choices: {},     // {decId: {label, time, type}}
+    started: false
+  };
+  var timer = null;
+  var lastDayChip = '';
+
+  var feed = document.getElementById('wrFeed');
+  var elDay = document.getElementById('wrDay');
+  var elTemp = document.getElementById('wrTemp');
+  var elMs = document.getElementById('wrMs');
+  var elMsBar = document.getElementById('wrMsBar');
+  var elFill = document.getElementById('wrFill');
+  var elLog = document.getElementById('wrLog');
+  var elLogEmpty = document.getElementById('wrLogEmpty');
+  var btnPlay = document.getElementById('wrPlay');
+  var btnSpeed = document.getElementById('wrSpeed');
+
+  function h2el(html) {
+    var d = document.createElement('div');
+    d.innerHTML = html.trim();
+    return d.firstChild;
+  }
+  function txt(ev) { return typeof ev.h === 'function' ? ev.h(state) : ev.h; }
+
+  /* ===================== 渲染 ===================== */
+  function renderRoster() {
+    var ul = document.getElementById('wrRoster');
+    ul.innerHTML = ROSTER.map(function (r) {
+      var a = AGENTS[r.k];
+      return '<li><span class="rb" style="background:' + a.color + '">' + a.ab + '</span>'
+        + '<b>' + a.name + '<small>' + r.role + '</small></b>'
+        + '<span class="wr-st" id="st-' + r.k + '">待命</span></li>';
+    }).join('');
+  }
+  function setLight(k, st) {
+    var el = document.getElementById('st-' + k);
+    if (!el) return;
+    el.className = 'wr-st' + (st === 'run' ? ' run' : st === 'done' ? ' done' : '');
+    el.textContent = st === 'run' ? '执行中' : st === 'done' ? '完成' : '待命';
+  }
+  function applyFx(ev) {
+    if (ev.day) { state.day = ev.day; elDay.textContent = 'D' + ev.day; elFill.style.width = ((ev.day - 1) / 44 * 100) + '%'; }
+    if (!ev.fx) return;
+    if (ev.fx.temp) { state.temp = ev.fx.temp; elTemp.textContent = ev.fx.temp; }
+    if (ev.fx.ms != null) { state.ms = ev.fx.ms; elMs.textContent = ev.fx.ms; elMsBar.style.width = (ev.fx.ms / 16 * 100) + '%'; }
+    if (ev.fx.lights) for (var k in ev.fx.lights) setLight(k, ev.fx.lights[k]);
+  }
+  function dayChip(ev, instant) {
+    if (ev.d === lastDayChip) return;
+    lastDayChip = ev.d;
+    var c = h2el('<div class="wr-daychip' + (instant ? ' noanim' : '') + '">' + ev.d + '</div>');
+    feed.appendChild(c);
+  }
+  function scrollBottom(instant) {
+    var y = feed.getBoundingClientRect().bottom + window.pageYOffset - window.innerHeight + 80;
+    window.scrollTo({ top: y, behavior: instant ? 'auto' : 'smooth' });
+  }
+  function msgNode(ev, inner, extraCls, instant) {
+    var a = AGENTS[ev.a];
+    return h2el('<div class="wr-msg ' + (extraCls || '') + (instant ? ' noanim' : '') + '">'
+      + '<span class="wr-av" style="background:' + a.color + '">' + a.ab + '</span>'
+      + '<div class="wr-bd">'
+      + '<div class="wr-meta"><b>' + a.name + '</b><span class="tm">' + ev.d + ' ' + ev.t + '</span>'
+      + (ev.n ? '<span class="wr-cnt">+' + ev.n + ' 动作</span>' : '') + '</div>'
+      + inner + '</div></div>');
+  }
+  function renderAction(ev, instant) {
+    var inner = '<div class="wr-txt">' + txt(ev) + '</div>';
+    if (ev.prod) {
+      inner += '<button type="button" class="wr-outbtn" data-out>查看产物 ▾</button>'
+        + '<div class="wr-prod" hidden>' + (typeof ev.prod === 'function' ? ev.prod(state) : ev.prod) + '</div>';
+    }
+    var node = msgNode(ev, inner, ev.mile ? 'wr-milestone' : '', instant);
+    if (ev.prod) {
+      node.querySelector('[data-out]').addEventListener('click', function () {
+        var box = node.querySelector('.wr-prod');
+        box.hidden = !box.hidden;
+        this.textContent = box.hidden ? '查看产物 ▾' : '收起产物 ▴';
+      });
+    }
+    feed.appendChild(node);
+  }
+  function renderFold(ev, instant) {
+    var items = ev.fold.map(function (it) { return '<li>' + it + '</li>'; }).join('');
+    var inner = '<div class="wr-txt">' + txt(ev) + '</div><ul class="wr-folditems">' + items + '</ul>';
+    var node = msgNode(ev, inner, 'wr-fold', instant);
+    var meta = node.querySelector('.wr-meta');
+    meta.insertAdjacentHTML('beforeend', '<span class="arr">点开展开明细 ▾</span>');
+    node.querySelector('.wr-bd').addEventListener('click', function () {
+      var open = node.classList.toggle('open');
+      node.querySelector('.arr').textContent = open ? '收起明细 ▴' : '点开展开明细 ▾';
+    });
+    feed.appendChild(node);
+  }
+  function renderHesi(ev, instant) {
+    var inner = '<div class="wr-hesi-badge">节点类型④ · AI 没把握</div><div class="wr-txt">' + txt(ev) + '</div>'
+      + '<div class="wr-conf"><span>置信度 <b style="color:var(--teal-d)">61%</b></span><span class="bar"><i></i><em></em></span><span>阈值 <b style="color:var(--warn)">75%</b></span></div>'
+      + '<div class="wr-txt" style="font-size:12px;color:var(--muted)">这一类节点的含义：<b>宁可停下，也不瞎动</b> —— 置信度不够时系统不自主行动，标记等待更多信号。它不需要你点击，但你应该知道它停在了这里。</div>';
+    var node = msgNode(ev, inner, 'wr-hesi', instant);
+    feed.appendChild(node);
+  }
+  /* ===================== 决策卡 ===================== */
+  function renderDecision(ev, instant) {
+    var d = ev.dec;
+    var tags = d.types.map(function (t) {
+      return '<span class="tag ' + (t.cls || 'gold') + '">' + t.t + '</span>';
+    }).join('');
+    var btns = d.btns.map(function (b) {
+      return '<button type="button" class="wr-dbtn' + (b.primary ? ' primary' : '') + '" data-act="' + b.act + '">' + b.t + '</button>';
+    }).join('');
+    var inner = '<div class="wr-dec-head"><span class="wr-dec-no">决策' + d.no + '</span><h3>' + d.title + '</h3>'
+      + tags + '<span class="wr-role">你此刻扮演：' + d.role + '</span></div>'
+      + d.body
+      + '<div class="wr-dbtns">' + btns + '</div>'
+      + (d.note ? '<div class="wr-dec-note">' + d.note + '</div>' : '')
+      + (d.id === 5 ? '<div class="wr-slider" id="wrSlider"><div class="sl-row"><span>账期上限</span>'
+        + '<input type="range" min="60" max="90" step="5" value="75" id="wrRange">'
+        + '<span class="sl-val"><span id="wrRangeV">75</span> 天</span>'
+        + '<button type="button" class="wr-dbtn primary" data-act="edit-confirm">按此条件授权</button></div>'
+        + '<div class="sl-hint">这就是「边界配置」：授权不是一句「同意」，而是一组可核对的条件 —— 条件项 / 上限 / 有效期 / 生效范围。</div></div>' : '')
+      + '<div class="wr-res" hidden></div>';
+    var node = msgNode(ev, inner, 'wr-dec', instant);
+    node.id = 'decnode-' + d.id;
+    node.querySelector('.wr-dbtns').addEventListener('click', function (e) {
+      var act = e.target.getAttribute && e.target.getAttribute('data-act');
+      if (act) resolve(ev, act, node);
+    });
+    if (d.id === 5) {
+      node.querySelector('#wrRange').addEventListener('input', function () {
+        document.getElementById('wrRangeV').textContent = this.value;
+      });
+      node.querySelector('.wr-slider').addEventListener('click', function (e) {
+        var act = e.target.getAttribute && e.target.getAttribute('data-act');
+        if (act) resolve(ev, act, node);
+      });
+    }
+    feed.appendChild(node);
+    var mk = document.getElementById('mk-' + d.id);
+    if (mk) mk.title = '决策' + d.no + ' · ' + d.title;
+  }
+
+  /* 决策分支：每个按钮都能走下去 */
+  function resolve(ev, act, node) {
+    var d = ev.dec;
+    if (state.choices[d.id]) return;
+    if (d.id === 5 && act === 'edit') {           // 改条件 → 弹出滑块，先不结案
+      node.querySelector('#wrSlider').classList.add('on');
+      return;
+    }
+    var r = branch(d.id, act, node);
+    state.choices[d.id] = { label: r.label, time: ev.d + ' ' + ev.t, type: d.typeMain, no: d.no };
+    var res = node.querySelector('.wr-res');
+    res.hidden = false;
+    res.innerHTML = '<b>已决策 · 留痕</b> ' + ev.d + ' ' + ev.t + ' · ' + d.role + ' · ' + r.label
+      + '<br>' + r.trace;
+    node.querySelector('.wr-dbtns').style.display = 'none';
+    var sl = node.querySelector('.wr-slider');
+    if (sl) sl.style.display = 'none';
+    var mk = document.getElementById('mk-' + d.id);
+    if (mk) mk.classList.add('done');
+    addLog(state.choices[d.id]);
+    (r.bubbles || []).forEach(function (b) {
+      feed.appendChild(msgNode({ a: b.a, d: ev.d, t: b.t, n: 0 }, '<div class="wr-txt">' + b.h + '</div>', '', false));
+    });
+    scrollBottom(false);
+    state.waiting = false;
+    play();                                        // 点了按钮，流才继续
+  }
+
+  function branch(id, act, node) {
+    switch (id) {
+      case 1:
+        if (act === 'delay') return {
+          label: '请求改期',
+          trace: '主 Agent 与客户即时协调 —— 改到同日下午。<b>人脸出面无法委托</b>：改得了时间，改不了「必须是你」。',
+          bubbles: [{ a: 'main', t: '10:04', h: '已与客户协调至<b>同日下午</b>，作战卡同步更新 —— <span class="hl">仍需你出场</span>。首访建立的关系与信任，无法委托给任何系统。' }]
+        };
+        return { label: '确认出场 · 带作战卡', trace: '出场安排写入日程；作战卡（目标 / 要点 / 坑）已同步到你的手机。', bubbles: [] };
+      case 2:
+        if (act === 'low') { state.correction = 1; return {
+          label: '调低报价再外发',
+          trace: '报价按你的意见下调后定案外发。<b>留痕：人工纠偏 1 次</b> —— 复盘与能力记分卡都会体现这一次纠偏。',
+          bubbles: [{ a: 'gen', t: '15:20', h: '已按你的意见<b>下调报价重出一版</b>并定案外发；原 v1 与调整依据都在版本链里，<span class="hl">人工纠偏 1 次</span>已计入留痕。' }]
+        }; }
+        return { label: '确认定案并外发', trace: '报价按 v1 定案外发；定案人、时刻、版本号写入版本链。报价是对外承诺，责任落到你这个自然人。', bubbles: [] };
+      case 3:
+        return { label: '确认出场 · 带应答卡', trace: '二访排定；异议预测与应答卡仅你本人可见。', bubbles: [] };
+      case 4:
+        return { label: '确认出场 · 带谈判要点', trace: '谈判要点与同类单让步边界测算已送达；今天桌上必须坐着能代表公司的人。', bubbles: [] };
+      case 5:
+        if (act === 'mine') return {
+          label: '我来谈',
+          trace: '你认领了这一场：由你亲自与周总谈账期，王强陪同；主 Agent 转为备场 —— 备材料、订日程、记纪要。',
+          bubbles: [{ a: 'main', t: '09:10', h: '收到。改为<b>你亲自谈</b>，王强陪同；条件卡、口径差异与同类单依据一页纸已送达。主 Agent 退为备场，不再自主推进这条链路。' }]
+        };
+        if (act === 'edit-confirm') {
+          state.days = parseInt(node.querySelector('#wrRange').value, 10);
+          return {
+            label: '改条件后授权 · 账期上限 ' + state.days + ' 天',
+            trace: '授权按你改后的边界生效：账期上限 <b>' + state.days + ' 天</b> · 换预付 30% · 有效期本周 · 仅限本单。越界即回到队列再问一次。',
+            bubbles: [{ a: 'main', t: '09:10', h: '新边界已生效：账期上限 <b>' + state.days + ' 天</b>、换<b>预付 30%</b>，有效期本周、仅限「金桥制造 · 年度框架」。条件卡已按新边界重算，王强今天到场即可用。' }]
+          };
+        }
+        return {
+          label: '同意授权 · 账期 75 天换预付 30%',
+          trace: '授权生效：账期让步到 <b>75 天</b> · 换预付 30% · 有效期本周 · 仅限本单，执行人王强。授权本身也是留痕对象。',
+          bubbles: [{ a: 'main', t: '09:10', h: '授权已生效：<b>账期 75 天 · 换预付 30%</b> · 有效期本周 · 仅限本单。条件卡与谈判要点已备好，<b>王强</b>被调度本周内谈。' }]
+        };
+      case 6:
+        return {
+          label: '采纳 2 条并送法务另拟知产条款',
+          trace: '付款条款与违约金封顶两处修订已采纳；知识产权条款移交法务另拟 —— <b>法务判断无法由 AI 代替</b>，采纳与否逐条留痕。',
+          bubbles: []
+        };
+    }
+    return { label: '已确认', trace: '已留痕。', bubbles: [] };
+  }
+
+  function addLog(c) {
+    elLogEmpty.style.display = 'none';
+    var li = h2el('<li><span class="lt">' + c.time + '</span>决策' + c.no + ' · ' + c.label
+      + '<span class="ltype">' + c.type + '</span></li>');
+    elLog.appendChild(li);
+  }
+  /* ===================== 逐日事件脚本（动作计数合计须 = 137） ===================== */
+  var EVENTS = [
+    /* ---- D1 · 9 个动作 ---- */
+    { d: 'D1', day: 1, t: '08:30', a: 'sys', k: 'act', n: 2,
+      h: '新线索进入：金桥制造。画像匹配 <b>87 分 · A 级</b> —— 达到自动立项线，<span class="hl">系统自动立项</span>，无需任何人点按钮。' },
+    { d: 'D1', day: 1, t: '08:31', a: 'main', k: 'act', n: 1,
+      fx: { lights: { main: 'run', res: 'run', rec: 'run', data: 'run', gen: 'run', risk: 'run', pay: 'run' } },
+      h: '商机团队组建完成：<b>商机主 Agent 上岗</b>，六类能力子 Agent 全部就位（看左栏名册 —— 状态灯刚刚点亮）。从现在起，这单归我盯：<b>盯 → 判 → 调</b>，不结案不停。' },
+    { d: 'D1', day: 1, t: '09:12', a: 'res', k: 'act', n: 3,
+      fx: { lights: { rec: '', data: '', gen: '', risk: '', pay: '' } },
+      h: '背调完成，决策链已梳理：<b>周总</b>（采购总监 · 决策人）、<b>李工</b>（技术负责人）进入关键人图谱。',
+      prod: '<b>决策链卡 · 金桥制造</b><span class="q">周总 · 采购总监 —— <b>决策人</b>，关注付款与供应稳定<small>来源：公开信息 + 历史往来，逐条可回溯</small></span><span class="q">李工 · 技术负责人 —— 技术把关，关注参数与实施<small>影响路径：李工认可 → 周总拍板</small></span>' },
+    { d: 'D1', day: 1, t: '11:40', a: 'res', k: 'act', n: 2,
+      h: '一户一稿触达邮件已生成并<span class="hl">在授权范围内自动外发</span> —— 不是模板群发，是按金桥制造的业务痛点单独起草的一稿。' },
+    { d: 'D1', day: 1, t: '16:05', a: 'main', k: 'act', n: 1,
+      h: '客户回复了：<b>同意约首访</b>。判断：建联火候已到，值得投入人脸 —— 首访排期启动，行前材料开始准备。' },
+
+    /* ---- D2–D4 · 压缩 14 个动作 ---- */
+    { d: 'D2–D4', day: 4, t: '·', a: 'main', k: 'fold', n: 14,
+      h: 'D2–D4 · 主 Agent 调度子 Agent <b>自主执行 14 个动作</b> —— 全部在授权范围内，没有一件需要人。',
+      fold: ['背调增量更新：经营动态与舆情跟踪<em>×3</em>', '竞品建档：两家在谈竞品的打法与报价习惯<em>×3</em>', '首访作战卡准备：目标 / 要点 / 坑，三易其稿<em>×4</em>', '触达跟进与首访日程协调<em>×4</em>'] },
+
+    /* ---- D5 · 决策① 要人脸出面 ---- */
+    { d: 'D5', day: 5, t: '09:00', a: 'main', k: 'dec',
+      dec: { id: 1, no: '①', typeMain: '要人脸出面', role: '王强（一线销售）',
+        title: '首访 —— 我把你排上了今天上午，作战卡已备好',
+        types: [{ t: '要人脸出面', cls: 'warm' }],
+        body: '<div class="wr-seg"><span class="wr-lab">为什么是你</span><p>首次见面建立的<b>关系与信任无法委托</b>给任何系统 —— 这是四类节点的第一类。你不出场，这单就停在这。</p></div>'
+          + '<div class="wr-seg"><span class="wr-lab">作战卡</span><ul class="wr-ev">'
+          + '<li><span class="src">目标</span>确认需求边界与决策链，拿到进入方案期的门票</li>'
+          + '<li><span class="src">要点</span>先谈李工关心的技术参数，再让周总看到供应稳定性</li>'
+          + '<li><span class="src">坑</span>不当场谈价 —— 竞品建档显示对手惯用低价开局，跟进就被动</li></ul></div>',
+        note: '录音将提前告知参会方；录音原文默认仅你本人可见。',
+        btns: [{ t: '确认出场 · 带作战卡', act: 'go', primary: true }, { t: '请求改期', act: 'delay' }] } },
+    { d: 'D5', day: 5, t: '14:36', a: 'human', k: 'act', n: 0,
+      h: '<b>王强出场首访</b>（你刚才的决策）。会谈 42 分钟 —— 人负责关系与信任，记录与理解交给身后的团队。' },
+    { d: 'D5', day: 5, t: '14:38', a: 'rec', k: 'act', n: 2,
+      fx: { lights: { rec: 'run' } },
+      h: '首访实时转写完成：<b>42 分钟全程</b>，声纹分轨 <b>3 人</b>（王强 / 周总 / 李工），需求与异议逐条抽取。<span style="font-size:11px;color:var(--muted)">（录音已提前告知参会方）</span>' },
+    { d: 'D5', day: 5, t: '15:02', a: 'main', k: 'act', n: 1, fx: { temp: 72 },
+      h: '会后信号更新：客温 <b>68℃ → 72℃</b> —— 李工对方案方向明确表态积极。推进节奏据此上调。' },
+    { d: 'D5', day: 5, t: '15:30', a: 'gen', k: 'act', n: 2,
+      fx: { lights: { rec: '' } },
+      h: '双纪要已生成：<b>对内纪要</b>（含异议与风险）与<b>对客纪要</b>（确认口径）各一份，对客版已发出待确认。',
+      prod: '<b>双纪要 · 引文两行</b><span class="q">李工：「参数上如果能按我们产线的节拍来，这事就有得谈。」<small>对内纪要 · 00:21:07 · 需求信号</small></span><span class="q">周总：「供应商我们看重的是能不能长期稳定供。」<small>对客纪要 · 00:33:45 · 决策关注点</small></span>' },
+    { d: 'D5', day: 5, t: '15:31', a: 'main', k: 'act', n: 1, mile: true, fx: { ms: 4 },
+      h: '里程碑推进：<b>4/16</b>（首访完成 · 需求初判成立）。' },
+    { d: 'D5', day: 5, t: '16:10', a: 'main', k: 'act', n: 2,
+      h: '首访待办 3 条<span class="hl">自动进入日程</span>：参数确认（李工）、供货案例包（周总）、二访窗口预约 —— 不需要谁「记得跟进」。' },
+
+    /* ---- D6–D13 · 压缩 28 个动作 + D9 里程碑 ---- */
+    { d: 'D6–D13', day: 13, t: '·', a: 'main', k: 'fold', n: 28,
+      h: 'D6–D13 · 主 Agent <b>自主执行 28 个动作</b> —— 这 8 天人一次都没被打扰。',
+      fold: ['会后跟进邮件与补充材料，按客户回应节奏外发<em>×6</em>', '需求澄清问答：与李工往来确认参数边界<em>×5</em>', '方案素材与同类案例检索、供货案例包组装<em>×6</em>', '内部协同与二访日程锁定<em>×5</em>', '商机档案与 CRM 过程回写<em>×6</em>'] },
+    { d: 'D6–D13', day: 13, t: 'D9 17:20', a: 'main', k: 'act', n: 0, mile: true, fx: { ms: 5 },
+      h: 'D9 · <b>需求确认完成</b>，商机进入「锅里」。里程碑推进：<b>5/16</b>。' },
+
+    /* ---- D14 · 决策② 要人担责 ---- */
+    { d: 'D14', day: 14, t: '10:30', a: 'gen', k: 'act', n: 4,
+      h: '方案 <b>v1</b> 与报价单已完成：基于双纪要与同类案例起草，定价参考带依据（同类成交口径核对完毕）。',
+      prod: '<b>方案版本卡 · v1</b><span class="q">方案 v1 —— 按李工确认的产线节拍定制参数章节；报价按同类 6 单成交口径测算<small>版本链：素材包 → v0 草稿 → v1 定稿候选 · 每版留痕</small></span>' },
+    { d: 'D14', day: 14, t: '10:32', a: 'main', k: 'dec',
+      dec: { id: 2, no: '②', typeMain: '要人担责', role: '王强（报价定案人）',
+        title: '报价定案 —— 我只起草，不拍板：对外承诺必须落到自然人',
+        types: [{ t: '要人担责', cls: 'gold' }],
+        body: '<div class="wr-seg"><span class="wr-lab">为什么是你</span><p>报价是<b>对外承诺</b>，商业责任必须落到自然人 —— 这是四类节点的第二类。方案与依据我备齐了，定案这一下必须你来。</p></div>'
+          + '<div class="wr-seg"><span class="wr-lab">已备好</span><p>方案 v1、报价测算、同类成交口径三方比对 —— 点上面那条消息的「查看产物」可看版本卡。</p></div>',
+        note: '定案人、时刻、版本号一并写入版本链，逐版可审计。',
+        btns: [{ t: '确认定案并外发', act: 'ok', primary: true }, { t: '调低报价再外发', act: 'low' }] } },
+    { d: 'D14', day: 14, t: '16:40', a: 'gen', k: 'act', n: 2, mile: true, fx: { ms: 7 },
+      h: '方案与报价已按你的定案<b>排版外发</b>，反馈跟进已挂起监听。里程碑推进：<b>7/16</b>（方案报价送达）。' },
+
+    /* ---- D15–D20 · 压缩 16 个动作 ---- */
+    { d: 'D15–D20', day: 20, t: '·', a: 'main', k: 'fold', n: 16,
+      h: 'D15–D20 · 主 Agent <b>自主执行 16 个动作</b>，为二访做足准备。',
+      fold: ['方案答疑：客户书面问题当日回复<em>×4</em>', '技术参数补充与李工侧确认<em>×3</em>', '二访准备：异议预测与应答卡三轮迭代<em>×5</em>', '竞品动态监测：对手报价动作入库<em>×4</em>'] },
+
+    /* ---- D21 · 决策③ 要人脸出面 ---- */
+    { d: 'D21', day: 21, t: '09:30', a: 'main', k: 'dec',
+      dec: { id: 3, no: '③', typeMain: '要人脸出面', role: '王强（一线销售）',
+        title: '二访谈异议 —— 客户当面提的异议，要人对人化解',
+        types: [{ t: '要人脸出面', cls: 'warm' }],
+        body: '<div class="wr-seg"><span class="wr-lab">为什么是你</span><p>方案反馈里有三条异议，其中两条要<b>当面谈</b> —— 态度与分寸机器给不了。异议清单与应答卡已备好，仅你本人可见。</p></div>',
+        note: '录音将提前告知参会方。',
+        btns: [{ t: '确认出场 · 带应答卡', act: 'go', primary: true }] } },
+    { d: 'D21', day: 21, t: '15:50', a: 'rec', k: 'act', n: 3,
+      h: '二访转写完成，异议逐条抽取。关键一句已定位：<b>00:14:32 · 周总原话「账期能不能松」</b> —— 记录在案，这句话 13 天后会变得非常重要。',
+      prod: '<b>引文卡 · 二访纪要</b><span class="q">周总：「价格我们再看看 —— 账期能不能松？」<small>D21 二访录音 · 00:14:32 · 分角色转写 · 片段可回放（已提前告知参会方）</small></span>' },
+    { d: 'D21', day: 21, t: '16:20', a: 'data', k: 'act', n: 2,
+      h: '价格异议应答已当场支撑：同类单价格区间与让步边界即时送达王强手机 —— <b>人当面谈，数据在身后</b>。' },
+    { d: 'D21', day: 21, t: '17:05', a: 'main', k: 'act', n: 2, mile: true, fx: { ms: 8 },
+      h: '里程碑推进：<b>8/16</b>（异议确认）。另：二访中出现的竞品信号已入库建档。' },
+
+    /* ---- D22–D26 · 压缩 12 个动作 ---- */
+    { d: 'D22–D26', day: 24, t: 'D24 11:00', a: 'data', k: 'act', n: 4,
+      h: '同类单比对完成：抽取历史同类 <b>6 单</b>逐单复盘 —— 初步发现：<b>5 单在账期让步后 2 周内签约</b>。这个结论先存档，备而不用。',
+      prod: '<b>同类 6 单比对 · 摘要</b><span class="q">6 单同类年度框架：5 单在账期让步后 2 周内签约；仅 1 单纯价格让步成交<small>来源：赢单复盘库 · 逐单可展开 · 组织资产</small></span>' },
+    { d: 'D22–D26', day: 26, t: '·', a: 'main', k: 'fold', n: 8,
+      h: 'D22–D26 · 主 Agent <b>自主执行 8 个动作</b>（方案 v2 属授权范围内的自主微调，不需要人再拍一次板）。',
+      fold: ['方案 v2 自主微调：按二访异议调整交付节奏描述<em>×3</em>', '跟进与商务谈判日程协调<em>×3</em>', '竞品与舆情持续监测<em>×2</em>'] },
+
+    /* ---- D27 · 决策④ 要人脸出面 ---- */
+    { d: 'D27', day: 27, t: '09:00', a: 'main', k: 'dec',
+      dec: { id: 4, no: '④', typeMain: '要人脸出面', role: '王强（一线销售）',
+        title: '商务谈判 —— 谈判桌上必须坐着能代表公司的人',
+        types: [{ t: '要人脸出面', cls: 'warm' }],
+        body: '<div class="wr-seg"><span class="wr-lab">为什么是你</span><p>进入价格与条款环节，对面是周总本人。<b>谈判要点、同类单让步边界测算</b>已备好 —— 你只带判断上桌。</p></div>',
+        btns: [{ t: '确认出场 · 带谈判要点', act: 'go', primary: true }] } },
+    { d: 'D27', day: 27, t: '17:40', a: 'rec', k: 'act', n: 3,
+      h: '谈判记录归档：<b>价格已让至底价，商机仍未推进</b> —— 周总没有给出明确答复。报价版本链同步更新。' },
+    { d: 'D27', day: 27, t: '18:05', a: 'main', k: 'act', n: 2, mile: true, fx: { ms: 9 },
+      h: '里程碑推进：<b>9/16</b>（商务谈判）。信号不对 —— 价格线索已走到头，我继续盯。' },
+    /* ---- D28–D33 · 停滞期 6 个动作（含 D30 AI 没把握） ---- */
+    { d: 'D28–D33', day: 28, t: 'D28 09:00', a: 'main', k: 'act', n: 1,
+      h: '停滞监测：里程碑停在 <b>9/16</b> 无推进动作 —— 自 <b>D21 价格异议</b>起，这单已经 8 天没有实质推进。<b>不靠人报，不等周会</b>，我本来就在盯。' },
+    { d: 'D28–D33', day: 30, t: 'D30 10:00', a: 'main', k: 'hesi', n: 1,
+      h: '对停滞原因我有两种解读：<b>预算冻结？</b>还是<b>账期分歧？</b>现有信息互相冲突，置信度 <b>61%</b>，低于阈值 75% —— <span class="hl">我不自主行动</span>，标记等待更多信号。' },
+    { d: 'D28–D33', day: 33, t: 'D33 08:40', a: 'data', k: 'act', n: 2,
+      h: '新信号捕获：行业动态显示<b>金桥制造回款周期收紧</b> —— 与 D21 那句「账期能不能松」相互印证，置信度补足，判断成立的最后一块拼图到位。' },
+    { d: 'D28–D33', day: 33, t: 'D33 09:15', a: 'main', k: 'act', n: 2,
+      h: '判断成立：<b>卡在账期，不在价格</b>。自 D21 异议起停滞将满 <b>14 天</b>，触发「结果偏离」—— 待决队列条目生成，明早送达主管李芳。' },
+
+    /* ---- D34 · 决策⑤ 结果偏离 → 要人担责（复刻待决队列结构） ---- */
+    { d: 'D34', day: 34, t: '08:30', a: 'main', k: 'dec',
+      dec: { id: 5, no: '⑤', typeMain: '要人担责', role: '李芳（华东一组主管）',
+        title: '金桥制造 ¥86 万 —— 商务谈判停滞 14 天，需要你授权',
+        types: [{ t: '结果偏离', cls: 'warn' }, { t: '要人担责', cls: 'gold' }],
+        body: '<div class="wr-seg"><span class="wr-lab">判断</span><p><b>卡在账期，不在价格。</b>价格线索已走到头，继续在价格上让不会改变结果。</p></div>'
+          + '<div class="wr-seg"><span class="wr-lab">依据</span><ul class="wr-ev">'
+          + '<li><span class="src">D21 二访纪要 · 00:14:32</span>周总（采购总监）原话：「账期能不能松」—— 录音片段可回放</li>'
+          + '<li><span class="src">D27 谈判记录</span>价格已让至底价，商机仍未推进 —— 报价版本链可比对</li>'
+          + '<li><span class="src">同类单复盘 · 已归档</span>同类 6 单中 5 单在账期让步后 2 周内签约 —— 逐单可展开</li></ul></div>'
+          + '<div class="wr-seg"><span class="wr-lab">建议</span><p>授权<b>账期让步到 75 天</b>，换<b>预付 30%</b>；由<b>王强</b>在<b>本周内</b>谈完。条件卡与谈判要点已备好。</p></div>',
+        note: '账期让步是商业条款让渡，责任必须由授权人承担 —— 这一条由「结果偏离」触发，决策性质是「要人担责」。',
+        btns: [{ t: '同意授权', act: 'agree', primary: true }, { t: '改条件', act: 'edit' }, { t: '我来谈', act: 'mine' }] } },
+    { d: 'D35–D36', day: 35, t: 'D35 10:00', a: 'main', k: 'act', n: 2,
+      h: function (s) { return '出面人已按你的拍板调度到场：条件卡（账期上限 <b>' + s.days + ' 天</b> · 换预付 30%）、谈判要点与授权边界一并送达 —— 到场即可谈。'; } },
+    { d: 'D35–D36', day: 36, t: 'D36 16:30', a: 'main', k: 'act', n: 3, mile: true, fx: { ms: 11 },
+      h: function (s) { return '谈成了：<b>客户接受账期 ' + s.days + ' 天 + 预付 30%</b>。条款口径拉齐，档案回写完成。里程碑推进：<b>11/16</b>（条款拉齐）—— 同类 6 单的规律再次应验。'; } },
+
+    /* ---- D37–D40 · 合同期 10 个动作 ---- */
+    { d: 'D37–D40', day: 39, t: '·', a: 'gen', k: 'fold', n: 5,
+      h: 'D37–D39 · <b>合同草案生成，5 个动作</b> —— 按拉齐后的条款口径起草，版本留痕。',
+      fold: ['合同主体条款起草：按授权后的账期与预付口径<em>×3</em>', '附件与验收标准整理<em>×2</em>'] },
+    { d: 'D37–D40', day: 40, t: 'D40 14:00', a: 'risk', k: 'act', n: 5, mile: true, fx: { ms: 12, lights: { risk: 'run' } },
+      h: '合同草案<b>逐条扫描 12 条</b>，比对企业红线 → 发现 <b>3 处风险</b>，修订建议已附上。里程碑推进：<b>12/16</b>（合同草案）。',
+      prod: function (s) { return '<b>风险三条 · 修订建议</b>'
+        + '<span class="rk"><span class="no">风险 1</span><b>付款条款</b> —— 已按授权修订为 ' + s.days + ' 天，与预付 30% 绑定成对出现</span>'
+        + '<span class="rk"><span class="no">风险 2</span><b>违约金无上限</b> —— 建议封顶，超出企业红线区间</span>'
+        + '<span class="rk"><span class="no">风险 3</span><b>知识产权表述模糊</b> —— 归属与使用边界不清，建议法务另拟</span>'; } },
+
+    /* ---- D41 · 决策⑥ 要人担责 ---- */
+    { d: 'D41', day: 41, t: '10:00', a: 'main', k: 'dec',
+      dec: { id: 6, no: '⑥', typeMain: '要人担责', role: '李芳 · 会同法务',
+        title: '合同法务复核 —— 三处风险，采纳与否必须由人确认',
+        types: [{ t: '要人担责', cls: 'gold' }],
+        body: '<div class="wr-seg"><span class="wr-lab">待确认</span><p>付款条款修订、违约金封顶两条<b>建议采纳</b>；知识产权条款表述模糊，<b>建议送法务另拟</b> —— 逐条留痕。</p></div>',
+        note: '法务判断无法由 AI 代替 —— 合同涉及法律责任，必须由授权人确认，系统不代签。',
+        btns: [{ t: '采纳 2 条并送法务另拟知产条款', act: 'ok', primary: true }] } },
+    { d: 'D41', day: 41, t: '15:30', a: 'risk', k: 'act', n: 3, mile: true, fx: { ms: 13, lights: { risk: 'done' } },
+      h: '两处修订已落入合同 v2；知识产权条款移交法务另拟，往来与结论逐条留痕。里程碑推进：<b>13/16</b>（法务复核）。' },
+
+    /* ---- D42–D44 · 压缩 8 个动作 ---- */
+    { d: 'D42–D44', day: 44, t: '·', a: 'main', k: 'fold', n: 8, mile: true, fx: { ms: 15, lights: { pay: 'run' } },
+      h: 'D42–D44 · 主 Agent <b>自主执行 8 个动作</b>，收尾冲线。里程碑推进：<b>15/16</b>（用印完成 · 待签约）。',
+      fold: ['用印流程：内部审批发起、跟催、归档<em>×3</em>', '回款节点计划生成并进入日程<em>×2</em>', '过程与结果回写 CRM：全程档案落库<em>×3</em>'] },
+
+    /* ---- D45 · 签约 + 复盘 ---- */
+    { d: 'D45', day: 45, t: '11:00', a: 'main', k: 'act', n: 0, mile: true,
+      fx: { ms: 16, lights: { main: 'done', res: 'done', rec: 'done', data: 'done', gen: 'done', risk: 'done', pay: 'done' } },
+      h: '<b>签约完成 · 里程碑 16/16。</b>金桥制造 · 年度框架 ¥86 万，45 天从线索到签约。团队转入履约跟踪，本次回放到此 —— 下面是复盘。' },
+    { d: 'D45', day: 45, t: '11:01', a: 'sys', k: 'recap' }
+  ];
+  /* ===================== 复盘屏 ===================== */
+  var DEC_META = {
+    1: { d: 'D5', name: '首访出场' }, 2: { d: 'D14', name: '方案报价定案' },
+    3: { d: 'D21', name: '二访谈异议' }, 4: { d: 'D27', name: '商务谈判' },
+    5: { d: 'D34', name: '账期授权（来自待决队列）' }, 6: { d: 'D41', name: '合同法务复核' }
+  };
+  var TOTAL = EVENTS.reduce(function (s, e) { return s + (e.n || 0); }, 0);
+  function renderRecap(instant) {
+    var rows = '';
+    for (var i = 1; i <= 6; i++) {
+      var m = DEC_META[i], c = state.choices[i];
+      rows += '<li><span class="d">' + m.d + '</span>决策' + '①②③④⑤⑥'.charAt(i - 1) + ' · ' + m.name
+        + ' —— 你的选择：<b>' + (c ? c.label : '（未记录）') + '</b>'
+        + '<span class="ty">' + (c ? c.type : '') + '</span></li>';
+    }
+    var node = h2el('<div class="wr-recap' + (instant ? ' noanim' : '') + '">'
+      + '<h3>D45 · 签约复盘 —— <em>这 45 天，人到底出现了几次</em></h3>'
+      + '<div class="sub">金桥制造 · 年度框架 ¥86 万 · 45 天从线索到签约</div>'
+      + '<div class="wr-recap-stats">'
+      + '<div class="s"><div class="v">' + TOTAL + '<em>个</em></div><div class="l">Agent 自主执行的动作（各段计数之和，页内自动加总校验）</div></div>'
+      + '<div class="s gold"><div class="v">6<em>次</em></div><div class="l">人出现的全部次数 —— 就是你刚才做的 6 次决策</div></div>'
+      + '<div class="s"><div class="v">' + state.correction + '<em>次</em></div><div class="l">人工纠偏（进入能力记分卡）</div></div>'
+      + '</div>'
+      + '<h5>你的 6 次出场 · 逐条留痕</h5><ol>' + rows + '</ol>'
+      + '<h5>四类节点，各自出现在哪一天</h5><div class="types">'
+      + '<div><b>要人脸出面 · D5 / D21 / D27</b>首访、二访、谈判 —— 关系与信任无法委托</div>'
+      + '<div><b>要人担责 · D14 / D34 / D41</b>报价定案、账期授权、合同复核 —— 责任落到自然人</div>'
+      + '<div><b>AI 没把握 · D30</b>置信度 61% 低于阈值 75% —— 宁可停下，不瞎动，也不烦你</div>'
+      + '<div><b>结果偏离 · 停滞 14 天（D21 起算）</b>主 Agent 自己发现，D34 送进待决队列 —— 不靠人报</div>'
+      + '</div>'
+      + '<div class="close-line">这就是 L3：<em>系统发起，异常才找你</em>。</div>'
+      + '<div class="exits"><a href="autonomy.html">测测你的团队在第几级 →</a><a class="ghost" href="roadmap.html">30 天怎么开始 →</a></div>'
+      + '<div class="rc-note">本回放为目标态示意，非真实客户数据；45 天里每一次自主执行与每一次找人 —— 包括你刚才的 6 次拍板 —— 都已留痕，逐条可审计。</div>'
+      + '</div>');
+    feed.appendChild(node);
+    pause();
+  }
+
+  /* ===================== 播放引擎（确定性回放，不用 Date.now / 随机数） ===================== */
+  function renderEvent(ev, instant) {
+    dayChip(ev, instant);
+    if (ev.k === 'act') renderAction(ev, instant);
+    else if (ev.k === 'fold') renderFold(ev, instant);
+    else if (ev.k === 'hesi') renderHesi(ev, instant);
+    else if (ev.k === 'dec') renderDecision(ev, instant);
+    else if (ev.k === 'recap') renderRecap(instant);
+    applyFx(ev);
+    scrollBottom(instant);
+  }
+  function delayFor(ev) {
+    if (ev.k === 'fold') return 2300;
+    if (ev.k === 'hesi') return 2800;
+    if (ev.k === 'dec') return 1100;
+    if (ev.k === 'recap') return 1800;
+    return 1700;
+  }
+  function schedule() {
+    clearTimeout(timer);
+    if (!state.playing || state.waiting || state.idx >= EVENTS.length) return;
+    timer = setTimeout(step, delayFor(EVENTS[state.idx]) / state.speed);
+  }
+  function step() {
+    if (state.idx >= EVENTS.length) { pause(); return; }
+    var ev = EVENTS[state.idx];
+    state.idx++;
+    renderEvent(ev, false);
+    if (ev.k === 'dec') { state.waiting = true; return; }
+    schedule();
+  }
+  function markStarted() {
+    if (state.started) return;
+    state.started = true;
+    var sb = document.getElementById('wrStartBtn');
+    if (sb) { sb.disabled = true; sb.textContent = '回放已开始 ↓'; }
+  }
+  function play() {
+    markStarted();
+    if (state.idx >= EVENTS.length && !state.waiting) { pause(); return; }   // 回放已结束：不进入假播放态
+    state.playing = true;
+    btnPlay.textContent = '⏸ 暂停';
+    schedule();
+  }
+  function pause() {
+    state.playing = false;
+    clearTimeout(timer);
+    btnPlay.textContent = '▶ 播放';
+  }
+  /* 快进：瞬时应用事件；未决的决策卡是闸门，到即停 */
+  function fastForwardTo(target) {
+    if (state.waiting) { scrollBottom(false); return; }          // 有决策卡挂起：必须先拍板
+    if (target < state.idx) {                                    // 已经播过的时刻：滚回去看，不重演
+      var ev0 = EVENTS[target];
+      var dn = ev0 && ev0.dec ? document.getElementById('decnode-' + ev0.dec.id) : null;
+      if (dn) dn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    pause(); markStarted();
+    while (state.idx < EVENTS.length) {
+      var ev = EVENTS[state.idx];
+      state.idx++;
+      renderEvent(ev, true);
+      if (ev.k === 'dec' && !state.choices[ev.dec.id]) { state.waiting = true; break; }
+      if (state.idx > target) break;
+    }
+    scrollBottom(true);
+  }
+  function nextHuman() {
+    if (state.waiting) { scrollBottom(false); return; }
+    for (var i = state.idx; i < EVENTS.length; i++) {
+      if (EVENTS[i].k === 'dec' && !state.choices[EVENTS[i].dec.id]) { fastForwardTo(i); return; }
+    }
+    fastForwardTo(EVENTS.length - 1);   // 没有需要你的时刻了 → 直达复盘
+  }
+  function restart() {
+    clearTimeout(timer);
+    state.idx = 0; state.playing = false; state.waiting = false;
+    state.day = 0; state.temp = 68; state.ms = 0; state.days = 75;
+    state.correction = 0; state.choices = {}; state.started = false;
+    lastDayChip = '';
+    feed.innerHTML = '';
+    feed.appendChild(startCard);
+    var sb = document.getElementById('wrStartBtn');
+    sb.disabled = false; sb.textContent = '▶ 开始 45 天回放';   // 初始 click 监听随节点保留，无需重复绑定
+    elDay.textContent = 'D0'; elTemp.textContent = '68';
+    elMs.textContent = '0'; elMsBar.style.width = '0'; elFill.style.width = '0';
+    elLog.innerHTML = ''; elLogEmpty.style.display = '';
+    ROSTER.forEach(function (r) { setLight(r.k, ''); });
+    document.querySelectorAll('.wr-mark').forEach(function (m) { m.classList.remove('done'); });
+    btnPlay.textContent = '▶ 播放';
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  }
+
+  /* ===================== 控件与初始化 ===================== */
+  var startCard = document.getElementById('wrStart');
+  document.getElementById('wrStartBtn').addEventListener('click', play);
+  btnPlay.addEventListener('click', function () { state.playing ? pause() : play(); });
+  btnSpeed.addEventListener('click', function () {
+    state.speed = state.speed === 1 ? 3 : 1;
+    btnSpeed.textContent = state.speed + 'x';
+    if (state.playing) schedule();
+  });
+  document.getElementById('wrNext').addEventListener('click', nextHuman);
+  document.getElementById('wrRestart').addEventListener('click', restart);
+
+  /* 进度条上的 6 个金色人环节标记 */
+  var track = document.getElementById('wrTrack');
+  EVENTS.forEach(function (ev, i) {
+    if (ev.k !== 'dec') return;
+    var mk = h2el('<span class="wr-mark" id="mk-' + ev.dec.id + '" title="决策' + ev.dec.no + ' · ' + ev.d + '" style="left:' + ((ev.day - 1) / 44 * 100) + '%"></span>');
+    mk.addEventListener('click', function () { fastForwardTo(i); });
+    track.appendChild(mk);
+  });
+
+  /* 页尾自检：分段计数自动加总 */
+  (function () {
+    var ok = TOTAL === 137;
+    var decs = EVENTS.filter(function (e) { return e.k === 'dec'; }).length;
+    document.getElementById('wrCheck').innerHTML = '页内自检：分段动作计数自动加总 = '
+      + (ok ? '<b>' + TOTAL + ' ✓</b>' : '<span style="color:var(--warn)">' + TOTAL + ' ✗（应为 137）</span>')
+      + ' · 需要人的时刻 ' + decs + ' 个 · 纯确定性回放（不含任何随机数）';
+  })();
+
+  renderRoster();
+})();
+</script>
+</body>
+</html>

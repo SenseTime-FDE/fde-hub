@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简历筛选与分发 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ---------- 本页特有样式 ---------- */
+.tabs2 { display: flex; gap: 8px; margin-bottom: 16px; }
+.tabs2 .tab {
+  border: 1px solid var(--cbord); background: #fff; border-radius: 999px;
+  font-size: 12.5px; padding: 7px 18px; cursor: pointer; color: var(--muted);
+  font-family: inherit; transition: all .15s;
+}
+.tabs2 .tab:hover { border-color: var(--gold); color: var(--navy); }
+.tabs2 .tab.on { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 700; }
+.tabs2 .tab .v { font-size: 10.5px; opacity: .75; margin-left: 6px; }
+
+.kw-row { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; flex-wrap: wrap; }
+.kw-label { flex: none; width: 72px; font-size: 12px; font-weight: 700; color: var(--steel); padding-top: 3px; }
+.kw-wrap { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.tip { position: relative; cursor: help; }
+.tip:hover::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 50%;
+  transform: translateX(-50%); background: var(--navy); color: #fff; font-size: 11px;
+  font-weight: 400; padding: 5px 11px; border-radius: 6px; white-space: nowrap; z-index: 40;
+}
+.tip:hover::before {
+  content: ""; position: absolute; bottom: calc(100% + 1px); left: 50%;
+  transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--navy); z-index: 40;
+}
+
+.cand { display: flex; align-items: center; gap: 10px; }
+.cav {
+  width: 30px; height: 30px; flex: none; border-radius: 50%; background: var(--soft);
+  color: var(--steel); font-size: 11.5px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.cav.gold { background: var(--gold-bg); color: var(--amber); border: 1px solid var(--gold-soft); }
+.sub { font-size: 11px; color: var(--faint); line-height: 1.4; }
+
+.score-cell { min-width: 110px; }
+.score-cell b { font-size: 14px; }
+.score-cell .bar { margin-top: 5px; width: 96px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 4px; max-width: 240px; }
+.chip {
+  background: var(--soft); color: var(--steel); border-radius: 6px;
+  font-size: 11px; padding: 2px 8px; white-space: nowrap;
+}
+.chip.warn { background: var(--amber-bg); color: var(--amber); }
+.chip.bad { background: var(--red-bg); color: var(--red); }
+
+.rowbtn {
+  border: 1px solid var(--cbord); background: #fff; color: var(--blue); border-radius: 6px;
+  font-size: 11.5px; padding: 4px 10px; cursor: pointer; font-family: inherit; white-space: nowrap;
+}
+.rowbtn:hover { border-color: var(--blue); background: var(--soft2); }
+
+tr.crow { cursor: pointer; }
+.caret { display: inline-block; font-size: 10px; color: var(--faint); transition: transform .15s; margin-right: 6px; }
+tr.crow.open .caret { transform: rotate(90deg); color: var(--gold); }
+tr.detail-tr { display: none; }
+tr.detail-tr.open { display: table-row; }
+tr.detail-tr > td { background: var(--soft2); padding: 0 14px 16px; }
+.detail-box { background: #fff; border: 1px solid var(--cbord); border-radius: 10px; padding: 16px 18px; margin-top: 12px; }
+.detail-box h4 { font-size: 13px; color: var(--navy); margin-bottom: 8px; }
+
+.mp { padding: 8px 0 10px; border-bottom: 1px dashed var(--line); }
+.mp:last-child { border-bottom: none; padding-bottom: 0; }
+.mp .mp-t { font-size: 13px; color: var(--navy); font-weight: 700; }
+.mp .tag {
+  display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 4px;
+  padding: 1px 7px; margin-left: 8px; vertical-align: 1px;
+  background: var(--green-bg); color: var(--green);
+}
+.mp.doubt .tag { background: var(--amber-bg); color: var(--amber); }
+.mp .sugg { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.mp .sugg b { color: var(--amber); }
+
+.im-sec { font-size: 11px; font-weight: 700; letter-spacing: 1px; color: var(--faint); margin: 12px 0 4px; }
+.im-sum { font-size: 13px; color: var(--body); }
+.im-li { font-size: 12.5px; padding: 3px 0 3px 16px; position: relative; }
+.im-li::before { content: ""; position: absolute; left: 2px; top: 11px; width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+.im-li.doubt::before { background: var(--amber); }
+.btn.rghost { background: #fff; border: 1px solid var(--red-bg); color: var(--red); }
+.btn.rghost:hover { border-color: var(--red); }
+.im-note { font-size: 11px; color: var(--faint); padding: 0 16px 12px; line-height: 1.6; }
+
+.escalate {
+  background: var(--gold-bg); border: 1px solid var(--gold-soft); border-radius: 10px;
+  padding: 12px 16px; font-size: 12.5px; margin-top: 14px;
+}
+.escalate b { color: var(--navy); }
+.escalate .path { color: var(--amber); font-weight: 700; }
+
+.empty-state { text-align: center; padding: 46px 20px; color: var(--muted); font-size: 13px; }
+.empty-state b { display: block; color: var(--navy); font-size: 15px; margin-bottom: 6px; }
+
+.pool-note {
+  margin-top: 12px; background: var(--soft2); border-radius: 8px; padding: 10px 14px;
+  font-size: 12px; color: var(--muted);
+}
+.pool-note b { color: var(--green); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html">🤖 AI 专员对话</a>
+      <a href="profile.html">🎯 岗位画像共建</a>
+      <a href="screening.html" class="on">🗂 简历筛选与分发</a>
+      <a href="evaluation.html">📝 证据链评估报告</a>
+      <a href="board.html">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html">📊 面试质检</a>
+      <a href="compliance.html">🛡 合规与数据权属</a>
+      <a href="platform.html">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>简历筛选与分发</h1><span class="crumb">AI 招聘专员 / 招聘工作台 / 简历筛选</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+
+      <div class="page-head">
+        <h2>简历筛选与分发</h2>
+        <p>AI 按岗位画像卡自动初筛并推送用人部门；所有 AI 结论均为「建议」，录用与淘汰均需人工确认。</p>
+      </div>
+
+      <div class="steps">
+        <div class="st done"><span class="n">1</span>简历接入（3 渠道 · 47 份）</div>
+        <div class="st done"><span class="n">2</span>AI 对照画像卡初筛</div>
+        <div class="st cur"><span class="n">3</span>推送用人部门</div>
+        <div class="st"><span class="n">4</span>反馈闭环 / 超时升级</div>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><b>47</b><span>本周新简历（份）</span></div>
+        <div class="kpi"><b>47 <em>· 100%</em></b><span>自动初筛完成</span></div>
+        <div class="kpi"><b>6 <i class="delta down" style="font-style:normal">2 份超 48h</i></b><span>推送部门待反馈 · 超时已自动催办</span></div>
+        <div class="kpi"><b>5</b><span>人工复核池（低分不自动拒绝）</span></div>
+      </div>
+
+      <div class="tabs2">
+        <button class="tab on" id="tabBtn0" onclick="switchPos(0)">高级后端工程师<span class="v">画像卡 v3.2 · HRBP 赵一宁</span></button>
+        <button class="tab" id="tabBtn1" onclick="switchPos(1)">解决方案架构师<span class="v">画像卡 v1.4</span></button>
+      </div>
+
+      <!-- ===== 岗位一：高级后端工程师 ===== -->
+      <div id="pos0">
+
+        <div class="panel" style="margin-bottom:18px">
+          <div class="p-head"><b>初筛依据 · 画像卡 v3.2 关键词组</b><span class="hint">来自「岗位画像共建」页 · HR 与用人部门共同确认 · 悬停查看说明</span></div>
+          <div class="p-body" style="padding:14px 20px">
+            <div class="kw-row"><span class="kw-label">核心词</span><span class="kw-wrap">
+              <span class="pill blue tip" data-tip="画像卡必备项 · 命中计入匹配分">分布式</span>
+              <span class="pill blue tip" data-tip="画像卡必备项 · 命中计入匹配分">高并发</span>
+              <span class="pill blue tip" data-tip="画像卡必备项 · 命中计入匹配分">JVM 调优</span>
+              <span class="pill blue tip" data-tip="画像卡必备项 · 命中计入匹配分">微服务治理</span>
+            </span></div>
+            <div class="kw-row"><span class="kw-label">同义词</span><span class="kw-wrap">
+              <span class="pill navy tip" data-tip="自动归一：简历写任一写法均视为同一技能">K8s ≈ Kubernetes</span>
+            </span></div>
+            <div class="kw-row"><span class="kw-label">加分信号</span><span class="kw-wrap">
+              <span class="pill green tip" data-tip="命中则加权，不作为淘汰依据">开源贡献</span>
+              <span class="pill green tip" data-tip="命中则加权，不作为淘汰依据">千万级 QPS 实战</span>
+            </span></div>
+            <div class="kw-row"><span class="kw-label">排除信号</span><span class="kw-wrap">
+              <span class="pill red tip" data-tip="命中不自动淘汰 · 转人工复核池由 HR 判断">纯外包驻场经历（需复核）</span>
+            </span></div>
+          </div>
+        </div>
+
+        <div class="cols c32">
+          <!-- 候选人主表 -->
+          <div class="panel">
+            <div class="p-head"><b>候选人列表 · 本周（示例 6 人）</b><span class="hint">点击行展开 AI 匹配详情 · AI 结论仅为建议</span></div>
+            <div style="overflow-x:auto">
+            <table class="tbl">
+              <thead><tr>
+                <th>候选人</th><th>来源渠道</th><th>画像匹配分</th><th>匹配点摘要</th><th>状态</th><th>操作</th>
+              </tr></thead>
+              <tbody>
+
+                <tr class="crow open" onclick="toggleRow(this,'d-chen')">
+                  <td><span class="cand"><span class="cav gold">陈</span><span><b><span class="caret">▶</span>陈砚秋</b><br><span class="sub">8 年 · 分布式电商中台</span></span></span></td>
+                  <td>内推</td>
+                  <td class="score-cell"><b>92</b><span class="sub"> /100</span><div class="bar"><i class="green" style="width:92%"></i></div></td>
+                  <td><span class="chips"><span class="chip">高并发实战</span><span class="chip">微服务治理</span><span class="chip">开源贡献</span></span></td>
+                  <td><span class="pill green">二面进行中</span></td>
+                  <td><button class="rowbtn" onclick="event.stopPropagation()">推送记录</button></td>
+                </tr>
+                <tr class="detail-tr open" id="d-chen"><td colspan="6">
+                  <div class="detail-box">
+                    <h4>AI 匹配详情 · 陈砚秋（对照画像卡 v3.2 · 以下均为 AI 建议，供面试官参考）</h4>
+                    <div class="mp">
+                      <div class="mp-t">① 高并发实战 <span class="tag">匹配 · 命中核心词「高并发」+ 加分信号候选</span></div>
+                      <div class="evi"><span class="who">简历 · 项目经历第 2 段</span>「主导订单系统重构，QPS 从 2k 提升至 50k，大促期间零故障」</div>
+                    </div>
+                    <div class="mp">
+                      <div class="mp-t">② 微服务治理 <span class="tag">匹配 · 命中核心词「微服务治理 / 分布式」</span></div>
+                      <div class="evi"><span class="who">简历 · 项目经历第 3 段</span>「完成单体应用向 30+ 微服务拆分，接入服务网格统一治理与灰度发布」</div>
+                    </div>
+                    <div class="mp">
+                      <div class="mp-t">③ 开源贡献 <span class="tag">匹配 · 命中加分信号「开源贡献」</span></div>
+                      <div class="evi"><span class="who">简历 · 附加信息</span>「Apache RocketMQ 社区 Contributor，累计合并 PR 7 个」</div>
+                    </div>
+                    <div class="mp doubt">
+                      <div class="mp-t">④ K8s 经验描述笼统 <span class="tag">存疑 · 建议面试核实</span></div>
+                      <div class="evi"><span class="who">简历 · 技能清单</span>「了解 K8s / Kubernetes 及容器化部署」（同义词已自动归一）</div>
+                      <div class="sugg"><b>AI 建议：</b>未见生产级运维证据，建议二面追问集群规模与故障处理案例，不作扣分结论。</div>
+                    </div>
+                    <div class="mp doubt">
+                      <div class="mp-t">⑤ 6 个月经历空窗 <span class="tag">存疑 · 建议面试核实</span></div>
+                      <div class="evi"><span class="who">简历 · 工作经历时间线</span>2021.03–2021.09 两段工作之间存在空窗，简历未说明原因</div>
+                      <div class="sugg"><b>AI 建议：</b>由面试官礼貌核实即可，空窗期本身不构成淘汰理由。</div>
+                    </div>
+                  </div>
+                </td></tr>
+
+                <tr class="crow" onclick="toggleRow(this,'d-lin')">
+                  <td><span class="cand"><span class="cav">林</span><span><b><span class="caret">▶</span>林晚晴</b><br><span class="sub">7 年 · 出行平台网关</span></span></span></td>
+                  <td>招聘网站</td>
+                  <td class="score-cell"><b>88</b><span class="sub"> /100</span><div class="bar"><i style="width:88%"></i></div></td>
+                  <td><span class="chips"><span class="chip">高并发网关</span><span class="chip">K8s 生产运维</span><span class="chip">技术博客输出</span></span></td>
+                  <td><span class="pill gold">待安排</span></td>
+                  <td><button class="rowbtn" onclick="event.stopPropagation()">约一面</button></td>
+                </tr>
+                <tr class="detail-tr" id="d-lin"><td colspan="6">
+                  <div class="detail-box"><h4>AI 匹配详情 · 林晚晴（摘要）</h4>
+                    <div class="evi"><span class="who">简历 · 项目经历第 1 段</span>「负责出行平台统一网关，峰值 12 万 QPS，主导限流与熔断体系建设」</div>
+                    <div class="sugg" style="margin-top:8px;font-size:12px;color:var(--muted)">演示环境仅陈砚秋展示完整五条匹配详情，其余候选人展示首条证据。</div>
+                  </div>
+                </td></tr>
+
+                <tr class="crow" onclick="toggleRow(this,'d-shen')">
+                  <td><span class="cand"><span class="cav">沈</span><span><b><span class="caret">▶</span>沈知远</b><br><span class="sub">6 年 · 中间件团队</span></span></span></td>
+                  <td>猎头推荐</td>
+                  <td class="score-cell"><b>86</b><span class="sub"> /100</span><div class="bar"><i style="width:86%"></i></div></td>
+                  <td><span class="chips"><span class="chip">分布式存储</span><span class="chip">JVM 调优</span><span class="chip">中间件研发</span></span></td>
+                  <td><span class="pill blue">一面通过 · 3.8</span></td>
+                  <td><button class="rowbtn" onclick="event.stopPropagation()">约二面</button></td>
+                </tr>
+                <tr class="detail-tr" id="d-shen"><td colspan="6">
+                  <div class="detail-box"><h4>AI 匹配详情 · 沈知远（摘要）</h4>
+                    <div class="evi"><span class="who">简历 · 项目经历第 1 段</span>「参与自研分布式 KV 存储引擎，负责 GC 调优，停顿从 600ms 降至 40ms」</div>
+                  </div>
+                </td></tr>
+
+                <tr class="crow" onclick="toggleRow(this,'d-su')">
+                  <td><span class="cand"><span class="cav">苏</span><span><b><span class="caret">▶</span>苏念安</b><br><span class="sub">5 年 · SaaS 后端</span></span></span></td>
+                  <td>官网投递</td>
+                  <td class="score-cell"><b>81</b><span class="sub"> /100</span><div class="bar"><i style="width:81%"></i></div></td>
+                  <td><span class="chips"><span class="chip">微服务改造</span><span class="chip">工程质量规范</span><span class="chip">跨团队协作</span></span></td>
+                  <td><span class="pill blue">一面通过 · 3.6</span></td>
+                  <td><button class="rowbtn" onclick="event.stopPropagation()">约二面</button></td>
+                </tr>
+                <tr class="detail-tr" id="d-su"><td colspan="6">
+                  <div class="detail-box"><h4>AI 匹配详情 · 苏念安（摘要）</h4>
+                    <div class="evi"><span class="who">简历 · 项目经历第 2 段</span>「推动 CI 流水线与代码评审规范落地，线上缺陷率下降 35%」</div>
+                  </div>
+                </td></tr>
+
+                <tr class="crow" onclick="toggleRow(this,'d-gu')">
+                  <td><span class="cand"><span class="cav">顾</span><span><b><span class="caret">▶</span>顾北辰</b><br><span class="sub">4 年 · 外包驻场为主</span></span></span></td>
+                  <td>招聘网站</td>
+                  <td class="score-cell"><b>58</b><span class="sub"> /100</span><div class="bar"><i class="gold" style="width:58%"></i></div></td>
+                  <td><span class="chips"><span class="chip bad">排除信号命中·需复核</span><span class="chip warn">高并发证据不足</span><span class="chip">技能部分重合</span></span></td>
+                  <td><span class="pill amber">人工复核池</span></td>
+                  <td><button class="rowbtn" onclick="event.stopPropagation()">转复核</button></td>
+                </tr>
+                <tr class="detail-tr" id="d-gu"><td colspan="6">
+                  <div class="detail-box"><h4>AI 匹配详情 · 顾北辰（摘要）</h4>
+                    <div class="evi"><span class="who">简历 · 工作经历第 1–3 段</span>近 4 年均为外包驻场项目（命中排除信号「纯外包驻场经历需复核」）</div>
+                    <div class="sugg" style="margin-top:8px;font-size:12px"><b style="color:var(--amber)">AI 建议：</b>不自动拒绝，转人工复核池由 HR 判断项目真实深度。</div>
+                  </div>
+                </td></tr>
+
+                <tr class="crow" onclick="toggleRow(this,'d-zhou')">
+                  <td><span class="cand"><span class="cav">周</span><span><b><span class="caret">▶</span>周远帆</b><br><span class="sub">3 年 · 偏前端全栈</span></span></span></td>
+                  <td>招聘网站</td>
+                  <td class="score-cell"><b>41</b><span class="sub"> /100</span><div class="bar"><i class="red" style="width:41%"></i></div></td>
+                  <td><span class="chips"><span class="chip warn">技术栈偏前端</span><span class="chip warn">无高并发证据</span><span class="chip warn">年限低于画像</span></span></td>
+                  <td><span class="pill red">已淘汰 · 人工确认</span></td>
+                  <td><button class="rowbtn" onclick="event.stopPropagation()">查看留痕</button></td>
+                </tr>
+                <tr class="detail-tr" id="d-zhou"><td colspan="6">
+                  <div class="detail-box"><h4>AI 匹配详情 · 周远帆（摘要）</h4>
+                    <div class="evi"><span class="who">复核留痕</span>AI 建议「不进入面试」→ HRBP 赵一宁 08-08 14:22 复核确认淘汰，并已发送婉拒沟通</div>
+                  </div>
+                </td></tr>
+
+              </tbody>
+            </table>
+            </div>
+          </div>
+
+          <!-- IM 推送预演 -->
+          <div>
+            <div class="panel">
+              <div class="p-head"><b>IM 推送卡片预演</b><span class="hint">企业 IM 机器人 → 用人部门</span></div>
+              <div class="p-body" style="padding:16px">
+                <div class="im-card" style="max-width:100%">
+                  <div class="im-head">📩 发送至：刘慕青（技术总监 · 二面官）　抄送：HRBP 赵一宁</div>
+                  <div class="im-body">
+                    <div class="im-sum"><b style="color:var(--navy)">候选人推荐 · 陈砚秋</b>　<span class="pill green" style="font-size:10.5px">匹配 92/100</span><br>
+                    <span class="muted">高级后端工程师 · 画像卡 v3.2 · 8 年经验 · 内推</span></div>
+                    <p class="im-sec">AI 识别的匹配点（3）</p>
+                    <div class="im-li">高并发实战：订单系统重构，QPS 2k → 50k</div>
+                    <div class="im-li">微服务治理：30+ 服务拆分 + 服务网格灰度发布</div>
+                    <div class="im-li">加分信号：Apache RocketMQ Contributor（PR×7）</div>
+                    <p class="im-sec">存疑点（2 · 建议面试核实）</p>
+                    <div class="im-li doubt">K8s 经验描述笼统，未见生产运维证据</div>
+                    <div class="im-li doubt">2021 年有 6 个月经历空窗，原因未说明</div>
+                  </div>
+                  <div class="im-actions">
+                    <button class="btn gold" style="flex:1">约面试</button>
+                    <button class="btn ghost" style="flex:1">待定</button>
+                    <button class="btn rghost" style="flex:1.4">不合适（转人工复核）</button>
+                  </div>
+                  <p class="im-note">按钮均为演示示意；点「不合适」不会直接淘汰候选人，简历将转入人工复核池，由 HR 确认后处理并留痕。</p>
+                </div>
+                <div class="escalate">
+                  ⏱ <b>超时升级规则：</b>推送后 <span class="path">48 小时未反馈 → 机器人自动提醒</span>；再超 24 小时 → <span class="path">自动抄送 HRBP 赵一宁</span>并标记超时。本周已自动催办 2 份。
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 人工复核池 -->
+        <div class="panel mt">
+          <div class="p-head"><b>人工复核池（5 份 · 本页展示 2 份示例）</b><span class="hint">低分与命中排除信号的简历进入本池 · AI 无淘汰权</span></div>
+          <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>候选人</th><th>画像匹配分</th><th>进入复核原因</th><th>AI 建议（仅供参考）</th><th>复核状态</th><th>操作</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><b>顾北辰</b><br><span class="sub">招聘网站 · 4 年</span></td>
+                <td class="score-cell"><b>58</b><div class="bar"><i class="gold" style="width:58%"></i></div></td>
+                <td>命中排除信号「纯外包驻场经历」；高并发证据不足</td>
+                <td>建议暂缓，由 HR 电话核实项目真实深度后再定</td>
+                <td><span class="pill amber">待 HR 复核</span></td>
+                <td><button class="rowbtn">开始复核</button></td>
+              </tr>
+              <tr>
+                <td><b>周远帆</b><br><span class="sub">招聘网站 · 3 年</span></td>
+                <td class="score-cell"><b>41</b><div class="bar"><i class="red" style="width:41%"></i></div></td>
+                <td>技术栈与画像偏差大；缺少分布式 / 高并发证据</td>
+                <td>建议不进入面试（AI 建议，不直接生效）</td>
+                <td><span class="pill red">已淘汰 · 人工确认</span><br><span class="sub">赵一宁 · 08-08 14:22</span></td>
+                <td><button class="rowbtn">查看留痕</button></td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+          <div class="p-body" style="padding-top:12px">
+            <div class="pool-note"><b>✓ 口径说明：</b>低分简历不自动拒绝，一律进入人工复核池，由 HR 复核后处理；每次复核结论与操作人、时间戳均留痕，可在「合规与数据权属」页审计。</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ===== 岗位二：解决方案架构师 ===== -->
+      <div id="pos1" style="display:none">
+        <div class="panel">
+          <div class="p-body">
+            <div class="empty-state">
+              <b>解决方案架构师 · 画像卡 v1.4</b>
+              本周新简历 12 份，自动初筛完成 12 份，推送待反馈 1 份。<br>
+              本演示以「高级后端工程师」为主线，该岗位数据同构，此处从略。<br><br>
+              <button class="btn ghost" onclick="switchPos(0)">← 返回高级后端工程师</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="footnote">
+        AI 结论均为建议 · 录用与淘汰均需人工确认 · 面试质检数据仅面试官本人可见<br>
+        演示数据均为虚构 · 商汤科技 · 大模型生态渠道部
+      </p>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleRow(tr, id) {
+  var d = document.getElementById(id);
+  tr.classList.toggle('open');
+  d.classList.toggle('open');
+}
+function switchPos(n) {
+  document.getElementById('pos0').style.display = n === 0 ? '' : 'none';
+  document.getElementById('pos1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('tabBtn0').classList.toggle('on', n === 0);
+  document.getElementById('tabBtn1').classList.toggle('on', n === 1);
+}
+</script>
+</body>
+</html>
