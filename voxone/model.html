@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SenseAudio 接入 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("model", async (root, ctx) => {
+  const me = ctx.me;
+  const canEdit = !!me.perms.manageModel;
+  let model = ctx.model;                 // 保存后会重新拉取覆盖(mode 可能从 builtin → live)
+  const MEMO = { tts: "🔊", vc: "🎛️", rt: "⚡", asr: "📝" };
+
+  // ---- 模型货架(SenseAudio 开放平台 · OpenAI 兼容)-----------------------
+  const SHELF = [
+    { cat: "自研 · 对话 / 多模态", models: [
+      { id: "senseaudio-s2", d: "日日新 S2 · 通用对话旗舰" },
+      { id: "senseaudio-s2-flash", d: "S2 极速版 · 低时延高并发" },
+      { id: "senseaudio-s2-lite", d: "S2 轻量 · 高性价比" },
+      { id: "senseaudio-vl-1.0-260319", d: "多模态 · 图文理解" },
+      { id: "senseaudio-vl-pro-1.0-260319", d: "多模态 Pro" },
+    ]},
+    { cat: "通用 · 对话大模型", models: [
+      { id: "deepseek-v4-flash", d: "DeepSeek · 快·省(已验证)", rec: true },
+      { id: "qwen3.6-27b", d: "通义千问" },
+      { id: "kimi-k2.6", d: "月之暗面 · 长上下文" },
+      { id: "glm-5.1", d: "智谱" },
+      { id: "minimax-m2.7", d: "MiniMax" },
+      { id: "doubao-seed-2-0-lite-260215", d: "豆包" },
+    ]},
+    { cat: "语音 · SenseAudio(合成 / 转写)", models: [
+      { id: "senseaudio-tts-1.5-260319", d: "TTS 合成 · 多语言", voice: true },
+      { id: "senseaudio-asr-1.5-260319", d: "ASR 听写", voice: true },
+      { id: "senseaudio-asr-pro-1.5-260319", d: "ASR Pro · 高精度", voice: true },
+      { id: "senseaudio-asr-check-1.5-260319", d: "ASR 质检", voice: true },
+    ]},
+  ];
+  function setChat(id) {
+    const cm = VX.$("#cm"); if (cm) cm.value = id;
+    VX.$$(".mdl-card").forEach(c => { c.style.borderColor = c.dataset.id === id ? "var(--coral)" : ""; });
+    VX.toast("已选对话模型 " + id + " · 记得点「保存接入配置」", "ok");
+  }
+  async function runTry() {
+    const out = VX.$("#tryout"), t = VX.$("#tryin").value.trim(); if (!t) return;
+    out.innerHTML = `<div class="sub">🔄 正在向当前引擎发送…</div>`;
+    try {
+      const r = (await VX.api("/api/rt/reply", "POST", { scenario: "ecom", mode: "omni", text: t, history: [] })).reply;
+      const eng = r.source === "live" ? VX.badge("实时端点 Live", "ai") : r.source === "builtin-fallback" ? VX.badge("端点异常 · 已回退内置", "bad") : VX.badge("内置引擎", "run");
+      out.innerHTML = `<div class="bub ai" style="max-width:100%"><div class="meta">AI · 意图「${VX.esc(r.intent || "-")}」 · 延迟 ${VX.fmtNum(r.latencyMs)}ms · ${eng}${r.model ? " · " + VX.esc(r.model) : ""}</div><div>${VX.esc(r.text)}</div></div>${r.fallbackError ? `<div class="notice" style="margin-top:8px">⚠️ live 调用失败:${VX.esc(r.fallbackError)} —— 已自动回退内置引擎(请检查端点/Key/模型名)</div>` : ""}`;
+    } catch (e) { out.innerHTML = `<div class="notice">⚠️ ${VX.esc(e.message)}</div>`; }
+  }
+
+  // ---- 端点探活 ----------------------------------------------------------
+  async function probeHealth() {
+    const box = VX.$("#healthres"); if (!box) return;
+    box.innerHTML = `<div class="sub">🔄 正在探活当前引擎…</div>`;
+    try {
+      const h = await VX.api("/api/rt/health");
+      const okBadge = h.ok ? VX.badge("在线 · OK", "on") : VX.badge("异常", "bad");
+      const engineBadge = h.mode === "live" ? VX.badge("实时端点 Live", "ai") : VX.badge("内置引擎(离线可用)", "run");
+      box.innerHTML = `
+        <div class="kv"><span class="k">健康状态</span><span class="v">${okBadge}</span></div>
+        <div class="kv"><span class="k">引擎模式</span><span class="v">${engineBadge}</span></div>
+        <div class="kv"><span class="k">探活延迟</span><span class="v">${VX.fmtNum(h.latencyMs)} <small class="muted">ms</small></span></div>
+        ${h.status != null ? `<div class="kv"><span class="k">HTTP 状态</span><span class="v mono">${VX.esc(String(h.status))}</span></div>` : ""}
+        ${h.endpoint ? `<div class="kv"><span class="k">端点</span><span class="v mono" style="max-width:62%;text-align:right;word-break:break-all">${VX.esc(h.endpoint)}</span></div>` : ""}
+        ${h.note ? `<div class="notice" style="margin-top:12px">${VX.esc(h.note)}</div>` : ""}
+        ${h.error ? `<div class="notice" style="margin-top:12px">⚠️ 探活失败:${VX.esc(h.error)}</div>` : ""}`;
+      // 同步顶栏环境标识
+      const em = VX.$("#envmode"); if (em) em.textContent = h.mode === "live" ? "实时端点 Live" : "内置引擎";
+      const dot = VX.$(".env .dot"); if (dot) dot.className = "dot " + (h.ok ? "g" : "r");
+    } catch (e) {
+      box.innerHTML = `<div class="notice">⚠️ ${VX.esc(e.message)}</div>`;
+    }
+  }
+
+  // ---- 保存接入配置 ------------------------------------------------------
+  async function saveConfig() {
+    const val = (id) => { const el = VX.$(id); return el ? el.value.trim() : ""; };
+    const body = {
+      endpoint: VX.$("#ep").value.trim(), realtimeModel: VX.$("#rtm").value.trim(),
+      chatModel: val("#cm"), chatPath: val("#cp"),
+      ttsModel: val("#tm"), ttsVoice: val("#tv"), ttsPath: val("#tp"),
+      asrModel: val("#am"), asrPath: val("#ap"),
+    };
+    const k = VX.$("#key").value.trim(); if (k) body.apiKey = k;
+    try {
+      await VX.api("/api/model", "POST", body);
+      VX.toast(body.endpoint ? "接入配置已保存 · 引擎将切换为 live" : "已保存 · 未配置端点,继续使用内置引擎", "ok");
+      const nctx = await VX.api("/api/bootstrap"); model = nctx.model; // 刷新 mode / mask
+      render();
+    } catch (e) { VX.toast(e.message, "err"); }
+  }
+
+  // ---- 货架连通状态灯 ----------------------------------------------------
+  let CONN = null;
+  async function checkConn() {
+    const sum = VX.$("#connsum"); if (sum) sum.innerHTML = `<span class="sub">🔄 检测中…</span>`;
+    try { CONN = await VX.api("/api/model/models"); applyConn(); }
+    catch (e) { if (sum) sum.innerHTML = VX.badge("检测失败", "bad"); VX.toast(e.message, "err"); }
+  }
+  function applyConn() {
+    const sum = VX.$("#connsum"); const online = new Set((CONN && CONN.models) || []);
+    VX.$$(".mdl-card").forEach(c => {
+      const id = c.dataset.id, dot = c.querySelector(".mdl-dot"); if (!dot) return;
+      if (!CONN || (!CONN.ok && CONN.mode === "builtin")) { dot.className = "mdl-dot dot"; dot.title = "未配置端点"; }
+      else if (!CONN.ok) { dot.className = "mdl-dot dot r"; dot.title = "端点异常:" + (CONN.error || ""); }
+      else if (online.has(id)) { dot.className = "mdl-dot dot g"; dot.title = "在线 · 端点已上架"; }
+      else { dot.className = "mdl-dot dot y"; dot.title = "端点未列出该模型(名称可能不同)"; }
+    });
+    if (sum) {
+      if (!CONN || (!CONN.ok && CONN.mode === "builtin")) sum.innerHTML = VX.badge("未配置端点 · 静态目录", "off");
+      else if (!CONN.ok) sum.innerHTML = VX.badge("端点异常 · " + (CONN.error || ""), "bad");
+      else sum.innerHTML = VX.badge("在线 " + online.size + " 模型 · " + VX.fmtNum(CONN.latencyMs) + "ms", "on");
+    }
+  }
+  // ---- 真实 TTS 试听(端点未就绪则回退浏览器合成)-------------------------
+  async function playTTS(model, btn) {
+    const say = "您好,这里是声渡智能语音助手,很高兴为您服务。";
+    if (btn) { btn.disabled = true; btn.textContent = "⏳ 合成中"; }
+    try {
+      const r = await VX.api("/api/tts", "POST", { text: say, model });
+      if (r.ok && r.audioBase64) { await new Audio("data:" + (r.contentType || "audio/mpeg") + ";base64," + r.audioBase64).play(); VX.toast("真实合成播放 · " + model, "ok"); }
+      else if (window.speechSynthesis) { const u = new SpeechSynthesisUtterance(say); u.lang = "zh-CN"; speechSynthesis.speak(u); VX.toast((r.note || r.error || "端点未就绪") + " · 已用浏览器合成", ""); }
+      else VX.toast(r.error || "无法合成", "err");
+    } catch (e) { VX.toast(e.message, "err"); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = "🔊 试听"; } }
+  }
+  // ---- 真实 ASR 录音转写 -------------------------------------------------
+  let _rec = null, _chunks = [];
+  const blobToB64 = (blob) => new Promise((res) => { const r = new FileReader(); r.onloadend = () => res(String(r.result).split(",")[1]); r.readAsDataURL(blob); });
+  async function toggleRec(btn) {
+    if (_rec && _rec.state === "recording") { _rec.stop(); return; }
+    if (!navigator.mediaDevices || !window.MediaRecorder) { VX.toast("当前浏览器不支持录音", "err"); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      _rec = new MediaRecorder(stream); _chunks = [];
+      _rec.ondataavailable = (e) => e.data.size && _chunks.push(e.data);
+      _rec.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop()); btn.textContent = "🎙️ 录音转写"; btn.classList.remove("pri");
+        const out = VX.$("#asrout"); out.innerHTML = `<span class="sub">🔄 上传转写中…</span>`;
+        try {
+          const b64 = await blobToB64(new Blob(_chunks, { type: "audio/webm" }));
+          const r = await VX.api("/api/asr", "POST", { audioBase64: b64, contentType: "audio/webm", filename: "rec.webm" });
+          out.innerHTML = r.ok ? `<div class="bub ai" style="max-width:100%"><div class="meta">SenseAudio ASR 转写</div><div>${VX.esc(r.text || "(空)")}</div></div>` : `<div class="notice">⚠️ ${VX.esc(r.error || r.note || "转写失败")}(配置真实端点+Key 后可用)</div>`;
+        } catch (e) { out.innerHTML = `<div class="notice">⚠️ ${VX.esc(e.message)}</div>`; }
+      };
+      _rec.start(); btn.textContent = "⏹ 停止并转写"; btn.classList.add("pri");
+    } catch (e) { VX.toast("麦克风不可用:" + e.message, "err"); }
+  }
+
+  // ---- 渲染 --------------------------------------------------------------
+  function render() {
+    const b = model.benchmarks || {};
+    const sim24 = b.sim24 || [], seedtts = b.seedtts || [], vc = b.vc || [], extra = b.extra || [];
+    const pricing = model.pricing || [];
+
+    root.innerHTML = `
+    <div class="pagehero">
+      <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">🧠</div>
+      <div style="flex:1">
+        <div style="font-size:17px;font-weight:800;color:#fff">${VX.esc(model.name)} · 语音大模型矩阵</div>
+        <div class="sub">全栈自研 · ${model.langCount} 语言 + ${VX.esc(model.extraLang)} · 端到端可打断 · 供应商:${VX.esc(model.vendor)}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="sub" style="margin-bottom:5px">当前引擎</div>
+        ${model.mode === "live" ? VX.badge("实时端点 Live", "ai") : VX.badge("内置引擎(离线可用)", "run")}
+      </div>
+    </div>
+
+    <!-- 模型矩阵 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>🎛️ 语音大模型矩阵</h3><div class="sp"></div><span class="chip">全栈自研 · ${model.matrix.length} 大能力</span></div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(248px,1fr));gap:14px">
+        ${model.matrix.map(m => `
+          <div class="panel"${m.id === "rt" ? ' style="border-left:3px solid var(--coral)"' : ""}>
+            <div class="between" style="margin-bottom:9px">
+              <div class="row" style="align-items:center;gap:9px;flex-wrap:nowrap">
+                <div style="width:34px;height:34px;border-radius:10px;background:var(--grad-voice);display:grid;place-items:center;font-size:16px;flex:0 0 auto">${MEMO[m.id] || "🧠"}</div>
+                <b style="color:#fff;font-size:13.5px;line-height:1.25">${VX.esc(m.name)}</b>
+              </div>
+              ${m.status === "ready" ? VX.badge("就绪", "on") : VX.badge(m.status, "off")}
+            </div>
+            <div class="row" style="gap:6px;margin-bottom:9px"><span class="chip">${VX.esc(m.io)}</span><span class="tag">${VX.esc(m.langs)}</span></div>
+            <div style="font-size:12.5px;color:var(--ink-2);line-height:1.55">${VX.esc(m.highlight)}</div>
+            ${m.id === "rt" ? `<div style="margin-top:10px">${VX.badge("⚡ 全双工核心", "coral")}</div>` : ""}
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <!-- 模型货架 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>🧩 模型货架</h3><div class="sp"></div><button class="btn sm" id="connbtn">🔌 检测连通</button><span id="connsum" style="margin-left:8px"></span><span class="chip" style="margin-left:8px">SenseAudio 开放平台 · OpenAI 兼容</span></div>
+      <div class="sub" style="margin-bottom:12px">状态灯:🟢在线 🟡端点未列出 🔴异常 ⚪未配置。点「检测连通」拉取端点在线模型逐项点亮;「设为对话模型」填入下方配置;语音类可「试听」真实合成。</div>
+      ${SHELF.map(g => `
+        <div style="margin-bottom:14px">
+          <div class="sub" style="margin-bottom:8px">${VX.esc(g.cat)}</div>
+          <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:10px">
+          ${g.models.map(m => { const cur = (model.chatModel || "deepseek-v4-flash") === m.id; return `
+            <div class="panel mdl-card" data-id="${VX.esc(m.id)}" style="padding:12px 13px${cur ? ";border-color:var(--coral)" : ""}">
+              <div class="between"><b style="color:#fff;font-size:12.5px"><span class="mdl-dot dot" style="margin-right:6px" title="点「检测连通」刷新"></span>${VX.esc(m.id)}</b>${m.rec ? VX.badge("推荐", "coral") : cur ? VX.badge("当前", "ai") : ""}</div>
+              <div class="sub" style="margin:5px 0 9px;font-size:11.5px;line-height:1.5">${VX.esc(m.d)}</div>
+              ${m.voice ? `<button class="btn sm tts" data-id="${VX.esc(m.id)}">🔊 试听</button>` : `<button class="btn sm setchat" data-id="${VX.esc(m.id)}" ${canEdit ? "" : "disabled"}>设为对话模型</button>`}
+            </div>`; }).join("")}
+          </div>
+        </div>`).join("")}
+    </div>
+
+    <!-- 端点健康 + 接入配置 -->
+    <div class="two" style="margin-bottom:16px;align-items:start">
+      <div class="card pad">
+        <div class="hd"><h3>📡 端点健康</h3><div class="sp"></div><button class="btn sm" id="probe">🔄 探活</button></div>
+        <div id="healthres"><div class="sub">点击「探活」检测当前引擎状态…</div></div>
+      </div>
+
+      <div class="card pad">
+        <div class="hd"><h3>🔧 接入配置</h3><div class="sp"></div>${canEdit ? VX.badge("可编辑", "on") : VX.badge("只读", "off")}</div>
+        ${canEdit ? "" : `<div class="notice" style="margin-bottom:14px">🔒 仅平台管理员(manageModel)可配置端点与密钥,以下为只读展示。</div>`}
+        <label class="fld"><span class="lb">SenseAudio 端点 URL</span>
+          <input id="ep" ${canEdit ? "" : "disabled"} value="${VX.esc(model.endpoint || "https://api.senseaudio.cn/v1")}" placeholder="https://api.senseaudio.cn/v1"/></label>
+        <label class="fld"><span class="lb">API Key(在此粘贴,服务端加密存储、不回显)</span>
+          <input id="key" type="password" ${canEdit ? "" : "disabled"} placeholder="${model.apiKeySet ? VX.esc(model.apiKeyMask) : "sk-••••  在此粘贴你的 API Key"}" autocomplete="new-password"/></label>
+        <div class="two" style="gap:10px">
+          <label class="fld"><span class="lb">对话模型名</span>
+            <input id="cm" ${canEdit ? "" : "disabled"} value="${VX.esc(model.chatModel || "deepseek-v4-flash")}" placeholder="deepseek-v4-flash"/></label>
+          <label class="fld"><span class="lb">Chat 接口路径</span>
+            <input id="cp" ${canEdit ? "" : "disabled"} value="${VX.esc(model.chatPath || "/chat/completions")}" placeholder="/chat/completions"/></label>
+        </div>
+        <label class="fld"><span class="lb">Realtime 模型名(语音)</span>
+          <input id="rtm" ${canEdit ? "" : "disabled"} placeholder="${VX.esc(model.realtimeModel || "SenseAudio-Realtime-2.0")}"/></label>
+        <div class="sub" style="margin:6px 0 8px;padding-top:8px;border-top:1px solid var(--line)">🔊 语音接入(TTS/ASR)—— <b>嵌入式语音客服(embed-demo)</b> 与工作台的真实语音走这里。默认 OpenAI 兼容形态,若 SenseAudio 实际接口不同可在此调整。</div>
+        <div class="two" style="gap:10px">
+          <label class="fld"><span class="lb">TTS 模型名</span>
+            <input id="tm" ${canEdit ? "" : "disabled"} value="${VX.esc(model.ttsModel || "senseaudio-tts-1.5-260319")}" placeholder="senseaudio-tts-1.5-260319"/></label>
+          <label class="fld"><span class="lb">TTS 音色 voice</span>
+            <input id="tv" ${canEdit ? "" : "disabled"} value="${VX.esc(model.ttsVoice || "default")}" placeholder="default"/></label>
+        </div>
+        <div class="two" style="gap:10px">
+          <label class="fld"><span class="lb">TTS 接口路径</span>
+            <input id="tp" ${canEdit ? "" : "disabled"} value="${VX.esc(model.ttsPath || "/audio/speech")}" placeholder="/audio/speech"/></label>
+          <label class="fld"><span class="lb">ASR 模型名</span>
+            <input id="am" ${canEdit ? "" : "disabled"} value="${VX.esc(model.asrModel || "senseaudio-asr-1.5-260319")}" placeholder="senseaudio-asr-1.5-260319"/></label>
+        </div>
+        <label class="fld"><span class="lb">ASR 接口路径</span>
+          <input id="ap" ${canEdit ? "" : "disabled"} value="${VX.esc(model.asrPath || "/audio/transcriptions")}" placeholder="/audio/transcriptions"/></label>
+        ${canEdit ? `<button class="btn pri" id="savecfg" style="width:100%;justify-content:center">💾 保存接入配置</button>` : ""}
+        <div class="notice" style="margin-top:14px">未配置端点时使用<b>内置对话引擎(离线可用)</b>,全双工工作台可直接体验;配置真实端点后,引擎自动从「内置」切换为 <b>live</b> —— 对话大脑将以场景知识库+SOP 作 RAG,交由真实大模型(OpenAI 兼容 / SenseNova)应答,异常自动回退内置引擎。API Key 留空则保留当前值。</div>
+      </div>
+    </div>
+
+    <!-- 在线试一试 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>🧪 在线试一试</h3><div class="sp"></div><span class="sub">用当前引擎实测一条对话 · 配置真实端点+Key 后即走 live</span></div>
+      <div class="row" style="gap:10px">
+        <input id="tryin" value="帮我查下退货政策,顺便看看有没有优惠" style="flex:1"/>
+        <button class="btn pri" id="trybtn">▶ 发送测试</button>
+      </div>
+      <div id="tryout" style="margin-top:14px"><div class="sub">点「发送测试」验证连通与应答质量(会显示走的是 live 还是内置引擎)。</div></div>
+    </div>
+
+    <!-- 语音 ASR 录音转写 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>🎙️ 语音转写(ASR)</h3><div class="sp"></div><span class="sub">录一句 → 接 SenseAudio ASR 端点转写</span></div>
+      <button class="btn" id="asrbtn">🎙️ 录音转写</button>
+      <div id="asrout" style="margin-top:12px"><div class="sub">点录音说一句,停止后上传端点转写(需真实端点+Key;否则工作台已有浏览器识别可用)。</div></div>
+    </div>
+
+    <!-- 公开基准 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>📊 公开基准 · 音色相似度 SIM</h3><div class="sp"></div><span class="chip">引自《${VX.esc(model.name)} 介绍》</span></div>
+      <div class="sub" style="margin-bottom:12px">24 段语音克隆音色相似度(SIM ↑ 越高越好 · 满分 90 归一化),自研高亮。</div>
+      <div class="hbars">
+        ${sim24.map(r => `
+          <div class="hb" style="grid-template-columns:170px 1fr 48px">
+            <span class="t"${r.self ? ' style="color:var(--coral-2);font-weight:700"' : ""}>${VX.esc(r.sys)}</span>
+            <div class="bar${r.self ? " coral" : ""}"><i style="width:${Math.round(r.v / 90 * 100)}%"></i></div>
+            <span class="n">${r.v}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <div class="two" style="margin-bottom:16px;align-items:start">
+      <div class="card pad">
+        <div class="hd"><h3>Seed-TTS-eval 错误率</h3><div class="sp"></div><span class="tag">越低越好 ↓</span></div>
+        <table class="tb" style="margin-top:4px">
+          <thead><tr><th>系统</th><th>中文 CER ↓</th><th>英文 WER ↓</th></tr></thead>
+          <tbody>
+          ${seedtts.map(r => `<tr>
+            <td class="nm"${r.self ? ' style="color:var(--coral-2)"' : ""}>${VX.esc(r.sys)} ${r.self ? VX.badge("自研·最优", "coral") : ""}</td>
+            <td${r.self ? ' style="color:var(--coral-2);font-weight:700"' : ""}>${r.cer}</td>
+            <td${r.self ? ' style="color:var(--coral-2);font-weight:700"' : ""}>${r.wer}</td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card pad">
+        <div class="hd"><h3>变声 VC 2.0</h3><div class="sp"></div><span class="tag">WER ↓ / SS ↑</span></div>
+        <table class="tb" style="margin-top:4px">
+          <thead><tr><th>系统</th><th>WER ↓</th><th>SS ↑</th></tr></thead>
+          <tbody>
+          ${vc.map(r => `<tr>
+            <td class="nm"${r.self ? ' style="color:var(--coral-2)"' : ""}>${VX.esc(r.sys)} ${r.self ? VX.badge("本品", "coral") : ""}</td>
+            <td${r.self ? ' style="color:var(--coral-2);font-weight:700"' : ""}>${r.wer}</td>
+            <td${r.self ? ' style="color:var(--coral-2);font-weight:700"' : ""}>${r.ss}</td></tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>关键硬指标</h3><div class="sp"></div><span class="sub">端到端错误率 / 变声质量(数值越低越优)</span></div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px">
+        ${extra.map(e => `
+          <div class="panel" style="padding:14px 12px;text-align:center">
+            <div style="font-size:22px;font-weight:800;color:var(--teal);line-height:1">${VX.esc(e.v)}</div>
+            <div class="sub" style="margin-top:5px">${VX.esc(e.k)}</div>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <!-- 定价对比 -->
+    <div class="card pad">
+      <div class="hd"><h3>💰 定价对比 · 全包成本 / 分钟</h3><div class="sp"></div><span class="chip">全栈自研 = 无第三方版税</span></div>
+      <div style="overflow-x:auto">
+      <table class="tb" style="margin-top:4px;min-width:640px">
+        <thead><tr><th>竞品 / 方案</th><th>计费模式</th><th>全包成本 / 分钟</th><th>底层栈</th></tr></thead>
+        <tbody>
+        ${pricing.map(r => `<tr>
+          <td class="nm"${r.self ? ' style="color:var(--coral-2)"' : ""}>${VX.esc(r.sys)} ${r.self ? VX.badge("本品", "coral") : ""}</td>
+          <td>${VX.esc(r.mode)}</td>
+          <td${r.self ? ' style="color:var(--coral-2);font-weight:800"' : ' style="font-weight:600"'}>${VX.esc(r.cost)}</td>
+          <td>${VX.esc(r.stack)}</td></tr>`).join("")}
+        </tbody>
+      </table>
+      </div>
+      <div class="notice" style="margin-top:14px">全栈自研 = 无第三方版税,同质量下一口价 <b style="color:var(--coral-ink)">$0.06–0.09/min</b>。</div>
+    </div>`;
+
+    // ---- 绑定事件 ----
+    VX.$("#probe").onclick = probeHealth;
+    if (canEdit) VX.$("#savecfg").onclick = saveConfig;
+    VX.$$(".setchat").forEach(b => b.onclick = () => setChat(b.dataset.id));
+    if (VX.$("#trybtn")) VX.$("#trybtn").onclick = runTry;
+    if (VX.$("#connbtn")) VX.$("#connbtn").onclick = checkConn;
+    VX.$$(".tts").forEach(b => b.onclick = () => playTTS(b.dataset.id, b));
+    if (VX.$("#asrbtn")) VX.$("#asrbtn").onclick = () => toggleRec(VX.$("#asrbtn"));
+    applyConn();       // 保持已检测的灯态
+    probeHealth();     // 进入即探活一次,展示当前引擎
+    checkConn();       // 进入即拉取一次货架连通(未配置端点则显示静态目录)
+  }
+
+  render();
+});
+</script>
+</body></html>

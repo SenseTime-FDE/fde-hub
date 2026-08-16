@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI 销售 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("sales", async (root, ctx) => {
+  const { data, me, stats } = ctx;
+  const $ = VX.$, $$ = VX.$$;
+
+  // ---- 场景裁剪(viewAll → 全 5 场景;否则仅本人可见场景)----
+  const scScoped = me.perms.viewAll;
+  const allowScenes = scScoped
+    ? ["ecom", "app", "fintech", "local", "auto"]
+    : (me.scenarios || []).filter((s) => s !== "*");
+
+  // ---- 销售 Agent(按模式 + 场景裁剪)----
+  const salesAgents = data.agents
+    .filter((a) => a.mode === "sales" && allowScenes.includes(a.scenario))
+    .sort((a, b) => b.calls - a.calls);
+
+  // ---- 磁贴演示指标 ----
+  const salesCalls = (stats.byMode && stats.byMode.sales) || 0;          // 本期销售留痕会话
+  const agentCallsTotal = salesAgents.reduce((s, a) => s + (a.calls || 0), 0); // Agent 累计咨询
+  const highIntent = Math.round(agentCallsTotal * 0.12);                 // ≈12% 转高意向
+  const avgConv = salesAgents.length
+    ? Math.round(salesAgents.reduce((s, a) => s + (a.resolveRate || 0), 0) / salesAgents.length)
+    : 0;
+  const oppWan = Math.round(highIntent * 2.18);                          // 预估在谈商机(万元)
+
+  // ---- 转化漏斗(演示比例递减)----
+  const funnelBase = agentCallsTotal;
+  const funnel = [
+    { label: "💬 咨询触达", pct: 100 },
+    { label: "📋 资格审查 · BANT", pct: 62 },
+    { label: "🔥 高意向", pct: 28 },
+    { label: "✅ 成交", pct: 14 },
+  ].map((x) => ({ ...x, n: Math.round(funnelBase * x.pct / 100) }));
+
+  // ---- BANT 资格审查维度(演示命中率)----
+  const bant = [
+    { k: "预算 Budget", v: 71 },
+    { k: "决策权 Authority", v: 58 },
+    { k: "需求 Need", v: 83 },
+    { k: "时机 Timing", v: 46 },
+  ];
+
+  const canOrchestrate = (me.perms.pages || []).includes("agents");
+
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">📈</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">AI 销售 · 对话式销售</div>
+      <div class="sub">把答疑升级为促成转化 · 线索资格审查(BANT) · 高意向实时分配 · ${scScoped ? "全场景视图" : "本场景视图"}</div>
+    </div>
+    ${canOrchestrate ? '<a class="btn" href="agents.html">🤖 编排销售 Agent</a>' : ""}
+  </div>
+
+  <div class="stats" style="margin-bottom:16px">
+    <div class="stat"><div class="k">💬 销售会话量</div><div class="v">${VX.fmtNum(salesCalls)}</div><div class="d">本期留痕 · Agent 累计 ${VX.fmtNum(agentCallsTotal)}</div></div>
+    <div class="stat"><div class="k">🔥 高意向线索</div><div class="v">${VX.fmtNum(highIntent)}</div><div class="d">≈ 咨询量 12% 转高意向</div></div>
+    <div class="stat voice"><div class="k">📊 平均转化率</div><div class="v">${avgConv}<small>%</small></div><div class="d">${salesAgents.length} 个销售 Agent 平均</div></div>
+    <div class="stat"><div class="k">💰 在谈商机金额</div><div class="v">¥${VX.fmtNum(oppWan)}<small>万</small></div><div class="d">高意向线索预估估值</div></div>
+  </div>
+
+  <div class="grid" style="grid-template-columns:1.35fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="card pad">
+      <div class="hd"><h3>转化漏斗</h3><div class="sp"></div><span class="chip">📉 咨询 → 成交</span></div>
+      ${funnel.map((st, i) => `
+        <div style="margin:${i ? 14 : 6}px 0 0">
+          <div class="barlabel"><span>${st.label}</span><span>${VX.fmtNum(st.n)} · ${st.pct}%</span></div>
+          <div class="bar coral"><i style="width:${st.pct}%"></i></div>
+        </div>`).join("")}
+      <div class="notice" style="margin-top:16px">全双工对话中自动识别意图与预算,逐级筛出高意向线索;高意向可实时分配区域销售,完整上下文一并交接。</div>
+    </div>
+    <div class="card pad">
+      <div class="hd"><h3>线索资格审查 · BANT</h3><div class="sp"></div><span class="sub">对话中自动打分</span></div>
+      <div class="hbars">
+        ${bant.map((d) => `<div class="hb"><span class="t">${d.k}</span><div class="bar coral"><i style="width:${d.v}%"></i></div><span class="n">${d.v}%</span></div>`).join("")}
+      </div>
+      <div class="hr"></div>
+      <div class="kv"><span class="k">高意向实时分配</span><span class="v">${VX.badge("已启用", "on")}</span></div>
+      <div class="kv"><span class="k">上下文交接</span><span class="v">对话转写 + 画像同步</span></div>
+      <div class="kv"><span class="k">承接话术</span><span class="v">线索资格审查 SOP</span></div>
+    </div>
+  </div>
+
+  <div class="card pad" style="margin-bottom:16px">
+    <div class="between"><div class="hd" style="margin:0"><h3>销售 Agent</h3></div>${canOrchestrate ? '<a class="btn sm" href="agents.html">编排 Agent →</a>' : `<span class="sub">${salesAgents.length} 个在跑</span>`}</div>
+    <div class="grid" id="agentGrid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:12px">
+      ${salesAgents.map((a) => {
+        const vo = (data.voices.find((v) => v.id === a.voiceId) || {}).name || "—";
+        const sc = (data.scripts.find((s) => s.id === a.scriptId) || {}).title || "—";
+        return `<div class="panel">
+          <div class="between" style="margin-bottom:10px">
+            <div style="display:flex;align-items:center;gap:10px;min-width:0">
+              <div style="width:38px;height:38px;border-radius:11px;background:var(--grad-brand);display:grid;place-items:center;font-size:18px;flex:0 0 auto">${VX.scEmoji(a.scenario)}</div>
+              <div style="min-width:0"><b style="color:#fff">${VX.esc(a.name)}</b><div class="sub">${VX.scLabel(a.scenario)}</div></div>
+            </div>
+            ${VX.statusBadge(a.status)}
+          </div>
+          <div class="kv"><span class="k">🎙️ 绑定音色</span><span class="v">${VX.esc(vo)}</span></div>
+          <div class="kv"><span class="k">📋 绑定话术</span><span class="v">${VX.esc(sc)}</span></div>
+          <div class="kv"><span class="k">💬 会话量</span><span class="v">${VX.fmtNum(a.calls)}</span></div>
+          <div class="kv"><span class="k">📈 转化率</span><span class="v" style="color:var(--coral-2)">${a.resolveRate}%</span></div>
+          <div class="bar coral" style="margin-top:10px"><i style="width:${a.resolveRate}%"></i></div>
+        </div>`;
+      }).join("") || '<div class="empty"><div class="ic">🤖</div>当前范围内暂无销售 Agent</div>'}
+    </div>
+  </div>
+
+  <div class="card pad">
+    <div class="between"><div class="hd" style="margin:0"><h3>销售线索 · 会话留痕</h3></div><span class="chip" id="leadCount">加载中…</span></div>
+    <div id="leadWrap" style="margin-top:8px;overflow-x:auto">
+      <div class="empty"><div class="ic">⏳</div>正在加载销售会话…</div>
+    </div>
+    <div class="sub" style="margin-top:10px">点击任意一行可查看完整对话转写。<span class="badge coral" style="margin-left:6px">高意向</span> 标记的线索建议优先跟进。</div>
+  </div>`;
+
+  // ---- 销售线索表(异步拉取)----
+  const HI_TAG = "高意向线索";
+  const resolveBadge = (r) => r === "ai" ? VX.badge("AI 自助", "ai") : r === "human" ? VX.badge("人工销售", "coral") : VX.badge(r || "—", "off");
+
+  function openCall(c) {
+    if (!c) return;
+    const hi = (c.tags || []).includes(HI_TAG);
+    const tags = (c.tags || []).map((t) => `<span class="tag">${VX.esc(t)}</span>`).join(" ");
+    const head = `
+      <div class="between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div>${VX.modeBadge(c.mode)} ${VX.badge(VX.scLabel(c.scenario).split(" / ")[0], "off")} ${VX.badge(VX.CH[c.channel] || c.channel, "off")} ${hi ? VX.badge("高意向", "coral") : ""}</div>
+        <div class="sub">${VX.fmtTs(c.ts)} · ${VX.fmtDur(c.durationSec)} · CSAT ${c.csat != null ? c.csat : "—"}</div>
+      </div>
+      <div class="kv"><span class="k">客户</span><span class="v">${VX.esc(c.customer || "—")}</span></div>
+      <div class="kv"><span class="k">意图</span><span class="v">${VX.esc(c.intent || "—")}</span></div>
+      <div class="kv"><span class="k">结果</span><span class="v">${VX.esc(c.outcome || "—")}</span></div>
+      <div class="kv"><span class="k">解决方</span><span class="v">${resolveBadge(c.resolvedBy)}</span></div>
+      ${c.sopTitle ? `<div class="kv"><span class="k">命中 SOP</span><span class="v">${VX.esc(c.sopTitle)}</span></div>` : ""}
+      ${tags ? `<div class="kv"><span class="k">标签</span><span class="v">${tags}</span></div>` : ""}
+      <div class="hr"></div>
+      <div class="sub" style="margin-bottom:10px">对话转写</div>`;
+    const chat = (c.transcript || []).map((m) => {
+      const who = m.role === "user" ? "客户" : m.role === "ai" ? "AI" : "系统";
+      return `<div class="bub ${m.role}"><div class="meta">${who}</div><div>${VX.esc(m.text)}</div></div>`;
+    }).join("") || '<div class="sub">暂无转写记录</div>';
+    VX.modal({ title: c.intent || "会话详情", body: VX.el(`<div>${head}<div class="chat">${chat}</div></div>`), wide: true });
+  }
+
+  async function loadLeads() {
+    let calls = [];
+    try { const r = await VX.api("/api/calls?mode=sales"); calls = r.calls || []; }
+    catch (e) { $("#leadWrap").innerHTML = `<div class="empty"><div class="ic">⚠️</div>${VX.esc(e.message)}</div>`; $("#leadCount").textContent = "加载失败"; return; }
+
+    $("#leadCount").textContent = VX.fmtNum(calls.length) + " 条线索";
+    if (!calls.length) {
+      $("#leadWrap").innerHTML = '<div class="empty"><div class="ic">📈</div>当前范围内暂无销售会话</div>';
+      return;
+    }
+    const byId = {};
+    const rows = calls.map((c) => {
+      byId[c.id] = c;
+      const hi = (c.tags || []).includes(HI_TAG);
+      return `<tr data-id="${c.id}" style="cursor:pointer">
+        <td>${VX.fmtTs(c.ts)}</td>
+        <td>${VX.scEmoji(c.scenario)} ${VX.esc(VX.scLabel(c.scenario).split(" / ")[0])}</td>
+        <td>${VX.esc(c.customer || "—")}</td>
+        <td class="nm">${VX.esc(c.intent || "—")} ${hi ? VX.badge("高意向", "coral") : ""}</td>
+        <td>${VX.esc(c.outcome || "—")}</td>
+        <td>${resolveBadge(c.resolvedBy)}</td>
+        <td>${c.csat != null ? c.csat : "—"}</td>
+      </tr>`;
+    }).join("");
+    $("#leadWrap").innerHTML = `<table class="tb"><thead><tr>
+      <th>时间</th><th>场景</th><th>客户</th><th>意图</th><th>结果</th><th>解决方</th><th>CSAT</th>
+    </tr></thead><tbody>${rows}</tbody></table>`;
+    $$("#leadWrap tr[data-id]").forEach((tr) => { tr.onclick = () => openCall(byId[tr.dataset.id]); });
+  }
+  loadLeads();
+});
+</script>
+</body></html>

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>音色库 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("voices", async (root, ctx) => {
+  const { me } = ctx;
+  const canEdit = !!me.perms.editConfig;
+  let voices = ctx.data.voices || [];
+
+  // 试听:按第一个语种映射到浏览器 speechSynthesis 语言标签
+  const LANG_BCP = { zh:"zh-CN", yue:"zh-HK", en:"en-US", ar:"ar-SA", th:"th-TH", es:"es-ES", id:"id-ID", vi:"vi-VN", ja:"ja-JP", pt:"pt-PT" };
+  function preview(v){
+    if (!("speechSynthesis" in window)) { VX.toast("当前浏览器不支持试听", "err"); return; }
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(v.sampleText || v.name);
+      u.lang = LANG_BCP[(v.langs || [])[0]] || "zh-CN";
+      window.speechSynthesis.speak(u);
+      VX.toast("试听中 · " + v.name, "ok");
+    } catch (e) { VX.toast("当前浏览器不支持试听", "err"); }
+  }
+
+  async function reload(){
+    try { const c = await VX.api("/api/bootstrap"); voices = c.data.voices || []; render(); }
+    catch (e) { VX.toast(e.message, "err"); }
+  }
+
+  // 上下架:无 voice.toggle,用 voice.upsert 翻转整条 status
+  async function toggleVoice(v){
+    const rec = Object.assign({}, v, { status: v.status === "on" ? "off" : "on" });
+    try { await VX.change("voice.upsert", { voice: rec }); await reload(); VX.toast(rec.status === "on" ? "已上线" : "已下线", "ok"); }
+    catch (e) { VX.toast(e.message, "err"); }
+  }
+
+  function delVoice(v){
+    VX.confirm(`确认删除音色「${v.name}」?此操作不可撤销。`, async () => {
+      try { await VX.change("voice.delete", { id: v.id }); await reload(); VX.toast("音色已删除", "ok"); }
+      catch (e) { VX.toast(e.message, "err"); }
+    }, "删除");
+  }
+
+  // 克隆 / 编辑弹窗
+  function openEditor(existing){
+    const v = existing || { id:"", name:"", type:"clone", gender:"female", langs:[], clonedFrom:"", sampleText:"" };
+    const allLangs = Object.keys(VX.LANG);
+    const body = VX.el(`<div>
+      <label class="fld"><span class="lb">音色名</span><input id="f_name" value="${VX.esc(v.name)}" placeholder="如:品牌主音色 · 林向晚"/></label>
+      <div class="two" style="gap:12px">
+        <label class="fld"><span class="lb">类型</span><select id="f_type">
+          <option value="clone">克隆(零样本)</option><option value="preset">预置</option></select></label>
+        <label class="fld"><span class="lb">性别</span><select id="f_gender">
+          <option value="female">女声</option><option value="male">男声</option></select></label>
+      </div>
+      <label class="fld"><span class="lb">语种(可多选)</span>
+        <div class="segs" id="f_langs">${allLangs.map(l=>`<span class="seg ${(v.langs||[]).includes(l)?"on":""}" data-lang="${l}">${VX.esc(VX.LANG[l])}</span>`).join("")}</div>
+      </label>
+      <label class="fld" id="f_cf_wrap"><span class="lb">克隆来源说明</span><input id="f_cf" value="${VX.esc(v.clonedFrom||"")}" placeholder="上传 5–30 秒参考音频"/></label>
+      <label class="fld"><span class="lb">示例文本</span><textarea id="f_sample" rows="2" placeholder="用于试听的示例语句">${VX.esc(v.sampleText||"")}</textarea></label>
+      <div class="notice" id="f_notice">🎙️ 零样本克隆:5–30 秒参考音频即可复刻音色,可跨 30 语言复用</div>
+    </div>`);
+    VX.$("#f_type", body).value = v.type;
+    VX.$("#f_gender", body).value = v.gender;
+    VX.$$("#f_langs .seg", body).forEach(s => s.onclick = () => s.classList.toggle("on"));
+    function syncType(){
+      const clone = VX.$("#f_type", body).value === "clone";
+      VX.$("#f_cf_wrap", body).style.display = clone ? "block" : "none";
+      VX.$("#f_notice", body).style.display = clone ? "flex" : "none";
+    }
+    VX.$("#f_type", body).onchange = syncType; syncType();
+
+    const save = VX.el(`<button class="btn pri">保存音色</button>`);
+    const m = VX.modal({ title: existing ? "编辑音色" : "新建克隆音色", body, footer: save });
+    save.onclick = async () => {
+      const name = VX.$("#f_name", body).value.trim();
+      if (!name) { VX.toast("请填写音色名", "err"); return; }
+      const type = VX.$("#f_type", body).value;
+      const langs = VX.$$("#f_langs .seg.on", body).map(s => s.dataset.lang);
+      if (!langs.length) { VX.toast("请至少选择一个语种", "err"); return; }
+      const rec = {
+        id: v.id || ("v_" + Date.now()),
+        name, type, gender: VX.$("#f_gender", body).value, langs,
+        clonedFrom: type === "clone" ? VX.$("#f_cf", body).value.trim() : "",
+        sampleText: VX.$("#f_sample", body).value.trim(),
+        status: existing ? existing.status : "on",
+      };
+      try { await VX.change("voice.upsert", { voice: rec }); m.close(); await reload(); VX.toast(existing ? "音色已更新" : "克隆音色已创建", "ok"); }
+      catch (e) { VX.toast(e.message, "err"); }
+    };
+  }
+
+  function card(v){
+    const isClone = v.type === "clone";
+    const langChips = (v.langs || []).map(l => `<span class="chip">${VX.esc(VX.LANG[l] || l)}</span>`).join("") || `<span class="sub">—</span>`;
+    return `
+    <div class="card pad">
+      <div class="row" style="align-items:center;gap:12px">
+        <div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;flex:0 0 auto;box-shadow:var(--sh-s);background:${isClone?"var(--grad-brand)":"var(--grad-voice)"}">${v.gender==="female"?"👩":"👨"}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;color:#fff;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${VX.esc(v.name)}</div>
+          <div class="row" style="gap:6px;margin-top:6px;align-items:center">
+            ${isClone ? VX.badge("克隆", "coral") : VX.badge("预置", "off")}
+            <span class="tag">${v.gender==="female"?"女声":"男声"}</span>
+            ${VX.statusBadge(v.status)}
+          </div>
+        </div>
+      </div>
+      <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap">${langChips}</div>
+      ${v.clonedFrom ? `<div class="sub" style="margin-top:10px;font-size:12px">🎚️ 克隆来源:${VX.esc(v.clonedFrom)}</div>` : ""}
+      <div style="margin-top:12px;padding:9px 12px;border-left:3px solid var(--teal-2);background:#0e2748;border-radius:0 8px 8px 0;color:var(--ink-2);font-size:12.5px;font-style:italic">“${VX.esc(v.sampleText || "—")}”</div>
+      <div class="hr"></div>
+      <div class="row" style="gap:8px;align-items:center">
+        <button class="btn sm" data-play="${v.id}">▶ 试听</button>
+        <div style="flex:1"></div>
+        ${canEdit ? `
+          <div class="switch ${v.status==="on"?"on":""}" data-toggle="${v.id}" title="上/下架"><b></b></div>
+          <button class="btn sm ghost" data-edit="${v.id}">编辑</button>
+          <button class="btn sm ghost danger" data-del="${v.id}">删除</button>` : ""}
+      </div>
+    </div>`;
+  }
+
+  function render(){
+    const total = voices.length;
+    const clones = voices.filter(v => v.type === "clone").length;
+    const online = voices.filter(v => v.status === "on").length;
+    const langSet = new Set(); voices.forEach(v => (v.langs || []).forEach(l => langSet.add(l)));
+
+    root.innerHTML = `
+    <div class="pagehero">
+      <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-voice);display:grid;place-items:center;font-size:22px">🎙️</div>
+      <div style="flex:1">
+        <div style="font-size:17px;font-weight:800;color:#fff">音色库</div>
+        <div class="sub">零样本音色克隆(5–30 秒参考音频) · 品牌音色资产化 · 30 语言 + 粤语</div>
+      </div>
+      ${canEdit ? `<button id="clone" class="btn pri">🎙️ 新建克隆音色</button>` : ""}
+    </div>
+
+    <div class="stats" style="margin-bottom:16px">
+      <div class="stat"><div class="k">🎙️ 音色总数</div><div class="v">${VX.fmtNum(total)}</div><div class="d">预置 + 克隆音色资产</div></div>
+      <div class="stat"><div class="k">🧬 克隆音色</div><div class="v">${VX.fmtNum(clones)}</div><div class="d">零样本参考音频复刻</div></div>
+      <div class="stat voice"><div class="k">✅ 已上线</div><div class="v">${VX.fmtNum(online)}<small>/${total}</small></div><div class="d">可绑定 Agent / 外呼</div></div>
+      <div class="stat voice"><div class="k">🌐 覆盖语种</div><div class="v">${VX.fmtNum(langSet.size)}</div><div class="d">30 语言 + 粤语底座</div></div>
+    </div>
+
+    ${total ? `<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px">${voices.map(card).join("")}</div>`
+            : `<div class="card pad"><div class="empty"><div class="ic">🎙️</div><h3>暂无音色</h3><p class="sub">${canEdit ? "点击右上角「新建克隆音色」上传参考音频即可复刻。" : "暂无可用音色。"}</p></div></div>`}`;
+
+    bind();
+  }
+
+  function bind(){
+    const clone = VX.$("#clone", root); if (clone) clone.onclick = () => openEditor(null);
+    VX.$$("[data-play]", root).forEach(b => b.onclick = () => { const v = voices.find(x => x.id === b.dataset.play); if (v) preview(v); });
+    if (!canEdit) return;
+    VX.$$("[data-toggle]", root).forEach(b => b.onclick = () => { const v = voices.find(x => x.id === b.dataset.toggle); if (v) toggleVoice(v); });
+    VX.$$("[data-edit]", root).forEach(b => b.onclick = () => { const v = voices.find(x => x.id === b.dataset.edit); if (v) openEditor(v); });
+    VX.$$("[data-del]", root).forEach(b => b.onclick = () => { const v = voices.find(x => x.id === b.dataset.del); if (v) delVoice(v); });
+  }
+
+  render();
+});
+</script>
+</body></html>

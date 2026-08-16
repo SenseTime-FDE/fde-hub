@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>声渡 VoxOne · 登录</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-hero">
+    <div class="glow" style="width:340px;height:340px;background:#F0513C;top:-60px;left:-40px"></div>
+    <div class="glow" style="width:300px;height:300px;background:#22C7D6;bottom:-40px;right:-30px"></div>
+    <div style="position:relative;z-index:2">
+      <img src="assets/st_logo_white.png" style="height:30px" alt="商汤科技 SenseTime"/>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:34px">
+        <div style="width:52px;height:52px;border-radius:15px;background:var(--grad-voice);display:grid;place-items:center;font-size:26px;box-shadow:0 8px 24px rgba(78,123,224,.45)">🌊</div>
+        <div><div style="font-size:30px;font-weight:800;color:#fff;letter-spacing:1px">声渡 VoxOne</div>
+        <div style="color:var(--ink-2);font-size:13.5px">Voice-Native AI · 客服 / 销售 / 外呼 一体化平台</div></div>
+      </div>
+      <div style="font-size:17px;color:var(--ink-1);margin-top:26px;line-height:1.7;max-width:440px">让每一次对话,<b style="color:var(--coral-2)">跨越语言与时差</b>。<br/>一套自研语音底座,收口「接进来的服务、谈下来的销售、打出去的触达」。</div>
+      <div class="row" style="margin-top:26px;gap:10px">
+        <span class="chip">🎙️ SenseAudio V2.0</span><span class="chip">🌐 30 语言 + 粤语</span>
+        <span class="chip">⚡ 端到端可打断</span><span class="chip">🔒 私有化 / 合规</span>
+      </div>
+    </div>
+    <div style="position:relative;z-index:2;display:flex;gap:26px;color:var(--ink-2)">
+      <div><div style="font-size:24px;font-weight:800;color:#fff">82.0</div><div style="font-size:11.5px">24 语音色相似度 · 第一梯队</div></div>
+      <div><div style="font-size:24px;font-weight:800;color:#fff">$0.06–0.09</div><div style="font-size:11.5px">自研全栈 · 每分钟成本</div></div>
+      <div><div style="font-size:24px;font-weight:800;color:#fff">7×24</div><div style="font-size:11.5px">全时区不漏接</div></div>
+    </div>
+  </div>
+
+  <div class="login-form">
+    <div class="login-card">
+      <h2 style="font-size:22px">登录平台</h2>
+      <p class="sub" style="margin:6px 0 22px">语音原生 AI 运营中台 · 真实账号与权限</p>
+      <form id="lf">
+        <label class="fld"><span class="lb">账号</span><input id="u" autocomplete="username" placeholder="如 admin"/></label>
+        <label class="fld"><span class="lb">密码</span><input id="p" type="password" autocomplete="current-password" placeholder="初始密码 voxone@2026"/></label>
+        <div id="err" style="color:#ff9e9e;font-size:12.5px;min-height:18px;margin-bottom:6px"></div>
+        <button class="btn pri lg" style="width:100%;justify-content:center" type="submit">登 录</button>
+      </form>
+      <div class="hr"></div>
+      <div class="sub" style="margin-bottom:8px">演示账号(点击填入,初始密码统一 <b class="mono">voxone@2026</b>)</div>
+      <div class="row" id="demos" style="gap:7px"></div>
+    </div>
+  </div>
+</div>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+  const DEMOS = [
+    ["admin","平台管理员 · 全权"],["ops","运营管理员 · 跨场景"],["lead_ecom","坐席主管 · 跨境电商"],
+    ["seat_en","一线坐席 · 多语言"],["qa","质检分析 · 只读"],["viewer","观察员 · 只读"],
+  ];
+  const dwrap = document.getElementById("demos");
+  DEMOS.forEach(([u,label])=>{ const b=document.createElement("button"); b.className="seg"; b.type="button"; b.innerHTML=`<b class="mono">${u}</b> · ${label.split(" · ")[0]}`;
+    b.onclick=()=>{ document.getElementById("u").value=u; document.getElementById("p").value="voxone@2026"; }; dwrap.appendChild(b); });
+  if(VX.token()) location.href="index.html";
+  document.getElementById("lf").onsubmit = async (e)=>{
+    e.preventDefault(); const err=document.getElementById("err"); err.textContent="";
+    try{ const r=await VX.api("/api/login","POST",{username:document.getElementById("u").value,password:document.getElementById("p").value});
+      VX.setToken(r.token); location.href="index.html"; }
+    catch(ex){ err.textContent = ex.message || "登录失败"; }
+  };
+</script>
+</body>
+</html>

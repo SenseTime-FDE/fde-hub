@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗位看板 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ---------- 本页特有样式 ---------- */
+.jtabs { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+.jtab { background: #fff; border: 1px solid var(--cbord); border-radius: 10px; padding: 10px 18px; cursor: pointer; transition: border-color .15s; }
+.jtab:hover { border-color: var(--gold); }
+.jtab b { display: block; font-size: 14px; color: var(--steel); }
+.jtab small { font-size: 11px; color: var(--faint); }
+.jtab.on { border-color: var(--gold); background: var(--gold-bg); box-shadow: 0 1px 8px rgba(194,161,75,.18); }
+.jtab.on b { color: var(--navy); }
+.jtab.on small { color: var(--amber); }
+.jtabs .meta { margin-left: auto; font-size: 12px; color: var(--muted); text-align: right; line-height: 1.6; }
+
+/* 漏斗 */
+.f-row { display: flex; align-items: center; gap: 10px; margin-bottom: 11px; }
+.f-row:last-child { margin-bottom: 0; }
+.f-lab { width: 74px; flex: none; text-align: right; font-size: 12.5px; color: var(--muted); }
+.f-track { flex: 1; }
+.f-track .bar { height: 20px; border-radius: 6px; }
+.f-track .bar i { display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: #fff; font-size: 11.5px; font-weight: 700; min-width: 26px; }
+.f-conv { width: 96px; flex: none; font-size: 11px; color: var(--faint); }
+.f-conv b { color: var(--steel); }
+
+/* 看板 */
+.kb { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.kb-col { background: var(--soft2); border: 1px solid var(--line); border-radius: 10px; padding: 10px; min-width: 0; }
+.kb-col h4 { font-size: 12.5px; color: var(--navy); display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 9px; padding: 0 2px; }
+.kb-col h4 .cnt { background: var(--soft); color: var(--steel); border-radius: 999px; font-size: 11px; padding: 1px 9px; font-weight: 700; flex: none; }
+.kcard { background: #fff; border: 1px solid var(--cbord); border-radius: 8px; padding: 9px 11px; margin-bottom: 8px; }
+.kcard .nm { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.kcard .nm b { color: var(--navy); font-size: 13px; }
+.kcard .act { font-size: 11px; color: var(--muted); margin-top: 5px; line-height: 1.55; }
+.kcard.hl { border-color: var(--gold); background: var(--gold-bg); box-shadow: 0 1px 6px rgba(194,161,75,.22); }
+.kcard.overdue { border-color: #E4B6AF; }
+.kb .more { text-align: center; font-size: 11.5px; color: var(--faint); border: 1px dashed var(--line); border-radius: 8px; padding: 6px; background: transparent; }
+
+/* 时效 bar 组 */
+.sla { margin-bottom: 16px; }
+.sla:last-child { margin-bottom: 0; }
+.sla .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+.sla .row b { color: var(--navy); font-size: 13px; }
+.sla .row .v { font-size: 12px; font-weight: 700; }
+.sla .row .v.green { color: var(--green); }
+.sla .row .v.amber { color: var(--amber); }
+.sla .tgt { font-size: 11px; color: var(--faint); margin-top: 4px; }
+.hintbox { margin-top: 14px; background: var(--amber-bg); border: 1px solid #EAD9B8; border-radius: 8px; padding: 10px 13px; font-size: 12px; color: var(--amber); line-height: 1.65; }
+
+/* 质量信号 */
+.q3 { display: grid; grid-template-columns: 1fr 1.4fr 1.6fr; gap: 22px; }
+.qnum b { display: block; font-size: 30px; color: var(--navy); line-height: 1.25; }
+.qnum span { font-size: 12px; color: var(--muted); }
+.kwrow { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.kwrow:last-child { margin-bottom: 0; }
+.kwrow .kw { width: 68px; flex: none; font-size: 12px; color: var(--body); }
+.kwrow .bar { flex: 1; }
+.kwrow .pct { width: 38px; flex: none; text-align: right; font-size: 12px; font-weight: 700; color: var(--navy); }
+.passrow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.passrow .sep { color: var(--faint); font-size: 11px; }
+
+/* 悬停提示 */
+[data-tip] { position: relative; cursor: help; }
+[data-tip]:hover::after {
+  content: attr(data-tip); position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 40;
+  width: 235px; background: var(--navy); color: #fff; font-size: 11.5px; font-weight: 400;
+  line-height: 1.65; padding: 9px 12px; border-radius: 8px; box-shadow: 0 6px 18px rgba(12,37,69,.28);
+  white-space: normal;
+}
+
+/* 架构师岗简化视图 */
+#view-arch { display: none; }
+.placeholder { border: 1px dashed var(--cbord); border-radius: 10px; padding: 26px; text-align: center; color: var(--faint); font-size: 12.5px; background: var(--soft2); }
+
+@media (max-width: 1100px) { .kb { grid-template-columns: repeat(2, 1fr); } .q3 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html">🤖 AI 专员对话</a>
+      <a href="profile.html">🎯 岗位画像共建</a>
+      <a href="screening.html">🗂 简历筛选与分发</a>
+      <a href="evaluation.html">📝 证据链评估报告</a>
+      <a href="board.html" class="on">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html">📊 面试质检</a>
+      <a href="compliance.html">🛡 合规与数据权属</a>
+      <a href="platform.html">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>岗位看板</h1><span class="crumb">AI 招聘专员 / 招聘工作台 / 岗位看板</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+
+      <!-- 岗位 tab -->
+      <div class="jtabs">
+        <div class="jtab on" id="tab-backend" onclick="switchJob('backend')">
+          <b>高级后端工程师</b><small>画像卡 v3.2 · HRBP 赵一宁 · 招聘中</small>
+        </div>
+        <div class="jtab" id="tab-arch" onclick="switchJob('arch')">
+          <b>解决方案架构师</b><small>画像卡 v1.4 · 托管启动初期</small>
+        </div>
+        <div class="meta">数据更新：今日 09:30 由 agent 自动沉淀<br>本周新简历 <b style="color:var(--navy)">47</b> 份 · 自动初筛覆盖 100%</div>
+      </div>
+
+      <!-- ======== 高级后端工程师视图 ======== -->
+      <div id="view-backend">
+
+        <div class="kpis">
+          <div class="kpi"><b>23<em> 人</em></b><span>在途候选人（全流程跟踪中）</span></div>
+          <div class="kpi"><b>9<em> 场</em></b><span>本周面试（agent 托管排期）</span></div>
+          <div class="kpi"><b>18<em> 天</em></b><span>简历 → offer 周期中位数</span></div>
+          <div class="kpi"><b>31<em>h</em><span class="delta up">✓ 目标 48h 内</span></b><span>部门反馈时长中位数</span></div>
+        </div>
+
+        <div class="cols c32">
+          <!-- 招聘漏斗 -->
+          <div class="panel">
+            <div class="p-head"><b>招聘漏斗</b><span class="hint">近 30 天累计 · 各级标注上级转化率</span></div>
+            <div class="p-body">
+              <div class="f-row" data-tip="本周新收 47 份，agent 自动初筛覆盖 100%，无人工漏筛。">
+                <div class="f-lab">新简历</div>
+                <div class="f-track"><div class="bar"><i style="width:100%">47</i></div></div>
+                <div class="f-conv">—</div>
+              </div>
+              <div class="f-row" data-tip="初筛结论均为「建议」级：建议推送 / 建议复核 / 建议淘汰，淘汰需人工确认。">
+                <div class="f-lab">初筛通过</div>
+                <div class="f-track"><div class="bar"><i style="width:38%">18</i></div></div>
+                <div class="f-conv">转化 <b>38%</b></div>
+              </div>
+              <div class="f-row" data-tip="推送用人部门待反馈 6 份，其中 2 份超 48h，agent 已自动催办。">
+                <div class="f-lab">部门通过</div>
+                <div class="f-track"><div class="bar"><i style="width:23%">11</i></div></div>
+                <div class="f-conv">转化 <b>61%</b></div>
+              </div>
+              <div class="f-row">
+                <div class="f-lab">一面</div>
+                <div class="f-track"><div class="bar"><i class="gold" style="width:17%">8</i></div></div>
+                <div class="f-conv">转化 <b>73%</b></div>
+              </div>
+              <div class="f-row">
+                <div class="f-lab">二面</div>
+                <div class="f-track"><div class="bar"><i class="gold" style="width:10%">4</i></div></div>
+                <div class="f-conv">转化 <b>50%</b></div>
+              </div>
+              <div class="f-row">
+                <div class="f-lab">终面</div>
+                <div class="f-track"><div class="bar"><i class="green" style="width:6.5%">2</i></div></div>
+                <div class="f-conv">转化 <b>50%</b></div>
+              </div>
+              <div class="f-row" data-tip="offer 决策由人工作出，agent 仅汇总证据链材料供决策参考。">
+                <div class="f-lab">offer</div>
+                <div class="f-track"><div class="bar"><i class="green" style="width:4.5%">1</i></div></div>
+                <div class="f-conv">转化 <b>50%</b></div>
+              </div>
+              <p class="muted mt">悬停各级可查看口径说明 · 淘汰环节均经人工确认后计入。</p>
+            </div>
+          </div>
+
+          <!-- 时效与瓶颈 -->
+          <div class="panel">
+            <div class="p-head"><b>时效与瓶颈</b><span class="hint">中位数 · 近 30 天</span></div>
+            <div class="p-body">
+              <div class="sla">
+                <div class="row"><b>部门反馈时长</b><span class="v green">31h</span></div>
+                <div class="bar"><i class="green" style="width:65%"></i></div>
+                <div class="tgt">目标 48h 内 · 超时由 agent 自动催办</div>
+              </div>
+              <div class="sla">
+                <div class="row"><b>评估报告生成</b><span class="v green">8 分 12 秒</span></div>
+                <div class="bar"><i class="green" style="width:82%"></i></div>
+                <div class="tgt">目标 10 分钟内 · 面试结束后自动生成，供面试官确认</div>
+              </div>
+              <div class="sla">
+                <div class="row"><b>面试排期耗时</b><span class="v amber">1.6 天</span></div>
+                <div class="bar"><i class="gold" style="width:80%"></i></div>
+                <div class="tgt">目标 1 天内 · 当前为主要瓶颈</div>
+              </div>
+              <div class="hintbox">⚠ 瓶颈提示：本周王梓航日历紧张，一面排期等待偏长；agent 已建议增加备选面试官，待 HR 确认后生效。</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 候选人看板 -->
+        <div class="panel mt">
+          <div class="p-head"><b>候选人看板</b><span class="hint">在途 23 人 · 卡片仅展示部分 · AI 结论均为「建议」，录用/淘汰需人工确认</span></div>
+          <div class="p-body">
+            <div class="kb">
+              <!-- 待部门反馈 -->
+              <div class="kb-col">
+                <h4>待部门反馈<span class="cnt">6</span></h4>
+                <div class="kcard overdue" data-tip="推送已超 48h，agent 已自动向用人部门接口人发出催办（署 HR 赵一宁名义）。">
+                  <div class="nm"><b>韩明轩</b><span class="pill green">初筛 3.7</span></div>
+                  <div class="act"><span class="pill red">超 48h · 已催办</span></div>
+                </div>
+                <div class="kcard overdue" data-tip="推送已超 48h，agent 已自动催办；若再超 24h 将打包上报 HR 一次决策。">
+                  <div class="nm"><b>宋佳颖</b><span class="pill green">初筛 3.5</span></div>
+                  <div class="act"><span class="pill red">超 48h · 已催办</span></div>
+                </div>
+                <div class="more">+4 更多</div>
+              </div>
+              <!-- 待约面 -->
+              <div class="kb-col">
+                <h4>待约面<span class="cnt">3</span></h4>
+                <div class="kcard" data-tip="已两次改期。agent 建议：改为视频面并一次给出 3 个候选时段；是否升级人工跟进，待 HR 决策。">
+                  <div class="nm"><b>林晚晴</b><span class="pill green">3.9</span></div>
+                  <div class="act">已两次改期 · agent 建议升级人工跟进</div>
+                </div>
+                <div class="kcard">
+                  <div class="nm"><b>苏念安</b><span class="pill green">一面 3.6</span></div>
+                  <div class="act">一面通过 · 待约二面，agent 已代发时段征询（署 HR 名）</div>
+                </div>
+                <div class="more">+1 更多</div>
+              </div>
+              <!-- 面试中 -->
+              <div class="kb-col">
+                <h4>面试中<span class="cnt">4</span></h4>
+                <div class="kcard hl" data-tip="二面报告已生成（综合 4.2/5），按流程待二面官刘慕青（技术总监）确认后方可流转。">
+                  <div class="nm"><b>陈砚秋</b><span class="pill gold">综合 4.2</span></div>
+                  <div class="act">二面报告待面试官刘慕青确认</div>
+                </div>
+                <div class="kcard">
+                  <div class="nm"><b>沈知远</b><span class="pill green">一面 3.8</span></div>
+                  <div class="act">一面通过（面试官王梓航）· 二面已排本周三 14:00</div>
+                </div>
+                <div class="more">+2 更多</div>
+              </div>
+              <!-- 待终面 -->
+              <div class="kb-col">
+                <h4>待终面<span class="cnt">2</span></h4>
+                <div class="kcard">
+                  <div class="nm"><b>陆一鸣</b><span class="pill green">二面 4.0</span></div>
+                  <div class="act">二面通过 · 终面待部门总监时间确认</div>
+                </div>
+                <div class="kcard">
+                  <div class="nm"><b>郭子墨</b><span class="pill green">二面 3.7</span></div>
+                  <div class="act">二面通过 · 终面材料 agent 已汇总待审</div>
+                </div>
+              </div>
+              <!-- 人工复核池 -->
+              <div class="kb-col">
+                <h4>人工复核池<span class="cnt">5</span></h4>
+                <div class="kcard" data-tip="画像匹配处于边界区间，agent 已将证据链与疑点打包上报，由 HR 一次决策，不反复打扰。">
+                  <div class="nm"><b>顾北辰</b><span class="pill red">2.4</span></div>
+                  <div class="act">边界案例已打包上报 · 待 HR 一次决策</div>
+                </div>
+                <div class="kcard">
+                  <div class="nm"><b>周远帆</b><span class="pill red">2.1</span></div>
+                  <div class="act">已淘汰（人工确认）· 拒绝信经 HR 审批后发出</div>
+                </div>
+                <div class="more">+3 更多</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 质量信号 -->
+        <div class="panel mt">
+          <div class="p-head"><b>质量信号</b><span class="hint">质检明细仅面试官本人可见，此处仅展示聚合指标</span></div>
+          <div class="p-body">
+            <div class="q3">
+              <div class="qnum">
+                <b>76%</b><span>面试评价一致率<br>（同一候选人多轮评价方向一致的比例，较上月 +4pp）</span>
+              </div>
+              <div>
+                <p class="muted" style="margin-bottom:10px">画像关键词命中率 Top3（一面追问覆盖）</p>
+                <div class="kwrow"><span class="kw">高并发</span><div class="bar"><i class="gold" style="width:74%"></i></div><span class="pct">74%</span></div>
+                <div class="kwrow"><span class="kw">分布式</span><div class="bar"><i class="gold" style="width:68%"></i></div><span class="pct">68%</span></div>
+                <div class="kwrow"><span class="kw">JVM 调优</span><div class="bar"><i class="gold" style="width:61%"></i></div><span class="pct">61%</span></div>
+              </div>
+              <div>
+                <p class="muted" style="margin-bottom:10px">各轮通过率（近 30 天，均含人工确认环节）</p>
+                <div class="passrow">
+                  <span class="pill blue">初筛 38%</span><span class="sep">→</span>
+                  <span class="pill blue">部门筛选 61%</span><span class="sep">→</span>
+                  <span class="pill blue">一面 50%</span><span class="sep">→</span>
+                  <span class="pill blue">二面 50%</span><span class="sep">→</span>
+                  <span class="pill blue">终面 50%</span>
+                </div>
+                <p class="muted mt">一面到场转化 73% · 淘汰均经人工确认后计入通过率。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ======== 解决方案架构师简化视图 ======== -->
+      <div id="view-arch">
+        <div class="kpis">
+          <div class="kpi"><b>9<em> 人</em></b><span>在途候选人</span></div>
+          <div class="kpi"><b>3<em> 场</em></b><span>本周面试</span></div>
+          <div class="kpi"><b>v1.4</b><span>画像卡版本（与部门共建 2 轮）</span></div>
+          <div class="kpi"><b>—</b><span>周期指标：数据沉淀中</span></div>
+        </div>
+        <div class="panel">
+          <div class="p-head"><b>岗位状态</b><span class="hint">托管启动初期</span></div>
+          <div class="p-body">
+            <div class="placeholder">
+              该岗位由 agent 于近期启动托管，当前在途 9 人、本周面试 3 场。<br>
+              漏斗、看板与时效数据将随流程运行自动沉淀，预计一个完整招聘周期后达到与「高级后端工程师」相同的数据密度。<br>
+              画像卡 v1.4 可在「岗位画像共建」页查看与迭代。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="muted mt" style="text-align:center">看板数据全部来自 agent 托管流程自动沉淀，无需人工填报。</p>
+      <p class="footnote">演示数据均为虚构 · 商汤科技 · 大模型生态渠道部</p>
+    </div>
+  </div>
+</div>
+<script>
+function switchJob(which) {
+  var backend = which === 'backend';
+  document.getElementById('view-backend').style.display = backend ? '' : 'none';
+  document.getElementById('view-arch').style.display = backend ? 'none' : '';
+  document.getElementById('tab-backend').classList.toggle('on', backend);
+  document.getElementById('tab-arch').classList.toggle('on', !backend);
+}
+</script>
+</body>
+</html>

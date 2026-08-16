@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>云台优选 · YunTai Global — 跨境好物 · 全球直达</title>
+<style>
+  /* —— 模拟客户官网自有样式(与 VoxOne widget 无耦合) —— */
+  :root{
+    --bg:#f6f7fb; --ink:#1a2233; --ink-2:#5b6577; --line:#e7eaf2;
+    --brand:#2a6df4; --brand-2:#6a4bff; --accent:#ff7a3d;
+    --card:#ffffff; --grad:linear-gradient(120deg,#2a6df4,#6a4bff);
+    --font:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font);background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+
+  /* 顶部演示说明条 */
+  .demobar{background:linear-gradient(120deg,#0E2440,#12305A);color:#dfe9f7;font-size:13px;text-align:center;padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .demobar b{color:#fff}
+  .demobar .k{color:#8be6f0}
+  .demobar .coral{color:#ff9e8e}
+
+  /* 导航 */
+  header.nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav .in{display:flex;align-items:center;gap:26px;height:64px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:.3px}
+  .logo .m{width:34px;height:34px;border-radius:10px;background:var(--grad);display:grid;place-items:center;color:#fff;font-size:18px}
+  .logo small{display:block;font-size:10px;color:var(--ink-2);font-weight:600;letter-spacing:1.5px}
+  .nav nav{display:flex;gap:22px;font-size:14.5px;color:var(--ink-2);font-weight:600}
+  .nav nav a:hover{color:var(--brand)}
+  .nav .sp{flex:1}
+  .nav .cta{background:var(--grad);color:#fff;padding:9px 18px;border-radius:22px;font-weight:700;font-size:14px;box-shadow:0 8px 20px rgba(42,109,244,.28)}
+  @media(max-width:760px){.nav nav{display:none}}
+
+  /* hero */
+  .hero{padding:64px 0 54px;position:relative;overflow:hidden}
+  .hero::before{content:"";position:absolute;right:-160px;top:-120px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(106,75,255,.16),transparent 65%)}
+  .hero::after{content:"";position:absolute;left:-140px;bottom:-160px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(255,122,61,.13),transparent 65%)}
+  .hero .in{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center}
+  .pill{display:inline-flex;align-items:center;gap:8px;background:#eef3ff;color:var(--brand);font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px}
+  .hero h1{font-size:44px;line-height:1.15;letter-spacing:-.5px;margin:18px 0 16px}
+  .hero h1 span{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:16.5px;color:var(--ink-2);max-width:520px}
+  .hero .btns{margin-top:26px;display:flex;gap:14px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:26px;font-weight:700;font-size:15px;cursor:pointer;border:0}
+  .btn.pri{background:var(--grad);color:#fff;box-shadow:0 12px 28px rgba(42,109,244,.3)}
+  .btn.ghost{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .hero .stats{margin-top:34px;display:flex;gap:34px}
+  .hero .stats .s b{font-size:26px;display:block}
+  .hero .stats .s small{color:var(--ink-2);font-size:13px}
+  .hero .visual{aspect-ratio:1/1;border-radius:28px;background:linear-gradient(150deg,#2a6df4,#6a4bff 60%,#ff7a3d);position:relative;box-shadow:0 30px 60px rgba(42,109,244,.28);display:grid;place-items:center;color:#fff}
+  .hero .visual .globe{font-size:130px;filter:drop-shadow(0 12px 24px rgba(0,0,0,.25))}
+  .hero .visual .tagcard{position:absolute;left:-22px;bottom:34px;background:#fff;color:var(--ink);border-radius:16px;padding:12px 16px;box-shadow:0 16px 34px rgba(0,0,0,.16);font-size:13px}
+  .hero .visual .tagcard b{display:block;font-size:15px}
+  @media(max-width:860px){.hero .in{grid-template-columns:1fr}.hero .visual{max-width:360px;margin:0 auto}.hero h1{font-size:34px}}
+
+  /* 分区标题 */
+  .sec{padding:52px 0}
+  .sec .head{text-align:center;margin-bottom:34px}
+  .sec .head h2{font-size:30px;letter-spacing:-.3px}
+  .sec .head p{color:var(--ink-2);margin-top:8px;font-size:15px}
+
+  /* 商品卡 */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+  @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+  .prod{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:.18s;cursor:pointer}
+  .prod:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(26,34,51,.1);border-color:#d7ddec}
+  .prod .ph{aspect-ratio:4/3;display:grid;place-items:center;font-size:56px;position:relative}
+  .prod .ph .fav{position:absolute;top:10px;right:12px;font-size:16px;opacity:.8}
+  .prod .bd{padding:14px 15px 16px}
+  .prod .cat{font-size:11.5px;color:var(--brand);font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+  .prod .nm{font-weight:700;font-size:15px;margin:5px 0 3px}
+  .prod .ds{font-size:12.5px;color:var(--ink-2);min-height:34px}
+  .prod .pr{display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+  .prod .pr .p{font-size:19px;font-weight:800;color:var(--accent)}
+  .prod .pr .p small{font-size:12px;color:var(--ink-2);text-decoration:line-through;font-weight:500;margin-left:6px}
+  .prod .pr .add{width:34px;height:34px;border-radius:10px;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:17px}
+
+  /* 特性条 */
+  .feats{background:#fff;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .feats .row{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:34px 0}
+  @media(max-width:760px){.feats .row{grid-template-columns:repeat(2,1fr)}}
+  .feat{text-align:center}
+  .feat .ic{font-size:30px}
+  .feat b{display:block;margin-top:8px;font-size:15px}
+  .feat small{color:var(--ink-2);font-size:12.5px}
+
+  /* 客服提示卡 */
+  .csnote{background:linear-gradient(120deg,#0E2440,#12305A);color:#e6eefb;border-radius:22px;padding:30px 32px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+  .csnote .em{font-size:46px}
+  .csnote h3{color:#fff;font-size:20px}
+  .csnote p{color:#9fb3cc;font-size:14px;margin-top:4px;max-width:640px}
+  .csnote .b2{margin-left:auto;background:linear-gradient(135deg,#F0513C,#FF7A3D);color:#fff;border:0;padding:12px 22px;border-radius:24px;font-weight:700;cursor:pointer;font-size:14.5px;box-shadow:0 10px 24px rgba(240,81,60,.32)}
+  @media(max-width:640px){.csnote .b2{margin-left:0}}
+
+  /* 页脚 */
+  footer.ft{background:#0d1526;color:#93a0b8;padding:44px 0 30px;margin-top:20px}
+  footer.ft .cols{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:26px}
+  @media(max-width:760px){footer.ft .cols{grid-template-columns:1fr 1fr}}
+  footer.ft h4{color:#fff;font-size:14px;margin-bottom:12px}
+  footer.ft a{display:block;font-size:13px;padding:4px 0;color:#93a0b8}
+  footer.ft a:hover{color:#fff}
+  footer.ft .brand{color:#fff;font-weight:800;font-size:18px;display:flex;align-items:center;gap:9px}
+  footer.ft .brand .m{width:30px;height:30px;border-radius:9px;background:linear-gradient(120deg,#2a6df4,#6a4bff);display:grid;place-items:center}
+  footer.ft .cp{border-top:1px solid #1b2740;margin-top:28px;padding-top:18px;font-size:12px;color:#6b7791;text-align:center}
+</style>
+</head>
+<body>
+
+  <!-- 顶部演示说明条 -->
+  <div class="demobar">
+    本页为 <b>演示页面</b>:这是一个虚构的跨境电商官网,右下角的
+    <span class="k">🎧 语音客服</span> 由 <b>声渡 VoxOne</b> 网关实时驱动
+    (<span class="coral">POST /api/agent-gateway/invoke</span>) · 点击气泡即可体验「嵌入即用」
+  </div>
+
+  <!-- 导航 -->
+  <header class="nav">
+    <div class="wrap in">
+      <div class="logo">
+        <span class="m">🛍️</span>
+        <span>云台优选<small>YUNTAI GLOBAL</small></span>
+      </div>
+      <nav>
+        <a href="#">全部品类</a>
+        <a href="#new">新品上市</a>
+        <a href="#hot">热销榜</a>
+        <a href="#">品牌馆</a>
+        <a href="#">帮助中心</a>
+      </nav>
+      <div class="sp"></div>
+      <a class="cta" href="#">登录 / 注册</a>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap in">
+      <div>
+        <span class="pill">🌍 直采 38 国 · 全球好物一站直达</span>
+        <h1>把世界的好物<br /><span>更快、更省</span>地送到你身边</h1>
+        <p>云台优选专注跨境精选电商——美妆个护、母婴、数码、家居健康,官方直采、正品保障、保税极速发货。今晚下单,明天开箱。</p>
+        <div class="btns">
+          <button class="btn pri">立即选购 →</button>
+          <button class="btn ghost" onclick="VoxOneWidget && VoxOneWidget.open()">🎧 问问语音客服</button>
+        </div>
+        <div class="stats">
+          <div class="s"><b>1,200<small>万+</small></b><small>全球注册会员</small></div>
+          <div class="s"><b>38</b><small>直采国家/地区</small></div>
+          <div class="s"><b>4.9<small>分</small></b><small>用户满意度</small></div>
+        </div>
+      </div>
+      <div class="visual">
+        <div class="globe">🌐</div>
+        <div class="tagcard">🚚 保税仓极速达<b>最快次日签收</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 特性条 -->
+  <div class="feats">
+    <div class="wrap row">
+      <div class="feat"><div class="ic">✅</div><b>官方直采正品</b><small>全链路溯源 · 假一赔十</small></div>
+      <div class="feat"><div class="ic">🚚</div><b>保税极速发货</b><small>核心城市最快次日达</small></div>
+      <div class="feat"><div class="ic">↩️</div><b>30 天无忧退换</b><small>不满意随时退</small></div>
+      <div class="feat"><div class="ic">🎧</div><b>7×24 语音客服</b><small>声渡 VoxOne 智能应答</small></div>
+    </div>
+  </div>
+
+  <!-- 商品 -->
+  <section class="sec" id="hot">
+    <div class="wrap">
+      <div class="head">
+        <h2>本周热销榜</h2>
+        <p>数万用户正在抢购,库存有限,先到先得</p>
+      </div>
+      <div class="grid">
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#ffe6d6,#ffd0e4)">💄<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">美妆个护</div><div class="nm">巴黎丝绒哑光唇釉</div>
+            <div class="ds">法国原装进口 · 12 色显白不拔干</div>
+            <div class="pr"><div class="p">¥129<small>¥199</small></div><div class="add">＋</div></div></div>
+        </div>
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#dce9ff,#e7dcff)">🎧<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">数码</div><div class="nm">主动降噪蓝牙耳机 Pro</div>
+            <div class="ds">42dB 深度降噪 · 36 小时续航</div>
+            <div class="pr"><div class="p">¥499<small>¥799</small></div><div class="add">＋</div></div></div>
+        </div>
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#d8f5e6,#d3ecff)">🍼<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">母婴</div><div class="nm">荷兰版婴幼儿配方奶粉 3 段</div>
+            <div class="ds">保税直邮 · 原罐原装可溯源</div>
+            <div class="pr"><div class="p">¥219<small>¥268</small></div><div class="add">＋</div></div></div>
+        </div>
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#fff2cc,#ffe0d0)">⌚<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">智能穿戴</div><div class="nm">健康监测智能手表 S8</div>
+            <div class="ds">血氧/心率/睡眠 · 全天候健康守护</div>
+            <div class="pr"><div class="p">¥899<small>¥1299</small></div><div class="add">＋</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 新品 -->
+  <section class="sec" id="new" style="padding-top:0">
+    <div class="wrap">
+      <div class="head">
+        <h2>新品上市</h2>
+        <p>全球买手团队每周更新的当季精选</p>
+      </div>
+      <div class="grid">
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#e4f0ff,#f0e6ff)">🧴<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">护肤</div><div class="nm">北欧冰川保湿精华</div>
+            <div class="ds">无香敏感肌可用 · 长效锁水</div>
+            <div class="pr"><div class="p">¥289<small>¥359</small></div><div class="add">＋</div></div></div>
+        </div>
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#ffe8d6,#ffdad0)">☕<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">食品</div><div class="nm">意式精品挂耳咖啡 30 片</div>
+            <div class="ds">中深烘 · 现磨锁鲜独立包装</div>
+            <div class="pr"><div class="p">¥89<small>¥139</small></div><div class="add">＋</div></div></div>
+        </div>
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#dcf3ff,#dce9ff)">🧹<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">家居</div><div class="nm">无线手持吸尘器 V12</div>
+            <div class="ds">超强吸力 · 除螨降噪一机搞定</div>
+            <div class="pr"><div class="p">¥699<small>¥999</small></div><div class="add">＋</div></div></div>
+        </div>
+        <div class="prod">
+          <div class="ph" style="background:linear-gradient(150deg,#e8ffe6,#dcf3ff)">💊<span class="fav">🤍</span></div>
+          <div class="bd"><div class="cat">健康</div><div class="nm">深海鱼油软胶囊 90 粒</div>
+            <div class="ds">高纯度 Omega-3 · 每日一粒</div>
+            <div class="pr"><div class="p">¥159<small>¥228</small></div><div class="add">＋</div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 客服提示 -->
+  <section class="sec" style="padding-top:0">
+    <div class="wrap">
+      <div class="csnote">
+        <div class="em">🎧</div>
+        <div>
+          <h3>有问题?直接问语音客服</h3>
+          <p>关于订单物流、退换货、保税发货、优惠活动——点右下角气泡,打字或按住 🎙️ 说话都行。本站客服由商汤「声渡 VoxOne」智能语音平台驱动,7×24 秒级应答。</p>
+        </div>
+        <button class="b2" onclick="VoxOneWidget && VoxOneWidget.open()">打开语音客服 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 页脚 -->
+  <footer class="ft">
+    <div class="wrap">
+      <div class="cols">
+        <div>
+          <div class="brand"><span class="m">🛍️</span> 云台优选 YunTai Global</div>
+          <p style="margin-top:12px;font-size:13px;max-width:280px">全球直采 · 保税速达的跨境精选电商。让好物跨越山海,直达你手。</p>
+        </div>
+        <div><h4>购物</h4><a href="#">全部品类</a><a href="#">新品上市</a><a href="#">热销榜单</a><a href="#">品牌馆</a></div>
+        <div><h4>服务</h4><a href="#">配送与签收</a><a href="#">退换货政策</a><a href="#">保税与关税</a><a href="#" onclick="VoxOneWidget&&VoxOneWidget.open();return false">在线语音客服</a></div>
+        <div><h4>关于</h4><a href="#">关于云台</a><a href="#">加入我们</a><a href="#">商务合作</a><a href="#">隐私条款</a></div>
+      </div>
+      <div class="cp">© 2026 云台优选 YunTai Global(演示站点,品牌与商品均为虚构)· 语音客服技术支持:商汤 SenseTime · 声渡 VoxOne</div>
+    </div>
+  </footer>
+
+  <!-- ============================================================= -->
+  <!--  声渡 VoxOne 悬浮语音客服 —— 一行 script 嵌入即用             -->
+  <!--  data-token 由 VoxOne 服务端在下发本页时自动注入为当前真实网关令牌(见 server.js serveStatic),-->
+  <!--  故此处占位值无需手动维护。                                                                    -->
+  <!--  直接双击打开本页(file://)时没有服务端可注入 —— 下面两行让 widget 回退到页面内引擎,          -->
+  <!--  照样能对话;客户站点真实嵌入时不要引入这两行,只保留 widget.js 一行即可。                      -->
+  <!--  语音:控制台「SenseAudio 接入」配好端点+Key → 本 widget 自动走真实 SenseAudio TTS/ASR;否则浏览器语音。-->
+  <!-- ============================================================= -->
+  <script src="assets/seed.js"></script>
+  <script src="assets/local-backend.js"></script>
+  <script src="assets/widget.js"
+    data-token="vx_SERVER_INJECTS_REAL_GATEWAY_TOKEN"
+    data-scenario="ecom"
+    data-mode="service"
+    data-lang="zh"
+    data-title="云台优选 · 智能语音客服"></script>
+
+</body>
+</html>

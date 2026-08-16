@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · 首页</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ===== index.html 页面专属样式（前缀 hx-） ===== */
+
+/* 顶栏品牌区与页脚（不改 style.css，写在页内） */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px;flex-wrap:nowrap}
+.topnav nav a{padding:7px 11px;font-size:13px}
+.site-footer .foot-brand img{height:18px}
+
+/* ---------- 通用区块 ---------- */
+.hx-sec{margin-bottom:48px}
+.hx-head{display:flex;align-items:baseline;gap:13px;margin-bottom:16px;flex-wrap:wrap}
+.hx-head .no{flex:none;font-size:11px;font-weight:800;letter-spacing:1.5px;color:#fff;background:var(--ink);border-radius:7px;padding:5px 10px}
+.hx-head h2{font-size:21px;color:var(--ink);line-height:1.4}
+.hx-head h2 .hl{color:var(--warm-d)}
+.hx-head p{font-size:12px;color:var(--muted)}
+.hx-more{display:inline-block;margin-top:14px;font-size:12.5px;font-weight:700;color:var(--teal-d);background:var(--sky);border:1px solid var(--sky2);border-radius:999px;padding:6px 16px;transition:all .15s}
+.hx-more:hover{background:var(--cream);border-color:var(--warm-l);color:var(--warm-d)}
+.hx-note{font-size:12px;color:var(--muted);background:var(--sky);border:1px solid var(--sky2);border-radius:12px;padding:11px 16px;margin-top:14px;line-height:1.75}
+.hx-note b{color:var(--teal-d)}
+
+/* ---------- Hero ---------- */
+.hx-hero{background:linear-gradient(160deg,var(--ink) 0%,var(--ink3) 82%);border-radius:22px;padding:42px 44px 34px;color:#fff;position:relative;overflow:hidden;box-shadow:var(--shadow);margin-bottom:48px}
+.hx-hero::after{content:"";position:absolute;right:-140px;top:-160px;width:430px;height:430px;border-radius:50%;background:radial-gradient(circle,rgba(194,161,75,.3),transparent 70%);pointer-events:none}
+.hx-hero>*{position:relative;z-index:1}
+.hx-hero .eyebrow{font-size:11px;font-weight:800;letter-spacing:3px;color:#E6C969;margin-bottom:14px}
+.hx-hero h1{font-size:33px;line-height:1.45;letter-spacing:.5px;max-width:920px;font-weight:800}
+.hx-hero h1 em{font-style:normal;color:#E6C969}
+.hx-hero .sub{margin-top:13px;font-size:15px;color:#C3D2E2;line-height:1.85;max-width:840px}
+.hx-hero .sub b{color:#fff}
+.hx-quote{margin-top:20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:rgba(255,255,255,.06);border:1px solid rgba(230,201,105,.38);border-radius:14px;padding:13px 20px;max-width:880px}
+.hx-quote .lab{flex:none;font-size:10.5px;font-weight:800;letter-spacing:2px;color:#0C2545;background:var(--warm);border-radius:999px;padding:4px 12px}
+.hx-quote p{font-size:14.5px;font-weight:600;color:#DCE6F0;line-height:1.7}
+.hx-quote p em{font-style:normal;color:#E6C969;font-weight:800}
+.hx-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:24px}
+.hx-stat{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:15px 17px}
+.hx-stat .v{font-size:27px;font-weight:800;color:#E6C969;font-variant-numeric:tabular-nums;line-height:1.25;white-space:nowrap}
+.hx-stat .v small{font-size:14px;font-weight:800;color:#E6C969}
+.hx-stat b{display:block;font-size:12.5px;color:#fff;margin-top:5px}
+.hx-stat span{display:block;font-size:11px;color:#9FB3C8;margin-top:3px;line-height:1.65}
+.hx-hero .hint{margin-top:13px;font-size:11px;color:#9FB3C8}
+.hx-cta{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.hx-cta .go{display:inline-block;background:linear-gradient(135deg,#E6C969,var(--warm));color:var(--ink);font-size:14px;font-weight:800;letter-spacing:.5px;border-radius:999px;padding:11px 26px;box-shadow:0 6px 18px rgba(194,161,75,.35);transition:all .15s}
+.hx-cta .go:hover{transform:translateY(-1px);box-shadow:0 9px 24px rgba(230,201,105,.5)}
+.hx-more.gold{margin-left:8px;background:var(--cream);border-color:var(--warm-l);color:var(--warm-d)}
+.hx-more.gold:hover{background:var(--warm);border-color:var(--warm);color:#fff}
+
+/* ---------- 01 四个反转 ---------- */
+.hx-flip{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;align-items:stretch}
+.hx-fp{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:17px 18px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+.hx-fp .fp-lab{font-size:10.5px;font-weight:800;letter-spacing:1.6px;color:var(--teal);margin-bottom:10px}
+.hx-fp .before{font-size:12px;color:var(--muted);line-height:1.7;padding:8px 12px;background:var(--bg);border:1px dashed var(--card-b);border-radius:10px}
+.hx-fp .arr{font-size:13px;font-weight:800;color:var(--warm);margin:7px 3px}
+.hx-fp .after{font-size:12.5px;color:var(--ink);font-weight:700;line-height:1.7;padding:9px 12px;background:var(--cream);border:1px solid var(--warm-l);border-radius:10px}
+.hx-fp .fp-foot{margin-top:10px;font-size:11.5px;color:var(--muted);line-height:1.7}
+
+/* ---------- 02 L0–L4 分级条 ---------- */
+.hx-lwrap{overflow-x:auto;padding-top:12px}
+.hx-ladder{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;min-width:960px;align-items:stretch}
+.hx-lv{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:15px 16px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;position:relative}
+.hx-lv .lv-n{font-size:15px;font-weight:800;color:var(--ink);letter-spacing:.5px}
+.hx-lv .lv-nm{font-size:12px;color:var(--sub);font-weight:700;margin-left:6px}
+.hx-lv p{font-size:12px;color:var(--sub);line-height:1.72;margin-top:8px;flex:1}
+.hx-lv .lv-rate{margin-top:10px;padding-top:9px;border-top:1px dashed var(--card-b);font-size:11px;color:var(--muted)}
+.hx-lv .lv-rate b{display:block;font-size:15px;color:var(--teal-d);font-variant-numeric:tabular-nums}
+.hx-lv.hot{background:linear-gradient(168deg,var(--ink),var(--ink3));border-color:var(--ink);box-shadow:var(--shadow)}
+.hx-lv.hot .lv-n{color:#E6C969}
+.hx-lv.hot .lv-nm{color:#fff}
+.hx-lv.hot p{color:#C3D2E2}
+.hx-lv.hot .lv-rate{border-top-color:rgba(255,255,255,.18);color:#9FB3C8}
+.hx-lv.hot .lv-rate b{color:#E6C969}
+.hx-lv.hot .lv-badge{position:absolute;top:-12px;left:13px;font-size:10px;font-weight:800;letter-spacing:1.2px;color:#0C2545;background:var(--warm);border-radius:999px;padding:3px 11px}
+
+/* ---------- 03 不替代 CRM ---------- */
+.hx-crm{display:grid;grid-template-columns:1fr 1fr;gap:13px;align-items:stretch}
+.hx-cc{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:19px 21px;box-shadow:var(--shadow-sm)}
+.hx-cc .cc-tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:1.5px;border-radius:999px;padding:4px 12px;margin-bottom:11px}
+.hx-cc.keep .cc-tag{background:var(--sky);color:var(--teal-d)}
+.hx-cc.swap .cc-tag{background:var(--cream);color:var(--warm-d)}
+.hx-cc h3{font-size:16px;color:var(--ink);margin-bottom:7px}
+.hx-cc h3 em{font-style:normal;color:var(--warm-d)}
+.hx-cc p{font-size:12.5px;color:var(--sub);line-height:1.78}
+.hx-cc p b{color:var(--ink)}
+.hx-cc.swap{border-color:var(--warm-l);background:#FFFDF7}
+.hx-crm-bridge{margin:13px auto 0;display:table;text-align:center;font-size:12.5px;color:var(--sub);background:var(--sky);border:1px solid var(--sky2);border-radius:999px;padding:8px 20px}
+.hx-crm-bridge b{color:var(--teal-d)}
+
+/* ---------- 04 一个商机的 45 天 ---------- */
+.hx-deal{display:grid;grid-template-columns:172px 1fr;gap:14px;align-items:stretch}
+.hx-dnums{display:flex;flex-direction:column;gap:12px}
+.hx-dnum{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm);flex:1}
+.hx-dnum .v{font-size:30px;font-weight:800;color:var(--teal-d);font-variant-numeric:tabular-nums;line-height:1.2}
+.hx-dnum.human .v{color:var(--warm-d)}
+.hx-dnum b{display:block;font-size:12px;color:var(--ink);margin-top:2px}
+.hx-dnum span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.6}
+.hx-tlpanel{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:16px 20px 12px;box-shadow:var(--shadow-sm);overflow-x:auto}
+.hx-tl{min-width:780px}
+.hx-axis{display:flex;justify-content:space-between;font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.5px;padding:0 0 8px 132px}
+.hx-lnrow{display:grid;grid-template-columns:118px 1fr;gap:14px;align-items:center;padding:8px 0}
+.hx-lnrow .ln-lab b{display:block;font-size:12.5px;color:var(--ink)}
+.hx-lnrow .ln-lab span{display:block;font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.5}
+.hx-track{position:relative;height:34px;border-radius:9px}
+.hx-track.agent{background:repeating-linear-gradient(90deg,var(--sky) 0 4px,var(--white) 4px 7px);border:1px solid var(--sky2)}
+.hx-track.agent .stall{position:absolute;left:60%;width:31%;top:-1px;bottom:-1px;border-radius:8px;background:rgba(217,83,79,.09);border:1px dashed #E8AFAD}
+.hx-track.agent .stall i{position:absolute;left:50%;top:-19px;transform:translateX(-50%);font-style:normal;font-size:9.5px;font-weight:800;color:var(--warn);white-space:nowrap}
+.hx-track.agent .cnt{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;font-weight:700;color:var(--teal-d);background:rgba(255,255,255,.88);border-radius:6px;padding:2px 9px}
+.hx-track.human{background:var(--bg);border:1px solid var(--line)}
+.hx-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:15px;height:15px;border-radius:50%;background:var(--warm);border:3px solid #fff;box-shadow:0 0 0 1px var(--warm-l)}
+.hx-dot.duty{background:var(--teal-d);box-shadow:0 0 0 1px var(--teal-l)}
+.hx-dlbls{position:relative;height:52px;margin-top:7px}
+.hx-dlbls>span{position:absolute;transform:translateX(-50%);text-align:center;font-size:10.5px;color:var(--sub);line-height:1.45;white-space:nowrap}
+.hx-dlbls b{display:block;font-size:11px;color:var(--ink)}
+.hx-dlbls i{font-style:normal;display:inline-block;font-size:9.5px;font-weight:800;letter-spacing:.5px;border-radius:4px;padding:1px 6px;margin-top:3px}
+.hx-dlbls i.face{background:var(--cream);color:var(--warm-d)}
+.hx-dlbls i.duty{background:var(--sky);color:var(--teal-d)}
+.hx-tl-foot{margin-top:4px;padding:9px 0 2px 132px;border-top:1px dashed var(--card-b);font-size:11.5px;color:var(--muted);line-height:1.7}
+.hx-tl-foot b{color:var(--ink)}
+
+/* ---------- 05 人机边界 ---------- */
+.hx-bnd{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;align-items:stretch}
+.hx-bd{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:17px 18px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+.hx-bd .ic{width:34px;height:34px;border-radius:10px;background:var(--cream);color:var(--warm-d);display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:10px}
+.hx-bd b{display:block;font-size:14.5px;color:var(--ink);margin-bottom:5px}
+.hx-bd .why{font-size:12px;color:var(--sub);line-height:1.72;flex:1}
+.hx-bd .sc{margin-top:10px;padding-top:8px;border-top:1px dashed var(--card-b);font-size:11px;color:var(--muted);line-height:1.65}
+.hx-bd .sc em{font-style:normal;font-weight:800;color:var(--teal-d);letter-spacing:.5px;margin-right:4px}
+.hx-bndbar{margin-top:14px;background:linear-gradient(160deg,var(--ink),var(--ink3));border-radius:16px;padding:17px 24px;color:#fff;display:flex;gap:18px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow)}
+.hx-bndbar .big{flex:none;font-size:17px;font-weight:800}
+.hx-bndbar .big em{font-style:normal;color:#E6C969}
+.hx-bndbar p{font-size:12px;color:#C3D2E2;line-height:1.72}
+
+/* ---------- 06 待决队列 ---------- */
+.hx-q{display:grid;grid-template-columns:1fr 1.22fr;gap:16px;align-items:start}
+.hx-vs{margin:2px 0 10px}
+.hx-vs .vs-row{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px dashed var(--card-b);font-size:12.5px;color:var(--sub);line-height:1.7}
+.hx-vs .vs-row:last-child{border-bottom:none}
+.hx-vs .vs-lab{flex:none;font-size:10px;font-weight:800;letter-spacing:1px;border-radius:6px;padding:2px 8px}
+.hx-vs .vs-lab.old{background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+.hx-vs .vs-lab.new{background:var(--cream);color:var(--warm-d)}
+.hx-vs b{color:var(--ink)}
+.hx-qcard{background:var(--white);border:1px solid var(--warm-l);border-radius:18px;box-shadow:var(--shadow);overflow:hidden}
+.hx-qcard .qc-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:13px 18px;background:#FFFCF3;border-bottom:1px solid var(--warm-l)}
+.hx-qcard .qc-top b{font-size:14.5px;color:var(--ink)}
+.hx-qcard .qc-body{padding:14px 18px 16px}
+.qc-row{display:flex;gap:10px;padding:6px 0;font-size:12.5px;align-items:baseline}
+.qc-row .k{flex:none;font-size:10px;font-weight:800;letter-spacing:1px;color:var(--teal-d);background:var(--sky);border-radius:6px;padding:2px 8px}
+.qc-row p{color:var(--sub);line-height:1.72}
+.qc-row p b{color:var(--ink)}
+.qc-ev{list-style:none;margin:2px 0 0;flex:1}
+.qc-ev li{position:relative;padding:4px 0 4px 15px;font-size:12px;color:var(--sub);line-height:1.7}
+.qc-ev li::before{content:"▸";position:absolute;left:0;top:4px;color:var(--teal-l);font-size:10px}
+.qc-ev .ts{display:inline-block;font-size:10px;font-weight:800;color:var(--teal-d);background:var(--sky);border-radius:5px;padding:0 6px;margin-right:5px;font-variant-numeric:tabular-nums}
+.qc-ev b{color:var(--ink)}
+.hx-qcard .c-btns{margin-top:12px}
+.hx-qcard .qc-foot{margin-top:11px;padding-top:9px;border-top:1px solid var(--line);font-size:10.5px;color:var(--muted);line-height:1.65}
+
+/* ---------- 07 能力集 ---------- */
+.hx-caps{grid-template-columns:repeat(3,1fr)}
+.hx-caps .cap{padding:15px 17px}
+.hx-caps .cap b{font-size:14px}
+.hx-caps .cap span{font-size:12px;line-height:1.7}
+
+/* ---------- 08 落地路线 ---------- */
+.hx-road{overflow-x:auto}
+.hx-rd{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;min-width:960px;align-items:stretch}
+.hx-st{display:flex;flex-direction:column}
+.hx-st .st-ramp{height:78px;display:flex;align-items:flex-end;padding:0 18px}
+.hx-st .st-ramp i{display:block;width:100%;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--teal-l),var(--sky2))}
+.hx-st.gold .st-ramp i{background:linear-gradient(180deg,var(--warm),var(--warm-l))}
+.hx-st .st-card{flex:1;background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
+.hx-st.gold .st-card{background:linear-gradient(168deg,var(--ink),var(--ink3));border-color:var(--ink);box-shadow:var(--shadow)}
+.hx-st .st-week{font-size:10px;font-weight:800;letter-spacing:1.2px;color:var(--teal-d)}
+.hx-st .st-name{font-size:14px;font-weight:800;color:var(--ink);margin:3px 0 8px}
+.hx-st .st-line{display:flex;gap:7px;font-size:11.5px;color:var(--sub);line-height:1.65;padding:3.5px 0;align-items:baseline}
+.hx-st .st-line .w{flex:none;font-size:9.5px;font-weight:800;letter-spacing:.5px;border-radius:5px;padding:1px 6px}
+.hx-st .st-line .w.sys{background:var(--sky);color:var(--teal-d)}
+.hx-st .st-line .w.man{background:var(--cream);color:var(--warm-d)}
+.hx-st.gold .st-week{color:#E6C969}
+.hx-st.gold .st-name{color:#fff}
+.hx-st.gold .st-line{color:#C3D2E2}
+.hx-st.gold .st-line .w.sys{background:rgba(255,255,255,.12);color:#A9C6E3}
+.hx-st.gold .st-line .w.man{background:rgba(230,201,105,.16);color:#E6C969}
+.hx-rd-axis{margin-top:10px;font-size:11px;color:var(--muted)}
+.hx-rd-axis b{color:var(--warm-d)}
+
+/* ---------- 09 合规 ---------- */
+.hx-comp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.hx-cp{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:14px 17px;font-size:12px;color:var(--sub);line-height:1.75;box-shadow:var(--shadow-sm)}
+.hx-cp b{display:block;color:var(--ink);font-size:12.5px;margin-bottom:3px}
+
+/* ---------- 响应式 ---------- */
+@media (max-width:1080px){
+  .hx-stats{grid-template-columns:repeat(2,1fr)}
+  .hx-flip{grid-template-columns:1fr 1fr}
+  .hx-bnd{grid-template-columns:1fr 1fr}
+  .hx-q{grid-template-columns:1fr}
+  .hx-crm{grid-template-columns:1fr}
+  .hx-deal{grid-template-columns:1fr}
+  .hx-dnums{flex-direction:row}
+  .hx-caps{grid-template-columns:1fr 1fr}
+}
+@media (max-width:760px){
+  .hx-hero{padding:28px 22px 26px}
+  .hx-hero h1{font-size:25px}
+  .hx-stats{grid-template-columns:1fr 1fr}
+  .hx-flip{grid-template-columns:1fr}
+  .hx-bnd{grid-template-columns:1fr}
+  .hx-caps{grid-template-columns:1fr}
+  .hx-comp{grid-template-columns:1fr}
+  .hx-dnums{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html" class="active"><span class="dot"></span>方案总览</a>
+    <a href="workroom.html">商机作战室</a>
+    <a href="autonomy.html">自主度分级</a>
+    <a href="deal.html">商机与团队</a>
+    <a href="boundary.html">人机边界</a>
+    <a href="queue.html">待决队列</a>
+    <a href="capability.html">能力集</a>
+    <a href="platform.html">Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <!-- ============ Hero ============ -->
+  <section class="hx-hero">
+    <div class="eyebrow">AI NATIVE SALES MANAGEMENT · 商汤科技 × 神州数码</div>
+    <h1>不替代你的 CRM，<br>替代的是<em>「靠人推着走」的销售执行方式</em></h1>
+    <p class="sub">每个商机自带一支 Agent 团队，从信号到动作<b>端到端自己跑</b>；人只在<b>四类节点</b>出场——把销售过程的执行权，逐步交给系统。</p>
+    <div class="hx-quote">
+      <span class="lab">一句话对比</span>
+      <p>别人给销售配了个 AI 助理；<em>我们给每个商机配了一支不下班的团队。</em></p>
+    </div>
+    <div class="hx-cta"><a class="go" href="workroom.html">亲手跑一遍这 45 天 →</a></div>
+    <div class="hx-stats">
+      <div class="hx-stat"><div class="v">72%</div><b>Agent 自主完成率</b><span>上线前 0 → 第 30 天 55% → 季度 72%</span></div>
+      <div class="hx-stat"><div class="v">10 → 32</div><b>人均可管商机数</b><span>一个销售同时在推的商机数</span></div>
+      <div class="hx-stat"><div class="v">8 <small>分钟</small></div><b>信号到动作时延</b><span>3.5 天 → 8 分钟：风险信号出现到发出应对动作（中位）</span></div>
+      <div class="hx-stat"><div class="v">≥ 90%</div><b>一线周活（一票否决项）</b><span>不愿意用，前面三个指标都不成立</span></div>
+    </div>
+    <p class="hint">北极星指标组 · 全部为目标态示意，非承诺值 · 定义与验收口径见「落地路线」</p>
+  </section>
+
+  <!-- ============ 01 四个反转 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">01</span><h2>四个反转：换的不是功能，<span class="hl">是设计起点</span></h2><p>「传统销售管理 + AI 功能」的骨架不动，价值就是 0</p></div>
+    <div class="hx-flip">
+      <div class="hx-fp">
+        <div class="fp-lab">组织单位</div>
+        <div class="before">给人配助理：一个销售管 N 个商机，他忙、他忘、他休假，商机就停</div>
+        <div class="arr">↓ 反转</div>
+        <div class="after">给商机配一支 Agent 团队：商机主 Agent 7×24 在岗，对推进结果负责</div>
+        <div class="fp-foot">人被系统调度到最该他出场的那一场</div>
+      </div>
+      <div class="hx-fp">
+        <div class="fp-lab">人机关系</div>
+        <div class="before">人做、AI 辅助：AI 起草，人逐步确认，执行主体仍然是人</div>
+        <div class="arr">↓ 反转</div>
+        <div class="after">Agent 端到端跑：自己判断下一步，只在四类节点找人</div>
+        <div class="fp-foot">其余时间，人不被打扰</div>
+      </div>
+      <div class="hx-fp">
+        <div class="fp-lab">管理界面</div>
+        <div class="before">看板：系统给数，人自己分析、人自己派活</div>
+        <div class="arr">↓ 反转</div>
+        <div class="after">待决队列：系统分析、系统给方案，人只拍板</div>
+        <div class="fp-foot">看板不取消，降级为审计与追溯入口</div>
+      </div>
+      <div class="hx-fp">
+        <div class="fp-lab">北极星指标</div>
+        <div class="before">数据完整率：考核的是人把系统喂得多饱</div>
+        <div class="arr">↓ 反转</div>
+        <div class="after">Agent 自主完成率：考核的是系统替人干了多少</div>
+        <div class="fp-foot">度量不了自主度，就谈不上自主</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 L0–L4 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">02</span><h2>一把尺子：L0–L4 销售自主度，<span class="hl">本方案交付 L3</span></h2><p>先量级别，再谈方案——这把尺子也可以拿去量任何一家供应商</p></div>
+    <div class="hx-lwrap">
+      <div class="hx-ladder">
+        <div class="hx-lv">
+          <div><span class="lv-n">L0</span><span class="lv-nm">手工</span></div>
+          <p>找线索、跟进、记录、汇报全部人做，CRM 只是一张填报表单。</p>
+          <div class="lv-rate">自主完成率<b>0%</b></div>
+        </div>
+        <div class="hx-lv">
+          <div><span class="lv-n">L1</span><span class="lv-nm">提示</span></div>
+          <p>AI 在旁边给建议、给话术、给模板，动作仍然全是人做。</p>
+          <div class="lv-rate">自主完成率<b>&lt; 10%</b></div>
+        </div>
+        <div class="hx-lv">
+          <div><span class="lv-n">L2</span><span class="lv-nm">代办</span></div>
+          <p>端到端完成单点任务，但要人逐个发起、逐个确认——目前大多数 AI 销售工具的天花板。</p>
+          <div class="lv-rate">自主完成率<b>20–40%</b></div>
+        </div>
+        <div class="hx-lv hot">
+          <span class="lv-badge">本方案交付位置</span>
+          <div><span class="lv-n">L3</span><span class="lv-nm">条件自主</span></div>
+          <p>端到端跑完一条业务链路：信号 → 判断 → 动作 → 留痕，只在四类节点找人。</p>
+          <div class="lv-rate">自主完成率<b>60–80%</b></div>
+        </div>
+        <div class="hx-lv">
+          <div><span class="lv-n">L4</span><span class="lv-nm">高度自主</span></div>
+          <p>跨商机自主调配资源与人，人只定目标、边界与例外规则——路线图方向。</p>
+          <div class="lv-rate">自主完成率<b>&gt; 80%</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="hx-note"><b>最难跨的一步是 L2 → L3：</b>从「人发起、人逐个确认」变成「系统发起、异常才找人」——它要求系统有判断力、有边界、有可追溯的责任链，也要求企业愿意交出一部分执行权。绝大多数号称 AI 的销售工具卡在这里。</div>
+    <a class="hx-more" href="autonomy.html">看完整分级与三问自评 →</a>
+  </section>
+
+  <!-- ============ 03 不替代 CRM ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">03</span><h2>不替代你的 CRM：<span class="hl">记录系统留下，执行方式换掉</span></h2><p>账本不动，换的是「谁在干活」</p></div>
+    <div class="hx-crm">
+      <div class="hx-cc keep">
+        <span class="cc-tag">你的 CRM · 记录系统 · 留下</span>
+        <h3>管「已经发生的事实」</h3>
+        <p>客户是谁、合同签了什么、款回了多少——它是企业的<b>账本</b>，本来就该稳定，我们一个字段都不动。</p>
+      </div>
+      <div class="hx-cc swap">
+        <span class="cc-tag">本方案 · 执行系统 · 接管</span>
+        <h3>管「正在发生的执行」</h3>
+        <p>信号谁在盯、下一步谁在判、动作谁在做——过去这些<b>靠人推着走</b>，现在由商机主 Agent 端到端跑，异常才找人。</p>
+      </div>
+    </div>
+    <div class="hx-crm-bridge">过程与结果<b>实时回写 CRM</b>——不搬家、不重建、不改变你现有的账本</div>
+  </section>
+
+  <!-- ============ 04 一个商机的 45 天 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">04</span><h2>一个商机的 45 天：<span class="hl">Agent 137 个动作，人只出现 6 次</span></h2><p>标杆示例 · 金桥制造 · 年度框架 ¥86 万 · 线索到签约（目标态示意）</p></div>
+    <div class="hx-deal">
+      <div class="hx-dnums">
+        <div class="hx-dnum"><div class="v">137</div><b>Agent 自主执行的动作</b><span>盯信号 · 判下一步 · 派子 Agent · 全程留痕</span></div>
+        <div class="hx-dnum human"><div class="v">6</div><b>人出场的次数</b><span>3 次出面 + 3 次担责，每一次都说得出为什么必须是人</span></div>
+      </div>
+      <div class="hx-tlpanel">
+        <div class="hx-tl">
+          <div class="hx-axis"><span>D1 线索</span><span>D45 签约</span></div>
+          <div class="hx-lnrow">
+            <div class="ln-lab"><b>商机主 Agent</b><span>盯 · 判 · 调，7×24 在岗</span></div>
+            <div class="hx-track agent">
+              <span class="cnt">137 个动作 · 全程留痕</span>
+              <span class="stall"><i>停滞 14 天（D21 异议起算）· 主 Agent 自动发现</i></span>
+            </div>
+          </div>
+          <div class="hx-lnrow">
+            <div class="ln-lab"><b>人</b><span>被调度到最该出场的那一场</span></div>
+            <div>
+              <div class="hx-track human">
+                <span class="hx-dot" style="left:11%"></span>
+                <span class="hx-dot duty" style="left:31%"></span>
+                <span class="hx-dot" style="left:47%"></span>
+                <span class="hx-dot" style="left:60%"></span>
+                <span class="hx-dot duty" style="left:76%"></span>
+                <span class="hx-dot duty" style="left:91%"></span>
+              </div>
+              <div class="hx-dlbls">
+                <span style="left:11%"><b>D5 首访</b><i class="face">出面</i></span>
+                <span style="left:31%"><b>D14 报价定案</b><i class="duty">担责</i></span>
+                <span style="left:47%"><b>D21 二访</b><i class="face">出面</i></span>
+                <span style="left:60%"><b>D27 谈判</b><i class="face">出面</i></span>
+                <span style="left:76%"><b>D34 账期授权</b><i class="duty">担责</i></span>
+                <span style="left:91%"><b>D41 法务复核</b><i class="duty">担责</i></span>
+              </div>
+            </div>
+          </div>
+          <div class="hx-tl-foot">谈判停滞（D21 异议起算，D34 恰满 14 天）由主 Agent 自动发现并推入<b>待决队列</b>，不靠人报；D34 的账期授权，就来自下面 06 那条队列卡。</div>
+        </div>
+      </div>
+    </div>
+    <a class="hx-more" href="deal.html">看主 Agent 的盯判调与 45 天双轨全程 →</a><a class="hx-more gold" href="workroom.html">进作战室亲手体验 →</a>
+  </section>
+
+  <!-- ============ 05 人机边界 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">05</span><h2>人机边界：<span class="hl">只有四类节点必须找人</span></h2><p>说得出规则的「找人」，才叫边界；说不出的，叫甩锅</p></div>
+    <div class="hx-bnd">
+      <div class="hx-bd">
+        <div class="ic">🤝</div><b>要人脸出面</b>
+        <div class="why">关系与信任无法委托，系统把人调度到场，并把该带的东西提前备好。</div>
+        <div class="sc"><em>典型</em>首访 · 关键谈判 · 高层拜访</div>
+      </div>
+      <div class="hx-bd">
+        <div class="ic">✍️</div><b>要人担责</b>
+        <div class="why">法律与商业责任必须落到自然人，系统只备料，不代签。</div>
+        <div class="sc"><em>典型</em>报价定案 · 合同签署 · 对外承诺</div>
+      </div>
+      <div class="hx-bd">
+        <div class="ic">❓</div><b>AI 没把握</b>
+        <div class="why">置信度低于阈值，宁可停下来问，也不硬猜着往前跑。</div>
+        <div class="sc"><em>典型</em>意图模糊 · 信息冲突 · 没见过的场景</div>
+      </div>
+      <div class="hx-bd">
+        <div class="ic">📉</div><b>结果偏离</b>
+        <div class="why">实际与预期偏差超过阈值，系统主动上报，而不是等人发现。</div>
+        <div class="sc"><em>典型</em>停滞超期 · 赢率骤降 · 客户降温</div>
+      </div>
+    </div>
+    <div class="hx-bndbar">
+      <div class="big">这四类之外，<em>系统不找人。</em></div>
+      <p>这是 L3 与 L2 的分水岭：L2 工具每一步都要人点「确认」，人还是被拴在流程上。阈值、授权范围与例外规则由企业配置；每一次「找人」与「没找人」都留痕可审计。</p>
+    </div>
+    <a class="hx-more" href="boundary.html">看四类节点的阈值与授权配置 →</a>
+  </section>
+
+  <!-- ============ 06 待决队列 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">06</span><h2>管理界面：从看板，<span class="hl">到待决队列</span></h2><p>管理层每天打开系统的第一屏，不是一屏数字，是「今天需要你拍板的 N 件事」</p></div>
+    <div class="hx-q">
+      <div class="panel">
+        <h3>人的工作量，从「分析」转移到「判断」</h3>
+        <div class="hx-vs">
+          <div class="vs-row"><span class="vs-lab old">看板</span><span>系统给数据 → <b>人分析</b> → <b>人决策</b> → <b>人派活</b></span></div>
+          <div class="vs-row"><span class="vs-lab new">待决队列</span><span><b>系统分析</b> → <b>系统给方案</b> → 人授权</span></div>
+        </div>
+        <p style="font-size:12.5px;color:var(--sub);line-height:1.78">每一条固定结构：<b style="color:var(--ink)">事项 → Agent 的判断 → 依据（每条可回溯到原始记录与时间戳）→ 建议动作（具体到人和时间）→ 三个按钮</b>。看板不取消，降级为审计与追溯入口——想验证 Agent 的判断对不对时才打开。</p>
+        <p class="note"><b>合规口径：</b>队列中的依据引用自过程记录；过程数据用于赋能与组织沉淀，不用于监控个人，采集、保存、查看范围由企业规则配置。</p>
+      </div>
+      <div>
+        <div class="hx-qcard">
+          <div class="qc-top"><b>金桥制造 · 年度框架 ¥86 万</b><span class="tag warn">商务谈判停滞 14 天</span><span class="tag teal">来自商机主 Agent</span></div>
+          <div class="qc-body">
+            <div class="qc-row"><span class="k">判断</span><p><b>卡在账期，不在价格。</b></p></div>
+            <div class="qc-row"><span class="k">依据</span>
+              <ul class="qc-ev">
+                <li><span class="ts">D21 · 00:14:32</span>二访纪要，周总原话「账期能不能松」</li>
+                <li><span class="ts">D27</span>谈判记录：价格已让至底价，仍未推进</li>
+                <li><span class="ts">同类 6 单</span>其中 5 单在账期让步后 2 周内签约</li>
+              </ul>
+            </div>
+            <div class="qc-row"><span class="k">建议</span><p>授权账期让步到 <b>75 天</b>，换预付 <b>30%</b>，由<b>王强</b>本周内谈</p></div>
+            <div class="c-btns">
+              <div class="c-btn primary">同意授权</div>
+              <div class="c-btn">改条件</div>
+              <div class="c-btn ghost">我来谈</div>
+            </div>
+            <div class="qc-foot">每条依据可回溯到原始记录与时间戳；授权动作留痕可审计。本卡为静态示意，可点的完整队列在「待决队列」页。</div>
+          </div>
+        </div>
+        <a class="hx-more" href="queue.html">进入可交互的待决队列演示 →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 能力集 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">07</span><h2>六类能力子 Agent：<span class="hl">主 Agent 手里的工具</span></h2><p>是能力，不是「模块」——由商机主 Agent 按需调度，不对应任何一个人的岗位</p></div>
+    <div class="cap-grid hx-caps">
+      <div class="cap"><div class="ic">🔍</div><b>研究与触达</b><span>画像匹配、背调、决策链梳理、一户一稿的触达内容。</span></div>
+      <div class="cap warm"><div class="ic">🎙</div><b>现场记录与理解</b><span>拜访实时转写、分角色、需求与异议抽取。</span></div>
+      <div class="cap"><div class="ic">📊</div><b>数据分析</b><span>客户、商机、合同、纪要、案例、报价、竞品一个入口问到，返回带依据的结论。</span></div>
+      <div class="cap warm"><div class="ic">📄</div><b>内容生成</b><span>方案、标书、报价单、对外邮件。</span></div>
+      <div class="cap"><div class="ic">⚖️</div><b>条款与风险</b><span>合同逐条比对企业红线、投标合规与废标自检。</span></div>
+      <div class="cap warm"><div class="ic">💰</div><b>回款与履约</b><span>回款节点跟踪、逾期预警、履约里程碑。</span></div>
+    </div>
+    <div class="hx-note"><b>能力不锁定：</b>不绑定任何模型、不绑定任何 Agent，交付的是效果。同一任务可多方案并跑，按赢单贡献、成功率、人工纠偏率、成本自动择优；每个 Agent 每月一张能力记分卡，连续不达标就下架换掉。</div>
+    <a class="hx-more" href="capability.html">看六类能力与能力记分卡 →</a>
+  </section>
+
+  <!-- ============ 08 落地路线 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">08</span><h2>30 天：不是「上功能」，<span class="hl">是「交主权」</span></h2><p>企业逐步把执行权交给系统，每一步都可回退——「上 AI」从一次性豪赌变成可控的爬坡</p></div>
+    <div class="hx-road">
+      <div class="hx-rd">
+        <div class="hx-st">
+          <div class="st-ramp"><i style="height:8%"></i></div>
+          <div class="st-card">
+            <div class="st-week">第 1 周</div><div class="st-name">L0 · 观察</div>
+            <div class="st-line"><span class="w sys">系统</span><span>只读不写：接入历史数据与录音，学企业自己的打法与红线</span></div>
+            <div class="st-line"><span class="w man">人</span><span>确认数据边界与红线库</span></div>
+          </div>
+        </div>
+        <div class="hx-st">
+          <div class="st-ramp"><i style="height:30%"></i></div>
+          <div class="st-card">
+            <div class="st-week">第 2 周</div><div class="st-name">L2 · 代办</div>
+            <div class="st-line"><span class="w sys">系统</span><span>开始代办单点任务，每件都请人确认</span></div>
+            <div class="st-line"><span class="w man">人</span><span>逐件确认，同时纠偏</span></div>
+          </div>
+        </div>
+        <div class="hx-st">
+          <div class="st-ramp"><i style="height:52%"></i></div>
+          <div class="st-card">
+            <div class="st-week">第 3–4 周</div><div class="st-name">L2.5 · 放权</div>
+            <div class="st-line"><span class="w sys">系统</span><span>四类节点之外，开始自主执行</span></div>
+            <div class="st-line"><span class="w man">人</span><span>只处理待决队列</span></div>
+          </div>
+        </div>
+        <div class="hx-st">
+          <div class="st-ramp"><i style="height:68%"></i></div>
+          <div class="st-card">
+            <div class="st-week">第 30 天</div><div class="st-name">验收</div>
+            <div class="st-line"><span class="w sys">系统</span><span>自主完成率 ≥ 55%、一线周活 ≥ 90%（一票否决）</span></div>
+            <div class="st-line"><span class="w man">人</span><span>对表验收，决定是否进 L3</span></div>
+          </div>
+        </div>
+        <div class="hx-st gold">
+          <div class="st-ramp"><i style="height:100%"></i></div>
+          <div class="st-card">
+            <div class="st-week">第 2–3 月</div><div class="st-name">L3 · 条件自主</div>
+            <div class="st-line"><span class="w sys">系统</span><span>端到端条件自主，季度自主完成率 72%</span></div>
+            <div class="st-line"><span class="w man">人</span><span>定目标与边界</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="hx-rd-axis">柱高示意 Agent 自主完成率爬坡：0 → 第 30 天 <b>≥ 55%</b> → 季度 <b>72%</b>（目标态示意，非承诺值；验收阈值为示例，以第 2 周双方共同确认的验收表为准）</div>
+    </div>
+    <a class="hx-more" href="roadmap.html">看 30 天路线、北极星指标与双方分工 →</a>
+  </section>
+
+  <!-- ============ 09 合规与边界 ============ -->
+  <section class="hx-sec">
+    <div class="hx-head"><span class="no">09</span><h2>合规与边界：<span class="hl">自主，先要可控</span></h2><p>交出去的是执行权，不是控制权</p></div>
+    <div class="hx-comp">
+      <div class="hx-cp"><b>录音与转写</b>录音需提前告知参会方；录音原文默认仅销售本人可见。</div>
+      <div class="hx-cp"><b>过程数据</b>用于赋能与组织沉淀，不用于监控个人；采集、保存、查看范围由企业规则配置。</div>
+      <div class="hx-cp"><b>自主执行</b>边界、阈值与授权范围由企业配置；每一次自主执行与每一次找人都留痕可审计，且每一步放权都可回退。</div>
+      <div class="hx-cp"><b>责任兜底</b>涉及法律与商业责任的动作——报价定案、合同签署、对外承诺——必须由授权人确认。</div>
+    </div>
+    <div class="hx-note">页面中全部数字为<b>目标态示意／典型区间，非承诺值</b>；演示企业、人物与商机均为虚构示例。方法论经 500+ ToB 销售项目验证，由商汤原厂落地陪跑与客户成功服务支撑落地。</div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+
+</body>
+</html>

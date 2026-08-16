@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>AI 外呼 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("outbound", async (root, ctx) => {
+  const { data, me } = ctx;
+  const canRun = !!me.perms.runOutbound;
+  const allScenes = ["ecom", "app", "fintech", "local", "auto"];
+  const myScenes = me.perms.viewAll ? allScenes : (me.scenarios || []).filter((s) => s !== "*");
+  const inScope = (sc) => myScenes.includes(sc);
+  const scopedCamps = () => data.campaigns.filter((c) => inScope(c.scenario));
+
+  // ---- 本地数据变更(与后端 mutate 逻辑一致)----
+  function upsertLocal(camp) {
+    const ex = data.campaigns.find((c) => c.id === camp.id);
+    if (ex) Object.assign(ex, camp); else data.campaigns.unshift(camp);
+  }
+  function toggleLocal(id) {
+    const c = data.campaigns.find((x) => x.id === id);
+    if (c) c.status = c.status === "running" ? "paused" : "running";
+  }
+  function deleteLocal(id) { data.campaigns = data.campaigns.filter((c) => c.id !== id); }
+
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">📞</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">AI 外呼 · 主动触达</div>
+      <div class="sub">多语言批量并发 · ROI 可量化 · 统一品牌音色</div>
+    </div>
+    ${canRun ? '<button id="newCamp" class="btn pri">+ 新建外呼任务</button>' : ""}
+  </div>
+
+  <div class="stats" id="camp-stats" style="margin-bottom:18px"></div>
+
+  <div class="hd" style="margin-bottom:12px"><h3>外呼任务</h3><div class="sp"></div><span class="sub" id="camp-count"></span></div>
+  <div id="camp-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;margin-bottom:22px"></div>
+
+  <div class="card pad">
+    <div class="hd"><h3>🗂️ 外呼会话留痕</h3><div class="sp"></div><span class="sub">mode = outbound · 最近样本</span></div>
+    <div id="ob-calls" style="overflow-x:auto"></div>
+  </div>`;
+
+  // ---- 单张任务卡片 ----
+  function cardHtml(c) {
+    const pct = c.listSize ? Math.min(100, Math.round((c.done / c.listSize) * 100)) : 0;
+    const connRate = c.done ? Math.round((c.connected / c.done) * 100) : 0;
+    const voice = data.voices.find((v) => v.id === c.voiceId);
+    const script = data.scripts.find((s) => s.id === c.scriptId);
+    const scShort = VX.scLabel(c.scenario).split(" / ")[0];
+    const actions = canRun ? `
+      <div class="row" style="gap:8px;margin-top:14px">
+        ${c.status !== "done" ? `<button class="btn sm js-toggle" data-id="${c.id}">${c.status === "running" ? "⏸ 暂停" : "▶ 继续"}</button>` : ""}
+        <button class="btn sm js-edit" data-id="${c.id}">✎ 编辑</button>
+        <button class="btn sm danger js-del" data-id="${c.id}">🗑 删除</button>
+      </div>` : "";
+    return `<div class="card pad">
+      <div class="between" style="align-items:flex-start">
+        <div>
+          <div style="color:#fff;font-weight:700;font-size:14.5px">${VX.esc(c.name)}</div>
+          <div class="sub" style="margin-top:3px">${VX.scEmoji(c.scenario)} ${VX.esc(scShort)} · ${VX.MODE.outbound}</div>
+        </div>
+        ${VX.statusBadge(c.status)}
+      </div>
+      <div class="row" style="gap:6px;margin:12px 0 4px">
+        <span class="chip">🌐 ${VX.esc(VX.LANG[c.lang] || c.lang)}</span>
+        <span class="chip">🎙️ ${VX.esc(voice ? voice.name : "—")}</span>
+        <span class="chip">📋 ${VX.esc(script ? script.title : "未绑定话术")}</span>
+      </div>
+      <div class="barlabel" style="margin-top:10px"><span>呼叫进度</span><span>${VX.fmtNum(c.done)} / ${VX.fmtNum(c.listSize)} · ${pct}%</span></div>
+      <div class="bar coral"><i style="width:${pct}%"></i></div>
+      <div class="row" style="gap:20px;margin-top:12px">
+        <div><div class="sub">接通</div><div style="font-size:17px;font-weight:800;color:#fff">${VX.fmtNum(c.connected)}</div></div>
+        <div><div class="sub">转化</div><div style="font-size:17px;font-weight:800;color:var(--coral-2)">${VX.fmtNum(c.converted)}</div></div>
+        <div><div class="sub">接通率</div><div style="font-size:17px;font-weight:800;color:var(--teal)">${connRate}%</div></div>
+      </div>
+      ${actions}
+    </div>`;
+  }
+
+  // ---- 汇总磁贴 + 任务列表 ----
+  function render() {
+    const camps = scopedCamps();
+    const sumSize = camps.reduce((s, c) => s + (c.listSize || 0), 0);
+    const sumDone = camps.reduce((s, c) => s + (c.done || 0), 0);
+    const sumConn = camps.reduce((s, c) => s + (c.connected || 0), 0);
+    const sumConv = camps.reduce((s, c) => s + (c.converted || 0), 0);
+    const connRate = sumDone ? Math.round((sumConn / sumDone) * 100) : 0;
+    const running = camps.filter((c) => c.status === "running").length;
+
+    VX.$("#camp-stats").innerHTML = `
+      <div class="stat"><div class="k">📋 外呼任务</div><div class="v">${VX.fmtNum(camps.length)}</div><div class="d">${running} 个进行中</div></div>
+      <div class="stat"><div class="k">👥 名单总量</div><div class="v">${VX.fmtNum(sumSize)}</div><div class="d">累计触达池</div></div>
+      <div class="stat voice"><div class="k">📞 已呼</div><div class="v">${VX.fmtNum(sumDone)}</div><div class="d">占名单 ${sumSize ? Math.round((sumDone / sumSize) * 100) : 0}%</div></div>
+      <div class="stat voice"><div class="k">✅ 接通率</div><div class="v">${connRate}<small>%</small></div><div class="d">接通 ${VX.fmtNum(sumConn)} 通</div></div>
+      <div class="stat"><div class="k">🎯 转化</div><div class="v">${VX.fmtNum(sumConv)}</div><div class="d">名单转化 ${sumDone ? ((sumConv / sumDone) * 100).toFixed(1) : "0.0"}%</div></div>`;
+
+    VX.$("#camp-count").textContent = `${camps.length} 个任务${me.perms.viewAll ? "" : " · 本场景视图"}`;
+
+    const list = VX.$("#camp-list");
+    if (!camps.length) {
+      list.style.display = "block";
+      list.innerHTML = `<div class="empty"><div class="ic">📞</div><h3>暂无外呼任务</h3><p class="sub">${canRun ? "点击右上角「+ 新建外呼任务」创建第一个批次" : "当前范围内暂无外呼任务"}</p></div>`;
+      return;
+    }
+    list.style.display = "grid";
+    list.innerHTML = camps.map(cardHtml).join("");
+    if (canRun) {
+      VX.$$(".js-toggle", list).forEach((b) => (b.onclick = () => toggle(b.dataset.id)));
+      VX.$$(".js-edit", list).forEach((b) => (b.onclick = () => openModal(data.campaigns.find((c) => c.id === b.dataset.id))));
+      VX.$$(".js-del", list).forEach((b) => (b.onclick = () => del(b.dataset.id)));
+    }
+  }
+
+  // ---- 新建 / 编辑弹窗 ----
+  function openModal(editing) {
+    const scOpts = myScenes.map((s) => `<option value="${s}" ${editing && editing.scenario === s ? "selected" : ""}>${VX.scEmoji(s)} ${VX.scLabel(s)}</option>`).join("");
+    const lgOpts = Object.keys(VX.LANG).map((l) => `<option value="${l}" ${(editing ? editing.lang === l : l === "zh") ? "selected" : ""}>${VX.LANG[l]}</option>`).join("");
+    const voOpts = data.voices.map((v) => `<option value="${v.id}" ${editing && editing.voiceId === v.id ? "selected" : ""}>${VX.esc(v.name)}${v.status === "off" ? "(下线)" : ""}</option>`).join("");
+    const obScripts = data.scripts.filter((s) => s.mode === "outbound");
+    const scList = obScripts.length ? obScripts : data.scripts;
+    const spOpts = `<option value="">— 不绑定话术 —</option>` + scList.map((s) => `<option value="${s.id}" ${editing && editing.scriptId === s.id ? "selected" : ""}>${VX.esc(s.title)} · ${VX.scEmoji(s.scenario)}</option>`).join("");
+
+    const body = VX.el(`<div>
+      <label class="fld"><span class="lb">任务名称</span><input id="f_name" placeholder="如:Q3 订阅续费提醒批次" value="${editing ? VX.esc(editing.name) : ""}"/></label>
+      <div class="two" style="gap:12px">
+        <label class="fld"><span class="lb">业务场景</span><select id="f_sc">${scOpts}</select></label>
+        <label class="fld"><span class="lb">模式</span><input value="📞 AI 外呼(固定)" disabled/></label>
+      </div>
+      <div class="two" style="gap:12px">
+        <label class="fld"><span class="lb">语种</span><select id="f_lg">${lgOpts}</select></label>
+        <label class="fld"><span class="lb">名单规模</span><input id="f_size" type="number" min="0" step="100" value="${editing ? editing.listSize : 1000}"/></label>
+      </div>
+      <label class="fld"><span class="lb">品牌音色</span><select id="f_vo">${voOpts}</select></label>
+      <label class="fld"><span class="lb">外呼话术 / SOP</span><select id="f_sp">${spOpts}</select></label>
+    </div>`);
+    const foot = VX.el(`<button class="btn pri">${editing ? "保存修改" : "创建并启动"}</button>`);
+    const m = VX.modal({ title: editing ? "编辑外呼任务" : "新建外呼任务", body, footer: foot });
+    foot.onclick = async () => {
+      const name = VX.$("#f_name", body).value.trim();
+      if (!name) return VX.toast("请填写任务名称", "err");
+      const size = Math.max(0, Number(VX.$("#f_size", body).value) || 0);
+      const camp = {
+        id: editing ? editing.id : "cp_" + Date.now(),
+        scenario: VX.$("#f_sc", body).value,
+        name,
+        mode: "outbound",
+        lang: VX.$("#f_lg", body).value,
+        voiceId: VX.$("#f_vo", body).value,
+        scriptId: VX.$("#f_sp", body).value,
+        agentId: editing ? (editing.agentId || "") : "",
+        listSize: size,
+        done: editing ? editing.done : 0,
+        connected: editing ? editing.connected : 0,
+        converted: editing ? editing.converted : 0,
+        status: editing ? editing.status : "running",
+        startTs: editing ? editing.startTs : new Date().toISOString(),
+      };
+      try {
+        await VX.change("campaign.upsert", { campaign: camp });
+        upsertLocal(camp);
+        m.close();
+        render();
+        VX.toast(editing ? "任务已更新" : "外呼任务已创建并启动", "ok");
+      } catch (e) { VX.toast(e.message, "err"); }
+    };
+  }
+
+  async function toggle(id) {
+    try {
+      await VX.change("campaign.toggle", { id });
+      toggleLocal(id);
+      render();
+      const c = data.campaigns.find((x) => x.id === id);
+      VX.toast(c && c.status === "running" ? "任务已继续" : "任务已暂停", "ok");
+    } catch (e) { VX.toast(e.message, "err"); }
+  }
+
+  function del(id) {
+    const c = data.campaigns.find((x) => x.id === id);
+    VX.confirm(`确认删除外呼任务「${c ? c.name : id}」?此操作不可撤销。`, async () => {
+      try {
+        await VX.change("campaign.delete", { id });
+        deleteLocal(id);
+        render();
+        VX.toast("任务已删除", "ok");
+      } catch (e) { VX.toast(e.message, "err"); }
+    }, "删除");
+  }
+
+  // ---- 外呼会话留痕(mode=outbound)----
+  function callRow(c) {
+    const rb = c.resolvedBy === "human" ? VX.badge("转人工", "coral") : VX.badge("AI 自助", "ai");
+    return `<tr>
+      <td class="mono" style="white-space:nowrap">${VX.fmtTs(c.ts)}</td>
+      <td style="white-space:nowrap">${VX.scEmoji(c.scenario)} ${VX.esc(VX.scLabel(c.scenario).split(" / ")[0])}</td>
+      <td class="nm">${VX.esc(c.agentName || "—")}</td>
+      <td>${VX.esc(c.voiceName || "—")}</td>
+      <td>${VX.esc(c.customer || "—")}</td>
+      <td>${VX.esc(c.intent || "—")}</td>
+      <td>${rb} <span class="sub">${VX.esc(c.outcome || "")}</span></td>
+      <td style="white-space:nowrap">${VX.fmtDur(c.durationSec)}</td>
+      <td style="white-space:nowrap">${c.csat ? "⭐ " + c.csat : "—"}</td>
+    </tr>`;
+  }
+  async function loadCalls() {
+    const box = VX.$("#ob-calls");
+    try {
+      const { calls } = await VX.api("/api/calls?mode=outbound");
+      if (!calls.length) { box.innerHTML = `<div class="empty"><div class="ic">🗂️</div>暂无外呼会话留痕</div>`; return; }
+      box.innerHTML = `<table class="tb" style="min-width:820px"><thead><tr>
+        <th>时间</th><th>场景</th><th>Agent</th><th>音色</th><th>客户</th><th>意图</th><th>结果</th><th>时长</th><th>CSAT</th>
+        </tr></thead><tbody>${calls.map(callRow).join("")}</tbody></table>`;
+    } catch (e) { box.innerHTML = `<div class="empty"><div class="ic">⚠️</div>${VX.esc(e.message)}</div>`; }
+  }
+
+  if (canRun) VX.$("#newCamp").onclick = () => openModal(null);
+  render();
+  loadCalls();
+});
+</script>
+</body></html>

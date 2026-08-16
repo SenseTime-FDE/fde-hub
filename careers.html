@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人才招聘 · 商汤生态渠道</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+<script>
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.addEventListener("load", function () { window.scrollTo(0, 0); });
+  window.addEventListener("pageshow", function () { window.scrollTo(0, 0); });
+</script>
+<style>
+  /* 招聘 Agent 工作台(本页专用) */
+  .agent-wrap{display:grid;grid-template-columns:1.25fr .75fr;gap:20px;align-items:start}
+  @media(max-width:960px){.agent-wrap{grid-template-columns:1fr}}
+  .agent-panel,.track-panel{background:var(--white);border:1px solid var(--line);border-radius:var(--radius-lg);overflow:hidden}
+  .agent-head{display:flex;align-items:center;gap:12px;padding:18px 24px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,rgba(231,36,39,.05),transparent 60%)}
+  .agent-avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;
+    background:linear-gradient(135deg,var(--red),#F7831F);box-shadow:0 8px 18px -8px rgba(231,36,39,.55)}
+  .agent-head h3{font-size:16px}
+  .agent-head p{font-size:12px;color:var(--gray)}
+  .agent-body{padding:22px 24px 24px}
+  .agent-msg{background:var(--bg);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:13px 16px;
+    font-size:13.8px;line-height:1.7;color:var(--ink);margin-bottom:14px}
+  .agent-msg b{color:var(--red)}
+  .resume-box{width:100%;min-height:130px;border:1px solid var(--line-2);border-radius:14px;padding:14px 16px;font:inherit;
+    font-size:13.5px;line-height:1.7;color:var(--ink);background:#fff;resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s}
+  .resume-box:focus{border-color:var(--ink);box-shadow:0 0 0 4px rgba(15,18,24,.06)}
+  .agent-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .btn-sm{padding:10px 20px;font-size:13.5px}
+  .skill-tags{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 16px}
+  .skill-tags span{font-size:12px;font-weight:700;color:var(--red);background:rgba(231,36,39,.07);
+    border:1px solid rgba(231,36,39,.14);padding:5px 12px;border-radius:999px}
+  .match-card{display:flex;align-items:center;gap:16px;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px;
+    cursor:pointer;transition:border-color .2s,box-shadow .2s,transform .2s;background:#fff}
+  .match-card:hover{border-color:rgba(231,36,39,.3);transform:translateY(-2px);box-shadow:0 14px 30px -20px rgba(15,18,24,.3)}
+  .match-card.picked{border-color:var(--red);box-shadow:0 0 0 3px rgba(231,36,39,.12)}
+  .match-info{flex:1;min-width:0}
+  .match-info h4{font-size:15px;margin-bottom:3px}
+  .match-info p{font-size:12.3px;color:var(--gray);line-height:1.55}
+  .match-score{flex:none;text-align:right;min-width:88px}
+  .match-score b{display:block;font-size:22px;font-weight:900;color:var(--red);letter-spacing:-.02em}
+  .match-score i{font-style:normal;font-size:11px;color:var(--gray-2)}
+  .match-bar{height:5px;border-radius:99px;background:var(--line);margin-top:6px;overflow:hidden}
+  .match-bar u{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--red),#F7831F);width:0;transition:width .8s cubic-bezier(.2,.7,.2,1)}
+  .track-head{padding:18px 24px;border-bottom:1px solid var(--line)}
+  .track-head h3{font-size:16px}
+  .track-head p{font-size:12px;color:var(--gray)}
+  .track-body{padding:22px 24px}
+  .track-empty{text-align:center;color:var(--gray-2);font-size:13.5px;padding:26px 6px;line-height:1.8}
+  .tl{list-style:none;margin:0;padding:0}
+  .tl li{position:relative;padding:0 0 20px 26px}
+  .tl li::before{content:"";position:absolute;left:6px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--line-2)}
+  .tl li::after{content:"";position:absolute;left:10px;top:18px;bottom:-2px;width:1.5px;background:var(--line)}
+  .tl li:last-child::after{display:none}
+  .tl li.done::before{background:var(--red);box-shadow:0 0 0 4px rgba(231,36,39,.14)}
+  .tl li.doing::before{background:#F7831F;box-shadow:0 0 0 4px rgba(247,131,31,.18);animation:pulse 1.6s infinite}
+  .tl li.stop::before{background:var(--gray-2)}
+  .tl h5{font-size:13.8px;font-weight:700;color:var(--ink)}
+  .tl li.wait h5{color:var(--gray-2)}
+  .tl p{font-size:12.3px;color:var(--gray);line-height:1.6;margin-top:3px}
+  .tl time{font-size:11px;color:var(--gray-2)}
+  .apply-item{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  .apply-item-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+  .apply-item-head h4{font-size:14.5px}
+  .apply-no{font-size:11px;color:var(--gray-2)}
+  .link-danger{font-size:12px;color:var(--gray-2);cursor:pointer;border:none;background:none;font-family:inherit}
+  .link-danger:hover{color:var(--red)}
+  .demo-note{margin-top:16px;font-size:12px;color:var(--gray-2);line-height:1.7}
+</style>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <nav id="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img class="st-logo" src="images/sensetime-logo.png" alt="商汤科技 SenseTime">
+        <span class="brand-div"></span>
+        <span class="fde-lockup">
+          <span class="fde-word">生态渠道</span>
+          <span class="fde-cap">AI Ecosystem Partnerships - FDE INSIDE</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="solutions.html">产品与方案</a>
+        <a href="tokenplan.html">Token Plan</a>
+        <a href="events.html">市场活动</a>
+        <a href="careers.html" class="cur">人才招聘</a>
+        <a href="forum.html">技术交流</a>
+        <a href="partners.html">加入生态</a>
+      </div>
+      <a href="https://app.jingsocial.com/mF/commonLandingPage/CTA/6d34eaf60a434d7d8600094418b7a044?pushId=Das2J4qeZ5X6xGo4A5L7xn1" class="btn btn-red nav-cta">申请加入</a>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header class="hero hero-sub">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-grid-lines" aria-hidden="true"></div>
+      <div class="wrap hero-center">
+        <span class="eyebrow">Careers · 人才招聘</span>
+        <h1>AI 招聘 Agent<br><span class="hl">带你直达生态渠道</span></h1>
+        <p class="lead">不用海投,不用猜 —— Agent 帮你分析简历、匹配合适岗位,投递后进度实时可查;HR 在同一系统里处理申请。右上角登录,选择你的身份开始体验。</p>
+        <div class="hero-tags">
+          <span>AI 读简历</span><i></i><span>岗位智能匹配</span><i></i><span>进度实时跟踪</span><i></i><span>HR 在线处理</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- 三功能卡 -->
+    <section class="sec">
+      <div class="wrap">
+        <div class="grid-3">
+          <div class="info reveal" data-d="0"><div class="n">01</div><h3>简历分析</h3><p>粘贴简历,Agent 生成你的能力画像 —— 分析在浏览器本地完成,内容不会上传。</p></div>
+          <div class="info reveal" data-d="1"><div class="n">02</div><h3>岗位匹配</h3><p>按画像给出各岗位匹配度与推荐理由,AI 读懂简历帮你选,不再盲投。</p></div>
+          <div class="info reveal" data-d="2"><div class="n">03</div><h3>进度跟踪</h3><p>投递状态实时掌握:初筛、复核、面试、Offer,每一步 HR 的处理都同步可见。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 候选人工作台 -->
+    <section class="sec sec-alt">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <span class="kicker">Workbench · 候选人工作台</span>
+          <h2>三步,找到你的位置</h2>
+          <p class="sec-sub">分析简历 → 选择岗位 → 投递跟踪;投递需以「候选人」身份登录(右上角)。</p>
+        </div>
+        <div class="agent-wrap reveal">
+          <div class="agent-panel">
+            <div class="agent-head">
+              <div class="agent-avatar">A</div>
+              <div><h3>生态渠道 · 招聘 Agent</h3><p>简历分析 → 岗位匹配 → 一键投递</p></div>
+            </div>
+            <div class="agent-body">
+              <div class="agent-msg" id="agentMsg">你好,我是生态渠道的招聘 Agent。把你的简历或经历简介粘贴到下面(或点「用示例试试」),我来分析你适合哪个岗位方向。</div>
+              <textarea class="resume-box" id="resumeInput" placeholder="粘贴简历或经历简介,例如:5 年 B 端销售经验,带过渠道团队,做过 SaaS 产品的伙伴拓展…"></textarea>
+              <div class="agent-actions">
+                <button class="btn btn-red btn-sm" id="analyzeBtn" type="button">开始分析 <span class="ar">→</span></button>
+                <button class="btn btn-ghost btn-sm" id="sampleBtn" type="button">用示例试试</button>
+              </div>
+              <div id="analysisArea" hidden>
+                <div class="agent-msg" style="margin-top:18px" id="profileMsg"></div>
+                <div class="skill-tags" id="skillTags"></div>
+                <div id="matchList"></div>
+                <div class="agent-actions">
+                  <button class="btn btn-red btn-sm" id="applyBtn" type="button" disabled>投递所选岗位 <span class="ar">↗</span></button>
+                  <span style="font-size:12.5px;color:var(--gray);align-self:center" id="applyHint">点选一个岗位后投递</span>
+                </div>
+              </div>
+              <p class="demo-note">演示环境:分析与投递均在本地模拟,简历内容不会上传;正式投递请发送简历至 <a href="mailto:hello@sensetime.com" style="color:var(--red)">hello@sensetime.com</a>,并注明「生态渠道 + 岗位方向」。</p>
+            </div>
+          </div>
+          <div class="track-panel">
+            <div class="track-head"><h3>我的申请</h3><p>进度实时跟踪,HR 处理后自动更新</p></div>
+            <div class="track-body" id="trackBody"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- HR 管理面板 -->
+    <section class="sec">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <span class="kicker">HR Console · 招聘管理</span>
+          <h2>HR 工作台:申请处理与流程推进</h2>
+          <p class="sec-sub">以「HR 管理员」身份登录后可见 —— 处理候选人申请:通过复核、安排面试、发送 Offer,候选人侧进度实时同步。</p>
+        </div>
+        <div id="hrArea" class="reveal"></div>
+      </div>
+    </section>
+
+    <!-- 岗位方向 -->
+    <section class="sec sec-alt">
+      <div class="wrap">
+        <div class="sec-head reveal">
+          <span class="kicker">Open Roles · 岗位方向</span>
+          <h2>四个方向,和生态一起长大</h2>
+          <p class="sec-sub">以下为生态渠道团队的岗位方向;实际在招岗位与任职要求,以商汤官方招聘渠道发布为准。</p>
+        </div>
+        <div class="grid-2">
+          <div class="info reveal" data-d="0"><div class="lbl">FDE · Forward Deployed Engineer</div><h3>FDE 交付工程师</h3><p>深入客户业务一线:需求翻译、场景设计、Demo 构建、试点陪跑 —— 把大模型能力变成客户的真实业务价值。</p></div>
+          <div class="info reveal" data-d="1"><div class="lbl">BD · Partner Development</div><h3>生态招商经理</h3><p>伙伴开拓与政策落地:发展渠道、ISV 与服务伙伴,共建标杆案例,经营长期伙伴关系。</p></div>
+          <div class="info reveal" data-d="2"><div class="lbl">Marketing · Content &amp; Events</div><h3>市场与内容运营</h3><p>官网、公众号、小红书三渠道内容制作与排期;市场活动策划、切片与二次传播。</p></div>
+          <div class="info reveal" data-d="3"><div class="lbl">Operations · Leads &amp; Community</div><h3>线索与私域运营</h3><p>CRM 线索运营与转化追踪;企业微信社群运营,客户与伙伴的长期触达与孵化。</p></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot-legal">
+      <p class="foot-copy">
+        沪 ICP 备 19044592 号-3 ｜
+        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener"><img src="images/gongan.png" alt="" onerror="this.style.display='none'">沪公网安备 31010402009327 号</a>
+        © 2014–2026 SenseTime. All Rights Reserved. 上海商汤智能科技有限公司
+      </p>
+      <p class="foot-sub">商汤科技 · 大模型生态渠道部 ｜ 上海商汤智能科技有限公司是商汤集团旗下子公司</p>
+    </div>
+  </footer>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/main.js"></script>
+  <script>
+  /* ---------- 招聘系统(候选人 × HR 双角色,本地模拟) ---------- */
+  (function () {
+    "use strict";
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    const JOBS = [
+      { id: "fde", t: "FDE 交付工程师", brief: "需求翻译、场景设计、Demo 构建、试点陪跑",
+        kw: ["工程", "开发", "代码", "python", "java", "模型", "大模型", "ai", "agent", "算法", "交付", "实施", "demo", "poc", "技术", "prompt", "llm"] },
+      { id: "bd", t: "生态招商经理", brief: "伙伴开拓、政策落地、标杆共建",
+        kw: ["销售", "渠道", "伙伴", "bd", "商务", "客户", "谈判", "招商", "代理", "分销", "kpi", "签约", "saas", "拓展"] },
+      { id: "mkt", t: "市场与内容运营", brief: "三渠道内容制作、活动策划与切片传播",
+        kw: ["内容", "文案", "活动", "新媒体", "公众号", "小红书", "市场", "品牌", "传播", "策划", "短视频", "选题", "编辑"] },
+      { id: "ops", t: "线索与私域运营", brief: "CRM 线索运营、企微社群与长期触达",
+        kw: ["运营", "crm", "社群", "企微", "微信", "数据", "线索", "转化", "用户", "留存", "sop", "增长", "私域"] },
+    ];
+    const SAMPLE = "5 年 B 端销售与渠道经验:负责过 SaaS 产品的代理商体系搭建,发展渠道伙伴 30+,熟悉客户谈判与签约流程;近两年转向 AI 行业,主导过 2 个大模型场景 POC 的商务落地,和交付团队一起给客户做过 demo;会用 CRM 管理线索和商机,平时也写行业公众号文章。";
+    const STORE = "fde_career_apps_v2";
+    /* stage: 0 已投递 → 1 AI 初筛通过 → 2 HR 复核通过 → 3 面试已安排 → 4 Offer;-1 未通过 */
+    const STAGE_NAME = { 0: "已投递", 1: "AI 初筛通过", 2: "HR 复核通过", 3: "面试已安排", 4: "Offer 已发出", "-1": "未通过" };
+
+    const msg = $("#agentMsg"), input = $("#resumeInput"), area = $("#analysisArea");
+    const tagsEl = $("#skillTags"), listEl = $("#matchList"), profileEl = $("#profileMsg");
+    const applyBtn = $("#applyBtn"), trackBody = $("#trackBody"), hrArea = $("#hrArea");
+    let picked = null, lastResult = null;
+
+    const loadApps = () => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch (e) { return []; } };
+    const saveApps = (a) => { localStorage.setItem(STORE, JSON.stringify(a)); renderTrack(); renderHR(); };
+    const now = () => new Date().toLocaleString("zh-CN", { hour12: false });
+
+    /* ---------- 分析 ---------- */
+    $("#sampleBtn").addEventListener("click", () => { input.value = SAMPLE; input.focus(); });
+    $("#analyzeBtn").addEventListener("click", () => {
+      const text = input.value.trim().toLowerCase();
+      if (text.length < 20) { msg.innerHTML = "内容有点少,再多写几句你的经历吧 —— 或者点「<b>用示例试试</b>」看看效果。"; return; }
+      msg.innerHTML = "收到,正在分析你的经历…";
+      setTimeout(() => {
+        const hits = {}; const found = new Set();
+        JOBS.forEach(j => { hits[j.id] = 0; j.kw.forEach(k => { if (text.includes(k)) { hits[j.id] += 1; found.add(k); } }); });
+        const scores = JOBS.map(j => ({ job: j, score: Math.min(96, Math.round(38 + (hits[j.id] / Math.min(j.kw.length, 8)) * 58)) }))
+          .sort((a, b) => b.score - a.score);
+        lastResult = scores;
+        msg.innerHTML = "分析完成!下面是你的能力画像与各岗位匹配度 —— <b>点选一个岗位</b>,就可以一键投递。";
+        profileEl.innerHTML = `从你的经历里,我识别到 <b>${found.size}</b> 个相关能力点;整体看,你和「<b>${esc(scores[0].job.t)}</b>」的气质最接近。`;
+        tagsEl.innerHTML = [...found].slice(0, 12).map(k => `<span>${esc(k)}</span>`).join("") || "<span>通用能力</span>";
+        listEl.innerHTML = scores.map(s => `
+          <div class="match-card" data-id="${s.job.id}" role="button" tabindex="0">
+            <div class="match-info"><h4>${esc(s.job.t)}</h4><p>${esc(s.job.brief)}</p>
+              <div class="match-bar"><u data-w="${s.score}"></u></div></div>
+            <div class="match-score"><b>${s.score}%</b><i>匹配度</i></div>
+          </div>`).join("");
+        area.hidden = false; picked = null; applyBtn.disabled = true;
+        requestAnimationFrame(() => listEl.querySelectorAll(".match-bar u").forEach(u => { u.style.width = u.dataset.w + "%"; }));
+        listEl.querySelectorAll(".match-card").forEach(c => c.addEventListener("click", () => {
+          listEl.querySelectorAll(".match-card").forEach(x => x.classList.toggle("picked", x === c));
+          picked = c.dataset.id; applyBtn.disabled = false;
+        }));
+      }, 700);
+    });
+
+    /* ---------- 投递(需候选人身份) ---------- */
+    applyBtn.addEventListener("click", () => {
+      const sess = window.FDE_AUTH.get();
+      if (!sess || sess.role !== "candidate") {
+        msg.innerHTML = "投递需要以「<b>候选人</b>」身份登录 —— 已为你打开登录窗口。";
+        window.FDE_AUTH.login("candidate", (s) => { if (s && s.role === "candidate") doApply(s); });
+        return;
+      }
+      doApply(sess);
+    });
+    function doApply(sess) {
+      if (!picked || !lastResult) return;
+      const s = lastResult.find(x => x.job.id === picked);
+      const apps = loadApps();
+      if (apps.some(a => a.name === sess.name && a.jobId === s.job.id && a.stage >= 0)) {
+        msg.innerHTML = `你已经投递过「<b>${esc(s.job.t)}</b>」啦,进度看右侧「我的申请」。`; return;
+      }
+      const no = "FDE-" + String(10000 + (apps.length * 137 + s.job.id.length * 41 + sess.name.length * 7) % 89999);
+      apps.unshift({ no, name: sess.name, jobId: s.job.id, job: s.job.t, score: s.score, at: now(), stage: 0, log: [{ t: 0, at: now() }] });
+      saveApps(apps);
+      msg.innerHTML = `已投递「<b>${esc(s.job.t)}</b>」!右侧「我的申请」已开始跟踪 —— HR 处理后状态会实时更新。`;
+      setTimeout(() => {
+        const a = loadApps(); const rec = a.find(x => x.no === no);
+        if (rec && rec.stage === 0) { rec.stage = 1; rec.log.push({ t: 1, at: now() }); saveApps(a); }
+      }, 2200);
+    }
+
+    /* ---------- 候选人:我的申请 ---------- */
+    function renderTrack() {
+      const sess = window.FDE_AUTH.get();
+      if (!sess || sess.role !== "candidate") {
+        trackBody.innerHTML = '<div class="track-empty">以「候选人」身份登录后,<br>你的申请与进度会出现在这里</div>'; return;
+      }
+      const mine = loadApps().filter(a => a.name === sess.name);
+      if (!mine.length) {
+        trackBody.innerHTML = '<div class="track-empty">还没有进行中的申请<br>完成左侧分析并投递后,进度会出现在这里</div>'; return;
+      }
+      trackBody.innerHTML = mine.map(a => {
+        const steps = [
+          { n: "已投递", d: `匹配度 ${a.score}%`, at: a.at },
+          { n: "AI 初筛", d: a.stage >= 1 ? "画像与岗位要求匹配,已推送 HR" : "Agent 核对画像中…" },
+          { n: "HR 复核", d: a.stage >= 2 ? "复核通过" : (a.stage === -1 ? "本次未通过,感谢投递 —— 简历已入库,合适岗位会再联系你" : "等待 HR 处理") },
+          { n: "面试安排", d: a.stage >= 3 ? "面试已安排,Agent 将同步时间与准备建议" : "通过复核后安排" },
+          { n: "Offer", d: a.stage >= 4 ? "Offer 已发出,欢迎加入生态渠道!" : "面试通过后发出" },
+        ];
+        const cls = (i) => a.stage === -1 ? (i === 0 || i === 1 ? "done" : (i === 2 ? "stop" : "wait"))
+          : (i <= a.stage ? "done" : (i === a.stage + 1 ? "doing" : "wait"));
+        return `<div class="apply-item">
+          <div class="apply-item-head"><h4>${esc(a.job)}</h4><span class="status-chip s${a.stage === -1 ? "x" : a.stage}">${STAGE_NAME[a.stage]}</span></div>
+          <div class="apply-no">申请编号 ${a.no} · ${esc(a.name)}</div>
+          <ul class="tl" style="margin-top:12px">${steps.map((s, i) =>
+            `<li class="${cls(i)}"><h5>${s.n}</h5><p>${s.d}</p>${s.at ? `<time>${s.at}</time>` : ""}</li>`).join("")}</ul>
+          <button class="link-danger" data-no="${a.no}" type="button">撤回此申请</button>
+        </div>`;
+      }).join("");
+      trackBody.querySelectorAll(".link-danger").forEach(b => b.addEventListener("click", () => {
+        saveApps(loadApps().filter(x => x.no !== b.dataset.no));
+      }));
+    }
+
+    /* ---------- HR:申请处理 ---------- */
+    function renderHR() {
+      const sess = window.FDE_AUTH.get();
+      if (!sess || sess.role !== "hr") {
+        hrArea.innerHTML = '<div class="role-gate">此面板仅「HR 管理员」可见 —— 右上角登录并选择「HR 管理员」身份即可进入。<br>想完整体验闭环:先以候选人身份投一份申请,再切换 HR 处理,回到候选人视角看进度更新。</div>';
+        return;
+      }
+      const apps = loadApps();
+      if (!apps.length) {
+        hrArea.innerHTML = `<div class="hr-panel"><div class="hr-empty">暂无申请 —— 先退出并以「候选人」身份投递一份,或
+          <button class="link-danger" id="seedBtn" type="button" style="font-size:13.5px;color:var(--red)">生成演示数据</button></div></div>`;
+        const sb = $("#seedBtn");
+        if (sb) sb.addEventListener("click", () => {
+          saveApps([
+            { no: "FDE-73201", name: "演示 · 林一", jobId: "fde", job: "FDE 交付工程师", score: 88, at: now(), stage: 1, log: [] },
+            { no: "FDE-73202", name: "演示 · 陈二", jobId: "mkt", job: "市场与内容运营", score: 76, at: now(), stage: 2, log: [] },
+          ]);
+        });
+        return;
+      }
+      const actions = (a) => {
+        if (a.stage === -1 || a.stage >= 4) return "<span style='font-size:12px;color:var(--gray-2)'>已完结</span>";
+        const btns = [];
+        if (a.stage === 1) btns.push(`<button class="pri" data-no="${a.no}" data-to="2">通过复核</button>`);
+        if (a.stage === 2) btns.push(`<button class="pri" data-no="${a.no}" data-to="3">安排面试</button>`);
+        if (a.stage === 3) btns.push(`<button class="pri" data-no="${a.no}" data-to="4">发送 Offer</button>`);
+        if (a.stage === 0) btns.push("<span style='font-size:12px;color:var(--gray-2)'>AI 初筛中…</span>");
+        if (a.stage >= 1) btns.push(`<button data-no="${a.no}" data-to="-1">婉拒</button>`);
+        return btns.join("");
+      };
+      hrArea.innerHTML = `<div class="hr-panel"><div style="overflow-x:auto"><table class="hr-table">
+        <tr><th>候选人</th><th>岗位</th><th>匹配度</th><th>投递时间</th><th>状态</th><th>操作</th></tr>
+        ${apps.map(a => `<tr>
+          <td><b>${esc(a.name)}</b><br><span style="font-size:11px;color:var(--gray-2)">${a.no}</span></td>
+          <td>${esc(a.job)}</td><td><b>${a.score}%</b></td><td>${a.at}</td>
+          <td><span class="status-chip s${a.stage === -1 ? "x" : a.stage}">${STAGE_NAME[a.stage]}</span></td>
+          <td><div class="hr-actions">${actions(a)}</div></td>
+        </tr>`).join("")}
+      </table></div></div>
+      <p class="demo-note" style="margin-top:12px">演示环境:操作即时同步到候选人侧的「我的申请」;数据仅存于本机浏览器。</p>`;
+      hrArea.querySelectorAll(".hr-actions button[data-no]").forEach(b => b.addEventListener("click", () => {
+        const apps2 = loadApps(); const rec = apps2.find(x => x.no === b.dataset.no);
+        if (!rec) return;
+        rec.stage = parseInt(b.dataset.to, 10);
+        rec.log = rec.log || []; rec.log.push({ t: rec.stage, at: now() });
+        saveApps(apps2);
+      }));
+    }
+
+    document.addEventListener("fde-auth", () => { renderTrack(); renderHR(); });
+    renderTrack(); renderHR();
+  })();
+  </script>
+</body>
+</html>

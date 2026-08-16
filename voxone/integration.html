@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>统一 Agent 对接 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("integration", async (root, ctx) => {
+  const { me } = ctx;
+  const $ = VX.$;
+  const canEdit = !!me.perms.manageIntegration;
+  const origin = location.origin;
+  const scScope = me.perms.viewAll ? ["ecom","app","fintech","local","auto"] : (me.scenarios||[]).filter(s=>s!=="*");
+  const KIND = { config:"配置更新", sync:"注册同步", invoke:"入站调用" };
+  const KIND_CLS = { config:"off", sync:"run", invoke:"ai" };
+  const CAP = { "conversation.service":"对话服务 · 客服", "conversation.sales":"对话销售 · 转化", "voice.outbound":"语音外呼 · 主动触达" };
+
+  let I = null; // /api/integration 数据
+  const state = {
+    syncRunning:false, syncResults:null,
+    testRunning:false, testResult:null,
+    testInput:{ text:"我要退货怎么退款", scenario: scScope.includes("ecom") ? "ecom" : (scScope[0]||"ecom"), mode:"service" },
+  };
+
+  async function refresh(){ I = await VX.api("/api/integration"); render(); }
+
+  // ---- 局部渲染:同步结果 ----
+  function renderSyncResults(){
+    const box = $("#syncResults"); if(!box) return;
+    if(state.syncRunning){ box.innerHTML = `<div class="notice">⏳ 正在向 Hub 注册已上线 Agent…</div>`; return; }
+    const sr = state.syncResults; if(!sr){ box.innerHTML=""; return; }
+    const okN = sr.results.filter(r=>r.ok).length;
+    box.innerHTML = `<div class="panel">
+      <div class="between" style="margin-bottom:6px"><b style="color:#fff">同步结果 · 共 ${sr.count} 个 · 成功 ${okN}</b>${okN>0?VX.badge("已注册到 Hub","on"):VX.badge("本地登记","warn")}</div>
+      ${sr.results.map(r=>{ const a=(I.exposed||[]).find(x=>x.id===r.id)||{}; return `<div class="between" style="padding:7px 0;border-top:1px solid var(--line)">
+        <span class="nm">${VX.scEmoji(a.scenario)} ${VX.esc(a.name||r.id)}</span>
+        <span class="row" style="align-items:center;gap:9px">${r.ok?VX.badge("成功","on"):VX.badge("本地","warn")}<span class="sub mono">${VX.esc(r.note)}</span></span></div>`; }).join("")}
+    </div>`;
+  }
+
+  // ---- 局部渲染:网关自测结果 ----
+  function renderTestResult(){
+    const box = $("#testResult"); if(!box) return;
+    if(state.testRunning){ box.innerHTML = `<div class="notice">⏳ 正在请求入站网关 /api/agent-gateway/invoke …</div>`; return; }
+    const t = state.testResult; if(!t){ box.innerHTML=""; return; }
+    if(t.error){ box.innerHTML = `<div class="notice" style="border-color:rgba(255,107,107,.4);color:#ff9e9e">⚠️ 网关调用失败:${VX.esc(t.error)}</div>`; return; }
+    const rp = t.reply || {};
+    box.innerHTML = `<div class="panel">
+      <div class="row" style="gap:8px;align-items:center;margin-bottom:10px">
+        ${VX.badge("入站网关 · 200","on")}
+        ${rp.intent?VX.badge("意图 · "+rp.intent,"ai"):""}
+        ${rp.transfer?VX.badge("建议转人工","coral"):VX.badge("AI 自助应答","run")}
+        ${rp.latencyMs!=null?`<span class="sub">端到端 ${rp.latencyMs}ms</span>`:""}
+        ${rp.source?`<span class="sub">引擎 ${rp.source==="live"?"实时端点 Live":"内置引擎"}</span>`:""}
+      </div>
+      <div class="chat"><div class="bub ai"><div class="meta">VoxOne 应答 · ${VX.scLabel(state.testInput.scenario).split(" / ")[0]} · ${VX.MODE[state.testInput.mode]}</div><div>${VX.esc(rp.text||"—")}</div></div></div>
+    </div>`;
+  }
+
+  function render(){
+    const cfg = I.config || {}, gw = I.gateway || {};
+    const exposed = I.exposed || [], events = I.events || [];
+    const token = gw.token || "";
+    const agentsAbs = origin + (gw.agentsUrl||"");
+    const invokeAbs = origin + (gw.invokeUrl||"");
+    const curl =
+`# 拉取 VoxOne 对外暴露的 Agent 能力清单
+curl "${agentsAbs}?token=${token}"
+
+# 让 VoxOne 为某场景实时应答(scenario / mode / text / history)
+curl -X POST "${invokeAbs}?token=${token}" \\
+  -H "Content-Type: application/json" \\
+  -d '{"scenario":"ecom","mode":"service","text":"我要退货怎么退款","history":[]}'`;
+
+    root.innerHTML = `
+    <div class="pagehero">
+      <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">🔗</div>
+      <div style="flex:1">
+        <div style="font-size:17px;font-weight:800;color:#fff">统一 Agent 管理平台 · 对接</div>
+        <div class="sub">把 VoxOne 的语音 Agent 能力接入统一 Agent 平台 · 出站注册 + 入站网关</div>
+      </div>
+      ${canEdit?VX.badge("可编辑对接","ai"):VX.badge("只读视图","off")}
+    </div>
+
+    <!-- 架构说明 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>🧭 双向对接架构</h3><div class="sp"></div><span class="chip">出站注册 · 入站网关</span></div>
+      <div class="row" style="align-items:stretch;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:170px;background:var(--navy-0);border:1px solid var(--line);border-radius:var(--r);padding:16px;text-align:center">
+          <div style="font-size:26px;line-height:1">🌊</div>
+          <b style="color:#fff;display:block;margin-top:6px">声渡 VoxOne</b>
+          <div class="sub" style="margin-top:3px">语音原生 Agent 能力<br/>客服 / 销售 / 外呼</div>
+        </div>
+        <div style="flex:0 0 210px;display:flex;flex-direction:column;justify-content:center;gap:12px;min-width:180px">
+          <div style="text-align:center">
+            <span class="tag" style="background:rgba(240,81,60,.16);color:var(--coral-ink);border-color:rgba(240,81,60,.35)">出站 · 注册</span>
+            <div style="color:var(--coral);font-weight:800;font-size:15px;letter-spacing:1px;margin:2px 0">━━━━▶</div>
+            <div class="sub" style="font-size:11px">已上线 Agent → Hub 纳管</div>
+          </div>
+          <div style="text-align:center">
+            <span class="tag" style="background:rgba(34,199,214,.14);color:#8be6f0;border-color:rgba(34,199,214,.3)">入站 · 网关调用</span>
+            <div style="color:var(--teal);font-weight:800;font-size:15px;letter-spacing:1px;margin:2px 0">◀━━━━</div>
+            <div class="sub" style="font-size:11px">Hub → VoxOne 实时应答</div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:170px;background:var(--navy-0);border:1px solid var(--line);border-radius:var(--r);padding:16px;text-align:center">
+          <div style="font-size:26px;line-height:1">🧩</div>
+          <b style="color:#fff;display:block;margin-top:6px">${VX.esc(cfg.hubName||"统一 Agent 管理平台")}</b>
+          <div class="sub" style="margin-top:3px">统一编排 / 调度<br/>各业务场景 Agent</div>
+        </div>
+      </div>
+      <div class="two" style="margin-top:14px">
+        <div class="notice"><span><b style="color:var(--coral-ink)">出站</b>:VoxOne 把已上线 Agent 注册到 Hub,统一平台即可发现并纳管这些语音 Agent 能力。</span></div>
+        <div class="notice"><span><b style="color:#8be6f0">入站</b>:Hub 携网关令牌调用 <span class="mono">/api/agent-gateway/invoke</span>,让 VoxOne 为各场景实时应答。</span></div>
+      </div>
+    </div>
+
+    <!-- Hub 出站配置 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>📤 Hub 出站配置</h3><div class="sp"></div><span class="sub">VoxOne → 统一平台</span>${canEdit?"":" "+VX.badge("只读","off")}</div>
+      <div class="two">
+        <label class="fld"><span class="lb">平台名称</span><input id="hubName" value="${VX.esc(cfg.hubName||"")}" ${canEdit?"":"disabled"}/></label>
+        <label class="fld"><span class="lb">Hub 端点</span><input id="hubEndpoint" value="${VX.esc(cfg.hubEndpoint||"")}" placeholder="https://hub.example.com" ${canEdit?"":"disabled"}/></label>
+      </div>
+      <label class="fld"><span class="lb">Hub 令牌 <span class="sub">· 注册鉴权,写入不回显</span></span>
+        <input id="hubToken" type="password" placeholder="${cfg.hubTokenSet?"已设置(留空则不修改)":"未设置"}" ${canEdit?"":"disabled"}/></label>
+      ${canEdit?`
+      <div class="row" style="margin-top:2px;align-items:center">
+        <button class="btn pri" id="saveCfg">保存配置</button>
+        <button class="btn voice" id="syncBtn">🔄 同步注册 Agent</button>
+        <span class="sub" style="align-self:center">将 ${exposed.length} 个已上线 Agent 注册到 Hub${cfg.hubEndpoint?"":"(未配置端点时仅本地登记)"}</span>
+      </div>
+      <div id="syncResults" style="margin-top:12px"></div>`
+      :`<div class="notice" style="margin-top:4px"><span>当前角色为只读,如需修改对接配置或触发注册同步,请联系运营 / 平台管理员。</span></div>`}
+    </div>
+
+    <!-- 入站网关 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>📥 入站网关</h3><div class="sp"></div><span class="sub">统一平台 → VoxOne</span></div>
+      <div style="margin-bottom:12px">
+        <div class="sub" style="margin-bottom:5px">网关令牌 <span style="color:var(--ink-4)">· Hub 调用 VoxOne 时携带</span></div>
+        <div class="row" style="align-items:center;gap:9px">
+          <code class="mono" id="gwTok" style="flex:1;min-width:0;overflow-x:auto;white-space:nowrap;background:var(--navy-0);border:1px solid var(--line);border-radius:var(--r-s);padding:9px 12px;color:var(--teal)">${VX.esc(token)}</code>
+          <button class="btn sm" id="copyTok">复制</button>
+          ${canEdit?`<button class="btn sm danger" id="rotateTok" title="重置后旧令牌立即失效">重置</button>`:""}
+        </div>
+      </div>
+      <div class="two">
+        <div><div class="sub" style="margin-bottom:5px">能力清单 URL</div><code class="mono" style="display:block;overflow-x:auto;white-space:nowrap;background:var(--navy-0);border:1px solid var(--line);border-radius:var(--r-s);padding:9px 12px;color:var(--ink-1)">GET ${VX.esc(gw.agentsUrl||"")}</code></div>
+        <div><div class="sub" style="margin-bottom:5px">调用 URL</div><code class="mono" style="display:block;overflow-x:auto;white-space:nowrap;background:var(--navy-0);border:1px solid var(--line);border-radius:var(--r-s);padding:9px 12px;color:var(--ink-1)">POST ${VX.esc(gw.invokeUrl||"")}</code></div>
+      </div>
+      <div class="hr"></div>
+      <div class="sub" style="margin-bottom:6px">调用示例 <span style="color:var(--ink-4)">· 令牌通过 ?token= 传入,无需登录会话</span></div>
+      <pre class="mono" style="margin:0;background:var(--navy-0);border:1px solid var(--line);border-radius:var(--r);padding:14px;overflow-x:auto;font-size:12px;line-height:1.7;color:var(--ink-1);white-space:pre">${VX.esc(curl)}</pre>
+
+      <div class="hr"></div>
+      <div class="between" style="flex-wrap:wrap;gap:8px;margin-bottom:10px">
+        <div class="hd" style="margin:0"><h3 style="font-size:14px">▶ 现场网关自测</h3></div>
+        <span class="sub">前端直连入站网关,验证 Hub 侧调用真实可用</span>
+      </div>
+      <div class="row" style="gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <label class="fld" style="flex:2;min-width:220px;margin:0"><span class="lb">用户话术</span><input id="testText" value="${VX.esc(state.testInput.text)}"/></label>
+        <label class="fld" style="flex:1;min-width:150px;margin:0"><span class="lb">场景</span><select id="testSc">${scScope.map(s=>`<option value="${s}" ${s===state.testInput.scenario?"selected":""}>${VX.scEmoji(s)} ${VX.scLabel(s).split(" / ")[0]}</option>`).join("")}</select></label>
+        <label class="fld" style="flex:1;min-width:130px;margin:0"><span class="lb">模式</span><select id="testMode">${["service","sales","outbound"].map(m=>`<option value="${m}" ${m===state.testInput.mode?"selected":""}>${VX.MODE[m]}</option>`).join("")}</select></label>
+        <button class="btn voice" id="testBtn">▶ 发送到网关</button>
+      </div>
+      <div id="testResult" style="margin-top:12px"></div>
+    </div>
+
+    <!-- 已暴露能力清单 -->
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>🤖 已暴露能力清单</h3><div class="sp"></div><span class="chip">${exposed.length} 个 · status = on</span></div>
+      <div class="sub" style="margin-bottom:10px">以下为已上线、对统一平台可见的 Agent 能力,Hub 可发现并调用。</div>
+      ${exposed.length?`<div style="overflow-x:auto"><table class="tb">
+        <thead><tr><th>名称</th><th>场景</th><th>模式</th><th>能力</th><th>语种</th></tr></thead>
+        <tbody>${exposed.map(a=>`<tr>
+          <td class="nm">${VX.esc(a.name)}</td>
+          <td>${VX.scEmoji(a.scenario)} ${VX.scLabel(a.scenario).split(" / ")[0]}</td>
+          <td>${VX.modeBadge(a.mode)}</td>
+          <td>${VX.esc(CAP[a.capability]||a.capability||"—")}<div class="mono sub" style="font-size:10px;margin-top:2px">${VX.esc(a.capability||"")}</div></td>
+          <td>${(a.langs||[]).map(l=>`<span class="tag">${VX.esc(VX.LANG[l]||l)}</span>`).join(" ")||"—"}</td>
+        </tr>`).join("")}</tbody></table></div>`
+      :`<div class="empty"><div class="ic">🤖</div>暂无已上线 Agent · 请先在「Agent 编排」上架</div>`}
+    </div>
+
+    <!-- 对接事件日志 -->
+    <div class="card pad">
+      <div class="hd"><h3>🗒️ 对接事件日志</h3><div class="sp"></div><span class="sub">最近 ${events.length} 条</span></div>
+      ${events.length?`<div style="overflow-x:auto"><table class="tb">
+        <thead><tr><th>时间</th><th>类型</th><th>目标</th><th>结果</th><th>详情</th></tr></thead>
+        <tbody>${events.map(e=>`<tr>
+          <td class="mono">${VX.fmtTs(e.ts)}</td>
+          <td>${VX.badge(KIND[e.kind]||e.kind, KIND_CLS[e.kind]||"off")}</td>
+          <td>${VX.esc(e.target)||"—"}</td>
+          <td>${e.ok?VX.badge("成功","on"):VX.badge("失败","bad")}</td>
+          <td class="sub">${VX.esc(e.detail)||"—"}</td>
+        </tr>`).join("")}</tbody></table></div>`
+      :`<div class="empty"><div class="ic">🗒️</div>暂无对接事件 · 保存配置、注册同步或入站调用后将在此留痕</div>`}
+    </div>`;
+
+    bind();
+    renderSyncResults();
+    renderTestResult();
+  }
+
+  function bind(){
+    // 复制网关令牌(所有可访问角色可用)
+    const cp = $("#copyTok");
+    if(cp) cp.onclick = async () => {
+      try { await navigator.clipboard.writeText((I.gateway||{}).token||""); VX.toast("网关令牌已复制","ok"); }
+      catch { VX.toast("复制失败,请手动选择复制","err"); }
+    };
+
+    // 网关自测:直连 invoke(带 ?token=,不走 VX.api / 不需登录头)
+    const tb = $("#testBtn");
+    if(tb) tb.onclick = async () => {
+      state.testInput.text = ($("#testText").value||"").trim() || "你好";
+      state.testInput.scenario = $("#testSc").value;
+      state.testInput.mode = $("#testMode").value;
+      state.testRunning = true; state.testResult = null; renderTestResult(); tb.disabled = true;
+      const gw = I.gateway || {};
+      const payload = { scenario:state.testInput.scenario, mode:state.testInput.mode, text:state.testInput.text, history:[] };
+      try {
+        if (I.staticMode && window.VXLOCAL) {
+          // 静态模式无服务端可连:直接调页面内网关,自测链路仍然跑通
+          state.testResult = await window.VXLOCAL.gateway("invoke", payload);
+        } else {
+          const url = gw.invokeUrl + "?token=" + encodeURIComponent(gw.token||"");
+          const res = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" },
+            body: JSON.stringify(payload) });
+          let j = {}; try { j = await res.json(); } catch {}
+          state.testResult = res.ok ? j : { error: j.error || ("HTTP " + res.status) };
+        }
+      } catch (err) { state.testResult = { error: String(err.message||err) }; }
+      state.testRunning = false;
+      // 刷新以带出新的入站调用事件;测试结果由 state 持有,render 会重绘
+      try { await refresh(); } catch { renderTestResult(); const b=$("#testBtn"); if(b) b.disabled=false; }
+    };
+
+    if(!canEdit) return;
+
+    // 保存出站配置
+    const sb = $("#saveCfg");
+    if(sb) sb.onclick = async () => {
+      const body = { hubName:($("#hubName").value||"").trim(), hubEndpoint:($("#hubEndpoint").value||"").trim(), hubToken:$("#hubToken").value };
+      sb.disabled = true;
+      try { await VX.api("/api/integration/config","POST",body); VX.toast("对接配置已保存","ok"); await refresh(); }
+      catch (err) { VX.toast(err.message,"err"); sb.disabled = false; }
+    };
+
+    // 同步注册 Agent
+    const syb = $("#syncBtn");
+    if(syb) syb.onclick = async () => {
+      state.syncRunning = true; state.syncResults = null; renderSyncResults(); syb.disabled = true;
+      try {
+        const r = await VX.api("/api/integration/sync","POST");
+        state.syncRunning = false; state.syncResults = { count:r.count, results:r.results };
+        VX.toast(`已处理 ${r.count} 个 Agent`,"ok");
+        await refresh(); // 刷新事件日志(同步结果由 state 持有并重绘)
+      } catch (err) {
+        state.syncRunning = false; VX.toast(err.message,"err"); renderSyncResults();
+        const b=$("#syncBtn"); if(b) b.disabled=false;
+      }
+    };
+
+    // 重置网关令牌
+    const rt = $("#rotateTok");
+    if(rt) rt.onclick = () => {
+      VX.confirm("重置网关令牌?旧令牌将立即失效,已接入统一平台的令牌需要同步更新。", async () => {
+        try { await VX.api("/api/integration/config","POST",{ rotateGw:true }); VX.toast("网关令牌已重置","ok"); await refresh(); }
+        catch (err) { VX.toast(err.message,"err"); }
+      }, "重置令牌");
+    };
+  }
+
+  try { await refresh(); }
+  catch (e) { root.innerHTML = `<div class="empty"><div class="ic">⚠️</div><h3>加载对接信息失败</h3><p class="sub">${VX.esc(e.message)}</p></div>`; }
+});
+</script>
+</body></html>

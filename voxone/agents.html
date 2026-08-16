@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Agent 编排 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("agents", async (root, ctx) => {
+  const { me } = ctx;
+  let data = ctx.data;
+
+  const ALL_SCENES = ["ecom", "app", "fintech", "local", "auto"];
+  const myScenes = me.perms.viewAll ? ALL_SCENES : (me.scenarios || []).filter(s => s !== "*");
+  const canManage = !!me.perms.manageAgents;
+  const CH_OPTS = ["voice", "web", "whatsapp", "wechat", "line"];
+  const LANG_OPTS = Object.keys(VX.LANG);
+  const $ = VX.$;
+
+  let curSc = "*";
+
+  // 权限/场景可见范围裁剪
+  function scoped() {
+    return (data.agents || []).filter(a => me.perms.viewAll || myScenes.includes(a.scenario));
+  }
+
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-brand);display:grid;place-items:center;font-size:22px">🤖</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">Agent 编排</div>
+      <div class="sub">一套底座,三种应用 · 绑定音色与知识,一键上下架</div>
+    </div>
+    ${canManage ? '<button id="newAg" class="btn pri">+ 新建 Agent</button>' : ""}
+  </div>
+
+  <div class="stats" id="agStats" style="margin-bottom:16px"></div>
+
+  <div class="between" style="margin-bottom:14px">
+    <div class="segs" id="agSegs"></div>
+    <span class="sub" id="agCount"></span>
+  </div>
+
+  <div class="grid" id="agGrid" style="grid-template-columns:repeat(auto-fill,minmax(342px,1fr))"></div>`;
+
+  const nb = $("#newAg");
+  if (nb) nb.onclick = () => openEditor(null);
+
+  // ---- 顶部指标 ----
+  function renderStats() {
+    const sc = scoped();
+    const on = sc.filter(a => a.status === "on").length;
+    const scenes = new Set(sc.map(a => a.scenario)).size;
+    const totalCalls = sc.reduce((s, a) => s + (a.calls || 0), 0);
+    $("#agStats").innerHTML = `
+      <div class="stat"><div class="k">🤖 Agent 总数</div><div class="v">${sc.length}</div><div class="d">${me.perms.viewAll ? "全部场景视图" : "本场景视图"}</div></div>
+      <div class="stat voice"><div class="k">🟢 已上线</div><div class="v">${on}<small>/${sc.length}</small></div><div class="d">已下线 ${sc.length - on} 个</div></div>
+      <div class="stat"><div class="k">🌐 覆盖场景</div><div class="v">${scenes}</div><div class="d">共 ${myScenes.length} 个可见场景</div></div>
+      <div class="stat voice"><div class="k">📞 累计会话量</div><div class="v">${VX.fmtNum(totalCalls)}</div><div class="d">全部 Agent 承接</div></div>`;
+  }
+
+  // ---- 场景筛选 ----
+  function renderSegs() {
+    const opts = [["*", "全部"]].concat(myScenes.map(s => [s, VX.scEmoji(s) + " " + VX.scLabel(s).split(" / ")[0]]));
+    $("#agSegs").innerHTML = opts.map(([v, l]) => `<span class="seg ${curSc === v ? "on" : ""}" data-sc="${v}">${l}</span>`).join("");
+    VX.$$("#agSegs .seg").forEach(el => el.onclick = () => { curSc = el.dataset.sc; renderSegs(); renderGrid(); });
+  }
+
+  // ---- 卡片网格 ----
+  const meta = (l, v) => `<div style="min-width:0"><div class="sub" style="font-size:11px">${l}</div><div style="color:var(--ink-0);font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${v}">${v}</div></div>`;
+
+  function cardHtml(a) {
+    const voice = VX.esc((data.voices.find(v => v.id === a.voiceId) || {}).name || "—");
+    const script = VX.esc((data.scripts.find(s => s.id === a.scriptId) || {}).title || "未绑定");
+    const chips = (a.channel || []).map(c => `<span class="chip">${VX.CH[c] || c}</span>`).join("") || '<span class="sub">未配置渠道</span>';
+    const langs = (a.langs || []).map(l => `<span class="tag">${VX.LANG[l] || l}</span>`).join("") || '<span class="sub">—</span>';
+    const actions = canManage ? `
+      <div class="hr"></div>
+      <div class="between">
+        <div class="row" style="align-items:center;gap:9px">
+          <div class="switch ${a.status === "on" ? "on" : ""}" data-toggle="${a.id}" title="上架 / 下架"><b></b></div>
+          <span class="sub">${a.status === "on" ? "已上线" : "已下线"}</span>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn sm" data-edit="${a.id}">编辑</button>
+          <button class="btn sm danger" data-del="${a.id}">删除</button>
+        </div>
+      </div>` : "";
+    return `<div class="card pad" style="display:flex;flex-direction:column;gap:11px">
+      <div class="between" style="align-items:flex-start">
+        <div style="min-width:0"><div class="nm" style="color:#fff;font-weight:700;font-size:14.5px">${VX.esc(a.name)}</div>
+          <div class="sub" style="margin-top:3px">${VX.esc(a.desc || "")}</div></div>
+        ${VX.statusBadge(a.status)}
+      </div>
+      <div class="row" style="align-items:center;gap:8px">
+        <span class="chip">${VX.scEmoji(a.scenario)} ${VX.esc(VX.scLabel(a.scenario).split(" / ")[0])}</span>
+        ${VX.modeBadge(a.mode)}
+      </div>
+      <div class="row" style="gap:6px">${chips}</div>
+      <div style="border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0;display:grid;grid-template-columns:1fr 1fr;gap:9px 14px">
+        ${meta("🎙️ 音色", voice)}
+        ${meta("📚 知识库", (a.kbIds || []).length + " 条")}
+        ${meta("📋 话术", script)}
+        ${meta("🧠 模型", VX.esc(a.model || "—"))}
+      </div>
+      <div class="row" style="gap:5px">${langs}</div>
+      <div class="between">
+        <span class="sub">📞 会话量 <b style="color:var(--ink-0)">${VX.fmtNum(a.calls)}</b></span>
+        <span class="sub">自主解决 <b style="color:var(--teal)">${a.resolveRate || 0}%</b></span>
+      </div>
+      ${actions}
+    </div>`;
+  }
+
+  function renderGrid() {
+    const list = scoped().filter(a => curSc === "*" || a.scenario === curSc);
+    $("#agCount").textContent = list.length + " 个 Agent";
+    const grid = $("#agGrid");
+    if (!list.length) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="ic">🤖</div><h3>暂无 Agent</h3><p class="sub">${canManage ? "点击右上「+ 新建 Agent」开始编排" : "当前筛选下没有可见的 Agent"}</p></div>`;
+      return;
+    }
+    grid.innerHTML = list.map(cardHtml).join("");
+    if (canManage) {
+      VX.$$("#agGrid [data-toggle]").forEach(el => el.onclick = () => toggleAgent(el.dataset.toggle));
+      VX.$$("#agGrid [data-edit]").forEach(el => el.onclick = () => { const a = data.agents.find(x => x.id === el.dataset.edit); if (a) openEditor(a); });
+      VX.$$("#agGrid [data-del]").forEach(el => el.onclick = () => { const a = data.agents.find(x => x.id === el.dataset.del); if (a) delAgent(a); });
+    }
+  }
+
+  // ---- 数据改动后重载 ----
+  async function reload() {
+    const ctx2 = await VX.api("/api/bootstrap");
+    data = ctx2.data;
+    renderStats();
+    renderGrid();
+  }
+
+  async function toggleAgent(id) {
+    try { await VX.change("agent.toggle", { id }); await reload(); VX.toast("上下架状态已更新", "ok"); }
+    catch (e) { VX.toast(e.message, "err"); }
+  }
+
+  function delAgent(a) {
+    VX.confirm(`确定删除 Agent「${a.name}」?此操作不可恢复。`, async () => {
+      try { await VX.change("agent.delete", { id: a.id }); await reload(); VX.toast("Agent 已删除", "ok"); }
+      catch (e) { VX.toast(e.message, "err"); }
+    }, "删除");
+  }
+
+  // ---- 新建 / 编辑弹窗 ----
+  function buildSegs(container, opts, labelFn, set) {
+    container.innerHTML = "";
+    opts.forEach(o => {
+      const seg = VX.el(`<span class="seg ${set.has(o) ? "on" : ""}">${labelFn(o)}</span>`);
+      seg.onclick = () => { if (set.has(o)) { set.delete(o); seg.classList.remove("on"); } else { set.add(o); seg.classList.add("on"); } };
+      container.appendChild(seg);
+    });
+  }
+
+  function openEditor(existing) {
+    const isEdit = !!existing;
+    const a = existing || { channel: [], kbIds: [], langs: [] };
+    const chSet = new Set(a.channel || []);
+    const langSet = new Set(a.langs || []);
+    const kbSet = new Set(a.kbIds || []);
+
+    const body = VX.el("<div></div>");
+    body.innerHTML = `
+      <label class="fld"><span class="lb">Agent 名称</span><input id="fName" placeholder="如:跨境电商 · 售后客服" value="${VX.esc(a.name || "")}"/></label>
+      <div class="two">
+        <label class="fld"><span class="lb">业务场景</span><select id="fScene">${myScenes.map(s => `<option value="${s}" ${a.scenario === s ? "selected" : ""}>${VX.scEmoji(s)} ${VX.scLabel(s)}</option>`).join("")}</select></label>
+        <label class="fld"><span class="lb">模式</span><select id="fMode">${Object.entries(VX.MODE).map(([k, v]) => `<option value="${k}" ${a.mode === k ? "selected" : ""}>${v}</option>`).join("")}</select></label>
+      </div>
+      <label class="fld"><span class="lb">接入渠道(可多选)</span><div class="segs" id="fCh"></div></label>
+      <div class="two">
+        <label class="fld"><span class="lb">品牌音色</span><select id="fVoice">${data.voices.map(v => `<option value="${v.id}" ${a.voiceId === v.id ? "selected" : ""}>${VX.esc(v.name)}${v.status === "on" ? "" : "(下线)"}</option>`).join("")}</select></label>
+        <label class="fld"><span class="lb">绑定话术 SOP</span><select id="fScript"></select></label>
+      </div>
+      <label class="fld"><span class="lb">知识库(可多选 · 本场景 + 通用)</span>
+        <div id="fKb" style="display:grid;gap:8px;max-height:180px;overflow:auto;border:1px solid var(--line-2);border-radius:9px;padding:11px;background:#0d223f"></div></label>
+      <label class="fld"><span class="lb">支持语种(可多选)</span><div class="segs" id="fLang"></div></label>
+      <div class="two">
+        <label class="fld"><span class="lb">模型</span><input id="fModel" value="${VX.esc(a.model || "Realtime 2.0")}" placeholder="Realtime 2.0"/></label>
+        <label class="fld"><span class="lb">简介</span><input id="fDesc" value="${VX.esc(a.desc || "")}" placeholder="一句话说明该 Agent 的职责"/></label>
+      </div>
+      <div class="notice">会话量与自主解决率由运营数据自动累计,新建后默认为「已上线」,可在卡片一键上下架。</div>`;
+
+    const fName = $("#fName", body), fScene = $("#fScene", body), fMode = $("#fMode", body),
+      fCh = $("#fCh", body), fVoice = $("#fVoice", body), fScript = $("#fScript", body),
+      fKb = $("#fKb", body), fLang = $("#fLang", body), fModel = $("#fModel", body), fDesc = $("#fDesc", body);
+
+    buildSegs(fCh, CH_OPTS, c => VX.CH[c], chSet);
+    buildSegs(fLang, LANG_OPTS, l => VX.LANG[l], langSet);
+
+    // 场景相关:话术下拉 + 知识库多选(随场景刷新)
+    function refreshScene() {
+      const sc = fScene.value;
+      const scScripts = data.scripts.filter(s => s.scenario === sc || s.scenario === "*");
+      fScript.innerHTML = `<option value="">— 不绑定 —</option>` + scScripts.map(s => `<option value="${s.id}" ${a.scriptId === s.id ? "selected" : ""}>${VX.esc(s.title)}</option>`).join("");
+      const scKb = data.knowledge.filter(k => k.scenario === sc || k.scenario === "*");
+      fKb.innerHTML = scKb.length ? scKb.map(k => `<label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:12.5px;color:var(--ink-1)">
+        <input type="checkbox" data-id="${k.id}" ${kbSet.has(k.id) ? "checked" : ""} style="width:16px;height:16px;margin:0;flex:0 0 auto"/>
+        <span>${VX.scEmoji(k.scenario)} ${VX.esc(k.title)} <span class="tag">${k.scenario === "*" ? "通用" : VX.scLabel(k.scenario).split(" / ")[0]}</span></span></label>`).join("") : '<div class="sub">该场景暂无知识库</div>';
+      VX.$$("input[type=checkbox]", fKb).forEach(cb => cb.onchange = () => { cb.checked ? kbSet.add(cb.dataset.id) : kbSet.delete(cb.dataset.id); });
+    }
+    fScene.onchange = refreshScene;
+    refreshScene();
+
+    const saveBtn = VX.el(`<button class="btn pri">${isEdit ? "保存修改" : "创建 Agent"}</button>`);
+    saveBtn.onclick = async () => {
+      const name = fName.value.trim();
+      if (!name) return VX.toast("请填写 Agent 名称", "err");
+      const scene = fScene.value;
+      if (!scene) return VX.toast("请选择业务场景", "err");
+      const channel = CH_OPTS.filter(c => chSet.has(c));
+      if (!channel.length) return VX.toast("请至少选择一个接入渠道", "err");
+      const langs = LANG_OPTS.filter(l => langSet.has(l));
+      const kbIds = [...kbSet].filter(id => data.knowledge.some(k => k.id === id && (k.scenario === scene || k.scenario === "*")));
+      const agent = {
+        id: isEdit ? a.id : "ag_" + Date.now(),
+        name, scenario: scene, mode: fMode.value, channel,
+        voiceId: fVoice.value, kbIds, scriptId: fScript.value, langs,
+        model: fModel.value.trim() || "Realtime 2.0", desc: fDesc.value.trim(),
+        status: isEdit ? a.status : "on",
+        calls: isEdit ? (a.calls || 0) : 0,
+        resolveRate: isEdit ? (a.resolveRate || 0) : 0,
+      };
+      try {
+        await VX.change("agent.upsert", { agent });
+        await reload();
+        m.close();
+        VX.toast(isEdit ? "Agent 已更新" : "Agent 已创建", "ok");
+      } catch (e) { VX.toast(e.message, "err"); }
+    };
+
+    const m = VX.modal({ title: isEdit ? "编辑 Agent" : "新建 Agent", body, footer: saveBtn, wide: true });
+  }
+
+  // ---- 首次渲染 ----
+  renderStats();
+  renderSegs();
+  renderGrid();
+});
+</script>
+</body></html>

@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · 商机与团队</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ============ deal 页专属样式（dl- 前缀） ============ */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px;flex-wrap:nowrap}
+.topnav nav a{padding:7px 11px;font-size:13px}
+.site-footer .foot-brand img{height:18px}
+
+.dl-sec{margin-bottom:52px}
+.dl-head{display:flex;align-items:baseline;gap:13px;margin-bottom:16px;flex-wrap:wrap}
+.dl-head .no{flex:none;font-size:11px;font-weight:800;letter-spacing:1.5px;color:#fff;background:var(--ink);border-radius:7px;padding:5px 10px}
+.dl-head h2{font-size:21px;color:var(--ink)}
+.dl-head h2 .hl{color:var(--warm-d)}
+.dl-head p{font-size:12px;color:var(--muted)}
+
+/* ---------- 01 组织单位反转 ---------- */
+.dl-flip-wrap{overflow-x:auto}
+.dl-flip{width:100%;min-width:760px;border-collapse:collapse;font-size:13px}
+.dl-flip th{text-align:left;padding:10px 14px;font-size:12.5px}
+.dl-flip th.dim{width:130px;color:var(--muted);font-weight:600}
+.dl-flip th.old{color:var(--sub);background:var(--bg);border-radius:10px 10px 0 0}
+.dl-flip th.new{color:#fff;background:var(--ink);border-radius:10px 10px 0 0}
+.dl-flip th.new .tag{margin-left:8px;vertical-align:1px}
+.dl-flip td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.6}
+.dl-flip td.dim{color:var(--muted);font-size:12px;font-weight:600}
+.dl-flip td.old{color:var(--sub);background:var(--bg)}
+.dl-flip td.new{color:var(--ink);background:#FFFDF7;border-left:3px solid var(--warm)}
+.dl-flip td.new b{color:var(--warm-d)}
+.dl-flip tr:last-child td.old{border-radius:0 0 0 10px;border-bottom:none}
+.dl-flip tr:last-child td.new{border-radius:0 0 10px 0;border-bottom:none}
+.dl-flip tr:last-child td{border-bottom:none}
+
+/* ---------- 02 盯判调 ---------- */
+.dl-loop-flow{margin-bottom:16px}
+.dl-loop-flow .f-step .n{width:34px;height:34px;font-size:15px}
+.dl-loop-back{text-align:center;font-size:11px;color:var(--muted);margin-top:6px}
+.dl-loop-back b{color:var(--teal-d)}
+.dl-three{grid-template-columns:repeat(3,1fr)}
+.dl-three .cap{padding:16px 18px}
+.dl-three .cap b{font-size:14.5px}
+.dl-three .cap .lead{display:block;font-size:12.5px;color:var(--ink);margin-bottom:6px;line-height:1.55}
+.dl-three .cap span{font-size:12px}
+@media (max-width:900px){.dl-three{grid-template-columns:1fr}}
+
+/* ---------- 03 团队编制图 ---------- */
+.dl-org{position:relative;max-width:960px;height:620px;margin:0 auto}
+.dl-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
+.dl-ring.inner{width:620px;height:380px;border:1.5px dashed var(--teal-l)}
+.dl-ring.outer{width:930px;height:600px;border:1.5px dashed var(--warm-l)}
+.dl-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:212px;text-align:center;background:var(--ink);color:#fff;border-radius:18px;padding:18px 16px;box-shadow:var(--shadow);z-index:3}
+.dl-center small{display:block;font-size:9.5px;letter-spacing:2px;color:var(--teal-l);font-weight:700;margin-bottom:4px}
+.dl-center b{display:block;font-size:17px;margin-bottom:5px}
+.dl-center span{display:block;font-size:11px;color:#B8C7D8;line-height:1.55}
+.dl-center .loop{margin-top:7px;display:inline-block;font-size:11px;font-weight:700;color:var(--warm);background:rgba(194,161,75,.16);border-radius:999px;padding:2px 10px}
+.dl-sub{position:absolute;width:176px;background:var(--white);border:1px solid var(--sky2);border-radius:13px;padding:10px 12px;box-shadow:var(--shadow-sm);z-index:2;transform:translate(-50%,-50%)}
+.dl-sub b{display:block;font-size:12.5px;color:var(--teal-d);margin-bottom:2px}
+.dl-sub span{display:block;font-size:10.5px;color:var(--sub);line-height:1.5}
+.dl-sub.hi{border-color:var(--warm-l);background:#FFFDF7}
+.dl-sub.hi b{color:var(--warm-d)}
+.dl-sub.p1{left:50%;top:calc(50% - 185px)}
+.dl-sub.p2{left:calc(50% + 262px);top:calc(50% - 92px)}
+.dl-sub.p3{left:calc(50% + 262px);top:calc(50% + 92px)}
+.dl-sub.p4{left:50%;top:calc(50% + 185px)}
+.dl-sub.p5{left:calc(50% - 262px);top:calc(50% + 92px)}
+.dl-sub.p6{left:calc(50% - 262px);top:calc(50% - 92px)}
+.dl-people{position:absolute;width:172px;background:var(--cream);border:1px solid var(--warm-l);border-radius:12px;padding:9px 12px;z-index:2}
+.dl-people b{display:block;font-size:12px;color:var(--warm-d);margin-bottom:1px}
+.dl-people span{display:block;font-size:10.5px;color:var(--sub);line-height:1.5}
+.dl-people.hp1{left:6px;top:14px}
+.dl-people.hp2{right:6px;top:14px}
+.dl-people.hp3{left:6px;bottom:14px}
+.dl-people.hp4{right:6px;bottom:14px}
+.dl-org-legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:14px;font-size:12px;color:var(--sub)}
+.dl-org-legend i{display:inline-block;width:22px;height:0;border-top:1.5px dashed var(--teal-l);vertical-align:4px;margin-right:6px}
+.dl-org-legend .w i{border-top-color:var(--warm-l)}
+@media (max-width:1020px){
+  .dl-org{height:auto;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .dl-ring{display:none}
+  .dl-center{position:static;transform:none;width:auto;grid-column:1/-1}
+  .dl-sub,.dl-people{position:static;transform:none;width:auto}
+}
+@media (max-width:560px){.dl-org{grid-template-columns:1fr}}
+
+/* ---------- 04 双轨时间线 ---------- */
+.dl-stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.dl-stat{flex:1;min-width:150px;background:var(--ink);color:#fff;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow-sm)}
+.dl-stat .v{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.dl-stat .v em{font-style:normal;font-size:13px;font-weight:600;color:var(--teal-l);margin-left:3px}
+.dl-stat .l{font-size:11px;color:#B8C7D8;margin-top:2px}
+.dl-stat.gold{background:var(--warm-d)}
+.dl-stat.gold .v em,.dl-stat.gold .l{color:#F3E8C8}
+.dl-tl{max-width:1180px;margin:0 auto}
+.dl-tl-head{display:grid;grid-template-columns:1fr 96px 330px;gap:14px;margin-bottom:12px}
+.dl-col-h{font-size:12.5px;font-weight:700;border-radius:999px;padding:7px 16px;text-align:center}
+.dl-col-h.agent{background:var(--sky);color:var(--teal-d)}
+.dl-col-h.human{background:var(--cream);color:var(--warm-d)}
+.dl-axis-h{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);text-align:center;align-self:center}
+.dl-seg{display:grid;grid-template-columns:1fr 96px 330px;gap:14px;padding-bottom:20px}
+.dl-axis{position:relative;text-align:center}
+.dl-axis::before{content:"";position:absolute;left:50%;top:0;bottom:-20px;width:3px;transform:translateX(-50%);background:var(--sky2);border-radius:2px}
+.dl-seg:last-of-type .dl-axis::before{bottom:0}
+.dl-days{position:relative;z-index:2;display:inline-block;margin-top:16px;background:var(--ink);color:#fff;font-size:11px;font-weight:800;letter-spacing:.5px;padding:3px 9px;border-radius:7px;white-space:nowrap}
+.dl-seg.stall .dl-days{background:var(--warn)}
+.dl-acard{background:var(--white);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow-sm)}
+.dl-acard .top{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-bottom:8px}
+.dl-acard .top b{font-size:14px;color:var(--ink)}
+.dl-cnt{font-size:11px;font-weight:800;color:var(--teal-d);background:var(--sky);border-radius:999px;padding:2px 10px;white-space:nowrap}
+.dl-acard li{list-style:none;position:relative;font-size:12px;color:var(--sub);line-height:1.6;padding:3px 0 3px 15px}
+.dl-acard li::before{content:"▸";position:absolute;left:0;color:var(--teal);font-size:10px;top:5px}
+.dl-acard li b{color:var(--ink);font-weight:600}
+.dl-acard li .cp{font-size:10px;font-weight:700;color:var(--teal-d);background:var(--sky);border-radius:5px;padding:1px 6px;margin-right:4px;white-space:nowrap}
+.dl-acard li .cp.m{background:var(--ink);color:#fff}
+.dl-density{height:6px;background:var(--sky);border-radius:3px;overflow:hidden;margin-top:10px}
+.dl-density i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,var(--teal),var(--teal-l))}
+.dl-seg.stall .dl-acard{border-left-color:var(--warn)}
+.dl-hcard{background:#FFFDF7;border:1px solid var(--warm-l);border-left:4px solid var(--warm);border-radius:14px;padding:13px 15px;box-shadow:var(--shadow-sm)}
+.dl-hcard + .dl-hcard{margin-top:12px}
+.dl-hcard .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.dl-hday{font-size:11px;font-weight:800;color:#fff;background:var(--warm-d);border-radius:7px;padding:2px 8px}
+.dl-hcard .top b{font-size:13px;color:var(--ink)}
+.dl-hcard .why{font-size:12px;color:var(--sub);line-height:1.6}
+.dl-hcard .why b{color:var(--warm-d);font-weight:600}
+.dl-hcard .prep{margin-top:7px;padding-top:7px;border-top:1px dashed var(--warm-l);font-size:11px;color:var(--muted);line-height:1.55}
+.dl-hcard .prep b{color:var(--teal-d);font-weight:600}
+.dl-hnone{min-height:66px;border:1.5px dashed var(--card-b);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);height:100%;box-sizing:border-box}
+.dl-tl-foot{font-size:11.5px;color:var(--muted);text-align:center;margin-top:4px}
+@media (max-width:900px){
+  .dl-tl-head{display:none}
+  .dl-seg{grid-template-columns:1fr;gap:10px;padding-bottom:26px}
+  .dl-axis{text-align:left}
+  .dl-axis::before{display:none}
+  .dl-days{margin-top:0}
+  .dl-hnone{min-height:48px}
+}
+
+/* ---------- 05 人均可管商机数 ---------- */
+.dl-jump{display:flex;align-items:center;justify-content:center;gap:22px;margin:6px 0 20px;flex-wrap:wrap}
+.dl-jump .num{text-align:center}
+.dl-jump .num .v{font-size:46px;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.1}
+.dl-jump .num.to .v{color:var(--warm-d)}
+.dl-jump .num .l{font-size:11.5px;color:var(--muted);margin-top:2px}
+.dl-jump .arr{font-size:26px;color:var(--warm);font-weight:700}
+.dl-jump .cap-tag{align-self:center}
+
+/* ---------- 商机作战室导流横幅 ---------- */
+.dl-wr-banner{display:block;margin-top:16px;background:var(--cream);border:1.5px solid var(--warm);border-radius:14px;padding:15px 22px;font-size:13.5px;color:var(--sub);line-height:1.75;transition:all .15s;box-shadow:var(--shadow-sm)}
+.dl-wr-banner b{color:var(--warm-d)}
+.dl-wr-banner:hover{background:var(--warm-l);border-color:var(--warm-d)}
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html">方案总览</a>
+    <a href="workroom.html">商机作战室</a>
+    <a href="autonomy.html">自主度分级</a>
+    <a href="deal.html" class="active"><span class="dot"></span>商机与团队</a>
+    <a href="boundary.html">人机边界</a>
+    <a href="queue.html">待决队列</a>
+    <a href="capability.html">能力集</a>
+    <a href="platform.html">Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <div class="eyebrow">Deal-Centric · One Deal, One Team</div>
+    <h1>不是给销售配助理 —— 是<span class="hl">给每个商机配一支不下班的团队</span></h1>
+    <p class="sub">组织单位从「人的岗位」换成「商机本身」：每个商机自带一个<b>商机主 Agent</b>，7×24 在岗，对推进结果负责；六类能力子 Agent 归它调度，<b>人也被它调度</b> —— 只在最该出场的那一场出场。本页用「金桥制造 · 年度框架 ¥86 万」45 天全程，展示这支团队怎么干活、人一共出现了几次。</p>
+  </div>
+
+  <!-- ============ 01 组织单位反转 ============ -->
+  <section class="dl-sec">
+    <div class="dl-head"><span class="no">01</span><h2>组织单位反转：从<span class="hl">人本位</span>到<span class="hl">商机本位</span></h2><p>一个销售管 N 个商机 —— 他忙、他忘、他休假、他离职，商机就停。反过来，让商机自己长出一支团队</p></div>
+    <div class="panel">
+      <div class="dl-flip-wrap">
+        <table class="dl-flip">
+          <tr><th class="dim"></th><th class="old">传统（人本位）</th><th class="new">AI Native（商机本位）<span class="tag warm">本方案</span></th></tr>
+          <tr>
+            <td class="dim">组织单位</td>
+            <td class="old">一个销售 + 一个 CRM 账号，他管 N 个商机</td>
+            <td class="new"><b>一个商机 = 一支常驻团队</b>，商机在，团队就在</td>
+          </tr>
+          <tr>
+            <td class="dim">谁对推进负责</td>
+            <td class="old">销售本人 —— 他忙、他忘、他休假、他离职，商机跟着停</td>
+            <td class="new"><b>商机主 Agent</b>，7×24 在岗，不忙、不忘、不休假、不离职</td>
+          </tr>
+          <tr>
+            <td class="dim">人的角色</td>
+            <td class="old">商机的所有者与执行者，所有动作都压在他身上</td>
+            <td class="new">被系统<b>调度到最该他出场的那一场</b>，其余时间不被打扰</td>
+          </tr>
+          <tr>
+            <td class="dim">停滞怎么发现</td>
+            <td class="old">靠主管看报表、靠周会暴露 —— 发现时往往已经晚了</td>
+            <td class="new">主 Agent <b>本来就在盯</b>，停滞即触发，不靠人报</td>
+          </tr>
+        </table>
+      </div>
+      <div class="note">写在前面：这里的反转对象是「执行方式」，不是 CRM —— 商机与客户数据仍以企业 CRM 为事实记录，过程与结果自动回写，不搬家、不重建。</div>
+    </div>
+  </section>
+
+  <!-- ============ 02 商机主 Agent 的三件事 ============ -->
+  <section class="dl-sec">
+    <div class="dl-head"><span class="no">02</span><h2>商机主 Agent 只做三件事：<span class="hl">盯 → 判 → 调</span></h2><p>对单个商机的推进结果负责，循环往复 —— 主语是它，不是销售</p></div>
+    <div class="panel">
+      <div class="flow dl-loop-flow">
+        <div class="f-step hot"><div class="n">盯</div><b>持续监测信号</b><span>客户动作 · 竞品动向<br>内部进度 · 时间流逝</span></div>
+        <div class="f-arrow">→</div>
+        <div class="f-step hot"><div class="n">判</div><b>决定下一步</b><span>现在最该做什么<br>子 Agent 做，还是叫人</span></div>
+        <div class="f-arrow">→</div>
+        <div class="f-step hot"><div class="n">调</div><b>派活或调人</b><span>派子 Agent 执行<br>或把人调度到场</span></div>
+      </div>
+      <div class="dl-loop-back">↺ 动作落地后回到「盯」—— <b>循环往复，商机不结案不停</b></div>
+      <div class="cap-grid dl-three" style="margin-top:16px">
+        <div class="cap"><div class="ic">◉</div><b>盯：信号不靠人报</b><span class="lead">客户多久没回、竞品有没有出现、里程碑停在哪一格、承诺的节点到没到 —— 它一直看着。</span><span>信号来源覆盖客户动作、竞品动向、内部进度与时间流逝四类；人不需要「想起来去看一眼」。</span></div>
+        <div class="cap warm"><div class="ic">⚖</div><b>判：分内分外分得清</b><span class="lead">常规动作直接派子 Agent；落入四类节点 —— 要出面、要担责、没把握、结果偏离 —— 才叫人。</span><span>每一次「叫人」和「没叫人」都有明确规则与留痕，可回溯、可审计。</span></div>
+        <div class="cap"><div class="ic">⇶</div><b>调：人到场即开工</b><span class="lead">派子 Agent 端到端执行；调人时，把他需要的材料、依据与建议动作提前备好送到手上。</span><span>人不是「被通知去干活」，是「被请上已经摆好的桌子」。</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 团队编制图 ============ -->
+  <section class="dl-sec">
+    <div class="dl-head"><span class="no">03</span><h2>一支团队的编制：<span class="hl">中间是主 Agent，一圈能力，外围是人</span></h2><p>六类是能力，不是「六大模块」，不对应任何一个人的岗位；人在最外围，被调度、只在四类节点出场</p></div>
+    <div class="panel">
+      <div class="dl-org">
+        <div class="dl-ring outer"></div>
+        <div class="dl-ring inner"></div>
+        <div class="dl-center"><small>DEAL OWNER AGENT</small><b>商机主 Agent</b><span>7×24 在岗<br>对这单的推进结果负责</span><span class="loop">盯 → 判 → 调</span></div>
+        <div class="dl-sub p1"><b>研究与触达</b><span>画像匹配、背调、决策链梳理、一户一稿的触达内容</span></div>
+        <div class="dl-sub p2"><b>现场记录与理解</b><span>拜访实时转写、分角色、需求与异议抽取</span></div>
+        <div class="dl-sub p3 hi"><b>数据分析</b><span>客户、商机、合同、纪要、案例、报价、竞品一个入口问到，返回带依据的结论</span></div>
+        <div class="dl-sub p4"><b>内容生成</b><span>方案、标书、报价单、对外邮件</span></div>
+        <div class="dl-sub p5"><b>条款与风险</b><span>合同逐条比对企业红线、投标合规与废标自检</span></div>
+        <div class="dl-sub p6"><b>回款与履约</b><span>回款节点跟踪、逾期预警、履约里程碑</span></div>
+        <div class="dl-people hp1"><b>销售出面</b><span>王强 —— 首访、关键谈判，关系与信任无法委托</span></div>
+        <div class="dl-people hp2"><b>主管授权</b><span>李芳 —— 在待决队列拍板，授权边界内放行</span></div>
+        <div class="dl-people hp3"><b>法务担责</b><span>合同复核 —— 法律责任必须落到自然人</span></div>
+        <div class="dl-people hp4"><b>专家支撑</b><span>关键技术与方案场合，被调到场支撑</span></div>
+      </div>
+      <div class="dl-org-legend"><span><i></i>内圈 · 六类能力子 Agent —— 主 Agent 手里的工具，按需调度</span><span class="w"><i></i>外围 · 被调度的人 —— 只在四类节点出场</span></div>
+      <div class="note"><b>合规提示</b>：自主执行的边界、阈值与授权范围由企业配置；每一次自主执行与每一次找人都留痕可审计。涉及法律与商业责任的动作（报价定案、合同签署、对外承诺）必须由授权人确认。</div>
+    </div>
+  </section>
+
+  <!-- ============ 04 金桥制造 45 天双轨时间线 ============ -->
+  <section class="dl-sec">
+    <div class="dl-head"><span class="no">04</span><h2>「金桥制造 · 年度框架」<span class="hl">45 天双轨对照</span></h2><p>同一条时间轴：左轨看 Agent 干了什么，右轨看人什么时候出场 —— 一眼看出人很少出现</p></div>
+
+    <div class="dl-stats">
+      <div class="dl-stat"><div class="v">45<em>天</em></div><div class="l">线索到签约</div></div>
+      <div class="dl-stat"><div class="v">¥86<em>万</em></div><div class="l">年度框架合同额</div></div>
+      <div class="dl-stat"><div class="v">137<em>个</em></div><div class="l">Agent 自主执行的动作</div></div>
+      <div class="dl-stat gold"><div class="v">6<em>次</em></div><div class="l">人出现的全部次数</div></div>
+    </div>
+
+    <div class="dl-tl">
+      <div class="dl-tl-head">
+        <div class="dl-col-h agent">Agent 侧 · 137 个自主动作，按阶段聚合</div>
+        <div class="dl-axis-h">DAY</div>
+        <div class="dl-col-h human">人侧 · 全程只出现 6 次</div>
+      </div>
+
+      <!-- S1 D1–D4 -->
+      <div class="dl-seg">
+        <div class="dl-acard">
+          <div class="top"><b>线索与建联</b><span class="dl-cnt">×18 个动作</span></div>
+          <ul>
+            <li><span class="cp m">主 Agent</span>从待开发线索中锁定金桥制造，建立商机档案，团队即刻在岗</li>
+            <li><span class="cp">研究与触达</span>完成背调与决策链梳理：<b>周总</b>（采购总监 · 决策人）、<b>李工</b>（技术负责人）进入关键人图谱</li>
+            <li><span class="cp">研究与触达</span>起草一户一稿的首触内容并发出，按回应节奏自动跟进</li>
+            <li><span class="cp m">主 Agent</span>判断建联火候已到、值得投入人脸 —— <b>把王强的首访排上，行前材料随之备齐</b></li>
+          </ul>
+          <div class="dl-density"><i style="width:13%"></i></div>
+        </div>
+        <div class="dl-axis"><span class="dl-days">D1–D4</span></div>
+        <div><div class="dl-hnone">人未出场 —— 这一段没有任何事需要人做</div></div>
+      </div>
+
+      <!-- S2 D5–D13 -->
+      <div class="dl-seg">
+        <div class="dl-acard">
+          <div class="top"><b>首访落地与商机立项</b><span class="dl-cnt">×24 个动作</span></div>
+          <ul>
+            <li><span class="cp">现场记录与理解</span>首访实时转写、分角色，需求与异议逐条抽取归档</li>
+            <li><span class="cp m">主 Agent</span>会后更新商机档案：客温 <b>68℃ → 72℃</b>，推进节奏据此调整</li>
+            <li><span class="cp">内容生成</span>起草会后跟进邮件与补充材料，按既定边界发出</li>
+            <li><span class="cp">数据分析</span>汇集两次接触的全部记录，形成带依据的立项结论，商机立项进入推进期</li>
+          </ul>
+          <div class="dl-density"><i style="width:17.5%"></i></div>
+        </div>
+        <div class="dl-axis"><span class="dl-days">D5–D13</span></div>
+        <div>
+          <div class="dl-hcard">
+            <div class="top"><span class="dl-hday">D5</span><b>首访 · 王强出面</b><span class="tag warm">要人脸出面</span></div>
+            <p class="why">为什么必须是人：首次见面建立的<b>关系与信任无法委托</b>给任何系统。</p>
+            <p class="prep"><b>Agent 已备好</b>：背调卡、决策链、建议议程 —— 王强到场即开谈。录音已提前告知参会方。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- S3 D14–D20 -->
+      <div class="dl-seg">
+        <div class="dl-acard">
+          <div class="top"><b>方案与报价</b><span class="dl-cnt">×26 个动作</span></div>
+          <ul>
+            <li><span class="cp">内容生成</span>基于拜访纪要与知识沉淀起草方案与报价单初稿</li>
+            <li><span class="cp">数据分析</span>核对同类案例与历史报价口径，给出带依据的定价参考</li>
+            <li><span class="cp m">主 Agent</span>识别报价属「要人担责」节点 —— <b>停下来，把定案交给王强</b></li>
+            <li><span class="cp">内容生成</span>定案后完成排版发出，跟进客户反馈并回写档案</li>
+          </ul>
+          <div class="dl-density"><i style="width:19%"></i></div>
+        </div>
+        <div class="dl-axis"><span class="dl-days">D14–D20</span></div>
+        <div>
+          <div class="dl-hcard">
+            <div class="top"><span class="dl-hday">D14</span><b>方案报价定案</b><span class="tag gold">要人担责</span></div>
+            <p class="why">为什么必须是人：报价是对外承诺，<b>商业责任必须落到自然人</b>。Agent 只起草，不拍板。</p>
+            <p class="prep"><b>Agent 已备好</b>：方案初稿、三方比对依据、历史成交口径 —— 王强只做定夺。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- S4 D21–D27 -->
+      <div class="dl-seg">
+        <div class="dl-acard">
+          <div class="top"><b>异议应对与谈判支撑</b><span class="dl-cnt">×25 个动作</span></div>
+          <ul>
+            <li><span class="cp">现场记录与理解</span>二访实时转写，异议逐条抽取 —— <b>周总原话「账期能不能松」记录在案（00:14:32）</b></li>
+            <li><span class="cp">数据分析</span>整理竞品动向与同类单让步边界，谈判要点提前送达</li>
+            <li><span class="cp m">主 Agent</span>连排两场人面 —— 二访与商务谈判，材料与依据两次都提前备齐</li>
+            <li><span class="cp m">主 Agent</span>谈判后推进里程碑至 <b>9/16（商务谈判）</b>，继续盯后续信号</li>
+          </ul>
+          <div class="dl-density"><i style="width:18.2%"></i></div>
+        </div>
+        <div class="dl-axis"><span class="dl-days">D21–D27</span></div>
+        <div>
+          <div class="dl-hcard">
+            <div class="top"><span class="dl-hday">D21</span><b>二访 · 当面谈异议</b><span class="tag warm">要人脸出面</span></div>
+            <p class="why">为什么必须是人：客户当面提出的异议，要<b>人对人化解</b>，态度与分寸机器给不了。</p>
+            <p class="prep"><b>Agent 已备好</b>：异议清单与标准应答依据，仅王强本人可见。</p>
+          </div>
+          <div class="dl-hcard">
+            <div class="top"><span class="dl-hday">D27</span><b>商务谈判</b><span class="tag warm">要人脸出面</span></div>
+            <p class="why">为什么必须是人：关键谈判桌上必须坐着<b>能代表公司的人</b>。</p>
+            <p class="prep"><b>Agent 已备好</b>：谈判要点与同类单让步边界测算。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- S5 停滞与授权（D21 异议起算，D34 满 14 天入队列） -->
+      <div class="dl-seg stall">
+        <div class="dl-acard">
+          <div class="top"><b>停滞发现与破局</b><span class="dl-cnt">×28 个动作</span><span class="tag warn">停滞 14 天 · 系统自己发现</span></div>
+          <ul>
+            <li><span class="cp m">主 Agent</span>盯到里程碑停在 9/16 无推进动作，<b>停滞计时触发 —— 不靠人报，不等周会</b></li>
+            <li><span class="cp">数据分析</span>比对 D21 二访纪要与 D27 谈判记录：价格已让至底价仍未推进，<b>判断「卡在账期不在价格」</b>；同类 6 单中 5 单在账期让步后 2 周内签约</li>
+            <li><span class="cp m">主 Agent</span>生成待决队列条目：判断 + 依据（可回溯到原始记录与时间戳）+ 建议「账期让步到 75 天，换预付 30%，由王强本周内谈」</li>
+            <li><span class="cp m">主 Agent</span>D34 获授权后，更新条款口径、备好谈判材料，<b>把王强调度到场执行</b></li>
+          </ul>
+          <div class="dl-density"><i style="width:20.4%"></i></div>
+        </div>
+        <div class="dl-axis"><span class="dl-days">D28–D34</span></div>
+        <div>
+          <div class="dl-hcard">
+            <div class="top"><span class="dl-hday">D34</span><b>账期授权</b><span class="tag gold">要人担责</span><span class="tag teal">来自待决队列</span></div>
+            <p class="why">为什么必须是人：账期让步是商业条款让渡，<b>责任必须由授权人承担</b>。停滞是「结果偏离」信号，由主 Agent 发现并送进待决队列；主管李芳看到的是「判断 + 依据 + 建议」，只做拍板。</p>
+            <p class="prep"><b>人的动作只有一下</b>：同意授权 / 改条件 / 我来处理，三选一。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- S6 D41–D45 -->
+      <div class="dl-seg">
+        <div class="dl-acard">
+          <div class="top"><b>条款复核与签约收尾</b><span class="dl-cnt">×16 个动作</span></div>
+          <ul>
+            <li><span class="cp">条款与风险</span>合同逐条比对企业红线，风险点标好、修订建议附上，整体移交法务</li>
+            <li><span class="cp m">主 Agent</span>识别合同签署属「要人担责」节点，走授权确认，全程留痕</li>
+            <li><span class="cp">回款与履约</span>签约当日生成回款节点计划与履约里程碑，转入履约跟踪</li>
+            <li><span class="cp m">主 Agent</span>D45 签约结案，全程 137 个自主动作与 6 次人的出场，<b>逐条可审计</b></li>
+          </ul>
+          <div class="dl-density"><i style="width:11.7%"></i></div>
+        </div>
+        <div class="dl-axis"><span class="dl-days">D41–D45</span></div>
+        <div>
+          <div class="dl-hcard">
+            <div class="top"><span class="dl-hday">D41</span><b>合同法务复核</b><span class="tag gold">要人担责</span></div>
+            <p class="why">为什么必须是人：合同涉及法律责任，<b>必须由法务确认</b>。风险点已由条款与风险子 Agent 标好，法务只看标出的部分。</p>
+            <p class="prep"><b>Agent 已备好</b>：逐条比对结果与修订建议，采纳与否逐条留痕。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="dl-tl-foot">各阶段动作数为 137 个自主动作的阶段化演示拆分（合计 137），目标态示意 · 非承诺值。</p>
+    <div class="panel" style="margin-top:14px">
+      <div class="note"><b>合规提示</b>：本案例为演示示意，非真实客户数据。录音需提前告知参会方，录音原文默认仅销售本人可见；过程数据用于赋能与组织沉淀，不用于监控个人，采集、保存、查看范围由企业规则配置。</div>
+    </div>
+    <a class="dl-wr-banner" href="workroom.html">读完这条时间线，不如亲手跑一遍 —— <b>商机作战室：你来做那 6 次决策 →</b></a>
+  </section>
+
+  <!-- ============ 05 人均可管商机数 ============ -->
+  <section class="dl-sec">
+    <div class="dl-head"><span class="no">05</span><h2>人均可管商机数，为什么能从 <span class="hl">10 到 32</span></h2><p>不是让人更拼命，是把「记住、推进、发现」三件最耗人的事从人身上卸下来</p></div>
+    <div class="panel">
+      <div class="dl-jump">
+        <div class="num"><div class="v">10</div><div class="l">传统 · 一个销售同时在推的商机数</div></div>
+        <div class="arr">→</div>
+        <div class="num to"><div class="v">32</div><div class="l">AI Native · 目标态</div></div>
+        <span class="tag gold cap-tag">目标态示意 · 非承诺值</span>
+      </div>
+      <div class="cap-grid dl-three">
+        <div class="cap"><div class="ic">◫</div><b>不需要人记住状态</b><span class="lead">每个商机的状态由主 Agent 持有，人不再用脑子维护 N 条线。</span><span>被调度到任何一单时，上下文、材料与建议动作都是现成的 —— 上限不再受记忆力约束。</span></div>
+        <div class="cap warm"><div class="ic">⚙</div><b>不需要人推进常规动作</b><span class="lead">跟进、纪要、资料、提醒这类动作由子 Agent 端到端完成。</span><span>人只在四类节点出场，一单占用的人时大幅压缩，同样的时间摊得开更多商机。</span></div>
+        <div class="cap"><div class="ic">◎</div><b>停滞不靠人发现</b><span class="lead">主 Agent 本来就在盯，停滞即触发进入待决队列。</span><span>管的商机再多，也不会因为「没想起来」而漏单 —— 金桥制造那 14 天停滞，就是系统自己报上来的。</span></div>
+      </div>
+      <div class="note">人均可管商机数为北极星指标之一，页面数字均为目标态示意，非真实经营数据；实际验收口径以双方共同确认的验收表为准。</div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+
+</body>
+</html>

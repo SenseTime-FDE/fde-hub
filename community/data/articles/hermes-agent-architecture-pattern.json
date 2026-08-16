@@ -1,0 +1,88 @@
+{
+  "id": "hermes-agent-architecture-pattern",
+  "category": "engineering",
+  "typeLabel": "技术文章",
+  "title": "Hermes Agent 架构拆解：从单次对话到可持续运行的智能体",
+  "summary": "以 Hermes Agent 的公开架构为参照，拆解入口层、Agent Loop、工具系统、会话持久化、记忆与 Skill、网关和隔离边界，并提炼企业 Agent 可复用的设计原则。",
+  "author": "OFDE 技术团队",
+  "date": "2026-08-15",
+  "updatedAt": "2026-08-15",
+  "readTime": "15 分钟",
+  "featured": true,
+  "tags": ["Hermes Agent", "Agent 架构", "Agent Loop", "工具系统", "持久记忆"],
+  "sections": [
+    {
+      "heading": "先看清 Hermes 解决的不是聊天界面问题",
+      "paragraphs": [
+        "Hermes Agent 的公开架构把同一个 Agent Core 暴露给 CLI、消息网关、批处理、API 和编辑器协议等入口。入口负责接收事件和呈现状态，核心负责提示词装配、模型调用、工具循环、上下文压缩和会话持久化。",
+        "这个分层的价值是把渠道变化与任务执行解耦。企业系统可以替换网页、飞书、客服工作台或定时任务入口，而不必为每个渠道复制一套 Agent 逻辑。"
+      ]
+    },
+    {
+      "heading": "窄核心，能力放在边缘",
+      "list": [
+        "Agent Loop：维护一次任务从输入、推理、调用工具到结束的控制流",
+        "Prompt Builder：按稳定、上下文和易变信息组装提示词",
+        "Provider Resolution：把模型和供应商差异封装在运行时适配层",
+        "Tool Registry：统一工具发现、Schema、可用性检查、调用和错误包装",
+        "Session Storage：保存消息、任务谱系和检索索引",
+        "Gateway 与插件：承接渠道、扩展能力和平台差异"
+      ],
+      "paragraphs": [
+        "Hermes 的开发指南强调核心保持窄腰，新增能力优先通过 Skill、插件或受控工具进入，而不是不断扩大核心工具面。企业 Agent 也应控制默认暴露给模型的工具数量，降低提示词体积、误调用概率和权限面。"
+      ]
+    },
+    {
+      "heading": "一条请求如何穿过系统",
+      "list": [
+        "入口完成身份校验、会话定位和原始事件标准化",
+        "Agent Core 装配系统约束、任务上下文、记忆快照和可用工具",
+        "模型产生回答或结构化工具调用",
+        "工具调度层校验可用性、权限与参数，再调用真实后端",
+        "工具结果返回循环，直到满足结束条件、需要人工确认或触发预算上限",
+        "最终结果、工具轨迹和状态写入会话存储，再由入口完成交付"
+      ],
+      "paragraphs": [
+        "真正需要工程化的不是某一次模型回复，而是这条路径在超时、重试、中断、上下文过长和服务切换时仍保持可解释、可恢复。"
+      ]
+    },
+    {
+      "heading": "记忆和 Skill 构成学习闭环，但职责不同",
+      "paragraphs": [
+        "记忆保存跨会话仍有价值的事实、偏好和经验；Skill 保存完成一类任务的程序性方法、工具契约和评测标准。会话历史则是当前任务证据。三者不能混成一个无限增长的上下文。",
+        "可持续学习需要经过筛选：任务结束后提取候选经验，人工或规则确认后写入记忆；重复有效的方法才沉淀为 Skill；新版本必须用历史样本回归。学习闭环不是允许 Agent 随意改写自身规则。"
+      ]
+    },
+    {
+      "heading": "安全边界必须在模型外部",
+      "paragraphs": [
+        "Hermes 的安全策略明确区分进程内启发式检查与操作系统级隔离。审批提示、关键词扫描和工具白名单可以减少误操作，但面对被攻击或失控的模型时，真正的约束来自进程、文件系统、网络、凭据和执行环境隔离。",
+        "企业落地还需要租户、角色、数据范围、动作额度和审批状态。模型可以提出动作，后端授权服务决定动作是否允许，高风险写操作由人确认并留下审计记录。"
+      ]
+    },
+    {
+      "heading": "从 Hermes 提炼出的企业架构检查表",
+      "list": [
+        "一个平台无关的 Agent Core 是否能服务多个入口",
+        "模型供应商、工具实现和渠道适配是否可以独立替换",
+        "会话、业务对象、记忆和 Skill 是否分别建模",
+        "工具执行是否具备外部授权、幂等、审计和取消能力",
+        "长任务是否可以恢复，而不是依赖浏览器页面一直在线",
+        "默认工具面、上下文体积和模型成本是否可观测",
+        "非可信内容是否与高权限执行环境隔离"
+      ]
+    },
+    {
+      "heading": "参考来源与适用边界",
+      "paragraphs": [
+        "本文依据 Nous Research 发布的 Hermes Agent 架构、开发指南、记忆文档和安全策略整理，讨论的是可借鉴的工程思想，不代表 OFDE 使用、代理或已经交付 Hermes Agent。Hermes 仍在快速迭代，具体模块数量、支持渠道和实现文件应以官方当前版本为准。"
+      ],
+      "list": [
+        "架构文档：https://hermes-agent.nousresearch.com/docs/developer-guide/architecture",
+        "开发指南：https://github.com/NousResearch/hermes-agent/blob/main/AGENTS.md",
+        "安全策略：https://github.com/NousResearch/hermes-agent/security",
+        "持久记忆：https://hermes-agent.nousresearch.com/docs/user-guide/features/memory"
+      ]
+    }
+  ]
+}

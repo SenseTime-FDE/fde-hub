@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面试质检 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ---- 本页特有样式（不改 app.css）---- */
+.notice-gold {
+  background: var(--gold-bg); border: 1px solid var(--gold-soft); border-radius: 12px;
+  padding: 12px 18px; margin-bottom: 18px; display: flex; align-items: center; gap: 12px;
+  font-size: 13px; color: var(--amber);
+}
+.notice-gold b { color: var(--navy); }
+.notice-gold .lock-ico { font-size: 16px; flex: none; }
+
+.qc-tabs { display: flex; gap: 8px; margin-left: auto; }
+.qc-tab {
+  border: 1px solid var(--cbord); background: #fff; color: var(--muted); font-family: inherit;
+  font-size: 12px; padding: 4px 12px; border-radius: 999px; cursor: pointer;
+}
+.qc-tab.on { background: var(--navy); color: #fff; border-color: var(--navy); font-weight: 700; }
+.qc-tab .lk { font-size: 11px; }
+
+.metric { margin-bottom: 14px; }
+.metric-head { display: flex; align-items: baseline; gap: 8px; font-size: 13px; margin-bottom: 5px; }
+.metric-head b { color: var(--navy); }
+.metric-head .mv { margin-left: auto; font-weight: 700; color: var(--navy); }
+.metric-head .mn { font-size: 11.5px; color: var(--faint); }
+.bar-wrap { position: relative; }
+.bar-wrap .mark {
+  position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--red); border-radius: 1px;
+}
+.bar-wrap .mark::after {
+  content: attr(data-tip); position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
+  font-size: 10px; color: var(--red); white-space: nowrap;
+}
+
+/* 简单 CSS 柱状图 */
+.vchart { display: flex; align-items: flex-end; gap: 26px; height: 150px; padding: 26px 8px 0; }
+.vcol { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; position: relative; }
+.vcol .vbar { width: 44px; border-radius: 6px 6px 0 0; background: var(--blue); position: relative; cursor: default; }
+.vcol .vbar.warn { background: var(--red); }
+.vcol .vnum { font-size: 12.5px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+.vcol .vlab { font-size: 11.5px; color: var(--muted); margin-top: 8px; white-space: nowrap; }
+.vcol .vbar[data-tip]:hover::after {
+  content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translate(-50%, -6px);
+  background: var(--navy); color: #fff; font-size: 11px; padding: 4px 10px; border-radius: 6px; white-space: nowrap; z-index: 5;
+}
+.vchart-base { border-top: 1px solid var(--line); margin: 0 8px; padding-top: 8px; }
+
+.detail-row td { background: var(--soft2); }
+.detail-row.hide { display: none; }
+.toggle-link { color: var(--blue); font-size: 12px; cursor: pointer; font-weight: 700; white-space: nowrap; }
+.toggle-link:hover { text-decoration: underline; }
+
+.lock-panel { padding: 34px 20px; text-align: center; color: var(--faint); font-size: 12.5px; }
+.lock-panel .lk-ico { font-size: 26px; display: block; margin-bottom: 8px; }
+
+.who-chip {
+  display: inline-flex; align-items: center; gap: 8px; background: var(--soft2); border: 1px solid var(--cbord);
+  border-radius: 999px; padding: 4px 14px 4px 5px; font-size: 12.5px; color: var(--body);
+}
+.who-chip .wc-av { width: 24px; height: 24px; border-radius: 50%; background: var(--steel); color: #fff; font-size: 10.5px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.who-chip b { color: var(--navy); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html">🤖 AI 专员对话</a>
+      <a href="profile.html">🎯 岗位画像共建</a>
+      <a href="screening.html">🗂 简历筛选与分发</a>
+      <a href="evaluation.html">📝 证据链评估报告</a>
+      <a href="board.html">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html" class="on">📊 面试质检</a>
+      <a href="compliance.html">🛡 合规与数据权属</a>
+      <a href="platform.html">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>面试质检</h1><span class="crumb">AI 招聘专员 / 管理与合规 / 面试质检</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+
+      <div class="notice-gold">
+        <span class="lock-ico">🔓</span>
+        <span><b>质检功能随数据积累解锁</b> —— 组织累积面试纪要 ≥500 场后开放，本组织已累积 <b>512 场</b>，已解锁。质检报告默认<b>仅面试官本人与授权角色可见</b>，不用于个人绩效排名。</span>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi"><b>168 <em>场</em></b><span>本季度面试<span class="delta up">▲ 12%</span></span></div>
+        <div class="kpi"><b>3 <em>起</em></b><span>违规提问检出<span class="delta up">▼ 5 较上季</span></span></div>
+        <div class="kpi"><b>82</b><span>平均提问质量分<span class="delta up">▲ 4</span></span></div>
+        <div class="kpi"><b>76%</b><span>评价一致率<span class="delta up">▲ 3pt</span></span></div>
+      </div>
+
+      <div class="panel">
+        <div class="p-head"><b>违规提问告警</b><span class="pill red">本季 3 起</span>
+          <span class="hint">场次与面试官脱敏显示 · 明细仅合规角色经审批后可查</span></div>
+        <table class="tbl">
+          <thead><tr>
+            <th>日期</th><th>场次（脱敏）</th><th>告警类型</th><th>实时处置</th><th>当前状态</th><th>操作</th>
+          </tr></thead>
+          <tbody>
+            <tr>
+              <td>2026-07-14</td><td>#A7**3 · 面试官 W**</td>
+              <td><span class="pill red">婚育相关提问</span></td>
+              <td>已实时提醒（提示卡仅面试官可见）</td>
+              <td><span class="pill green">面试官已确认知晓</span></td>
+              <td><span class="toggle-link" onclick="toggleDetail('d1', this)">展开详情 ▾</span></td>
+            </tr>
+            <tr id="d1" class="detail-row hide">
+              <td colspan="6">
+                <div class="evi"><span class="who">系统实时提醒 · 仅该面试官可见</span><span class="ts">00:23:41</span>
+                  检测到疑似涉及婚育状况的提问，已推送合规提示卡：「请将提问聚焦岗位胜任力维度（如系统设计能力、高并发实战）」。面试官点击「已知悉」，后续提问已回归评分卡维度。</div>
+                <p class="muted" style="margin-top:8px;">质检报告不记录候选人身份关联信息；本条告警摘录已做脱敏处理。</p>
+              </td>
+            </tr>
+            <tr>
+              <td>2026-06-30</td><td>#B2**8 · 面试官 L**</td>
+              <td><span class="pill amber">户籍/籍贯倾向性提问</span></td>
+              <td>已实时提醒 · 复盘时推送提问话术建议</td>
+              <td><span class="pill green">已在复盘中改进</span></td>
+              <td><span class="toggle-link" onclick="toggleDetail('d2', this)">展开详情 ▾</span></td>
+            </tr>
+            <tr id="d2" class="detail-row hide">
+              <td colspan="6">
+                <div class="evi"><span class="who">系统实时提醒 · 仅该面试官可见</span><span class="ts">00:08:57</span>
+                  检测到疑似与户籍/籍贯相关的倾向性提问，已推送提示卡并附替代话术：「可改问候选人对异地协作、跨团队沟通的实际经历」。</div>
+              </td>
+            </tr>
+            <tr>
+              <td>2026-06-08</td><td>#C5**1 · 面试官 Z**</td>
+              <td><span class="pill amber">年龄相关追问</span></td>
+              <td>已实时提醒（首次触发 · 附合规指引链接）</td>
+              <td><span class="pill green">面试官已确认知晓</span></td>
+              <td><span class="toggle-link" onclick="toggleDetail('d3', this)">展开详情 ▾</span></td>
+            </tr>
+            <tr id="d3" class="detail-row hide">
+              <td colspan="6">
+                <div class="evi"><span class="who">系统实时提醒 · 仅该面试官可见</span><span class="ts">00:31:12</span>
+                  检测到疑似涉及年龄的追问，已推送合规提示卡与《面试提问合规指引》链接。AI 仅作实时建议，是否构成违规由合规角色人工认定。</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="cols c2 mt">
+
+        <div class="panel">
+          <div class="p-head"><b>面试官行为画像</b>
+            <div class="qc-tabs">
+              <button class="qc-tab on" onclick="switchTab('self', this)">本人视角</button>
+              <button class="qc-tab" onclick="switchTab('team', this)"><span class="lk">🔒</span> 团队汇总（需 HRD 授权）</button>
+            </div>
+          </div>
+          <div class="p-body" id="tab-self">
+            <p style="margin-bottom:14px;"><span class="who-chip"><span class="wc-av">王</span><b>王梓航</b> · 一面 · 资深工程师 · 本季 24 场</span>
+              <span class="muted" style="margin-left:8px;">以下数据仅本人可见</span></p>
+
+            <div class="metric">
+              <div class="metric-head"><b>提问时间占比</b><span class="mn">建议 &lt;40%，把话筒留给候选人</span><span class="mv">38%</span></div>
+              <div class="bar-wrap"><div class="bar"><i style="width:38%"></i></div><span class="mark" style="left:40%" data-tip="建议线 40%"></span></div>
+            </div>
+            <div class="metric">
+              <div class="metric-head"><b>追问深度</b><span class="mn">团队均值 2.1 层</span><span class="mv">2.4 层</span></div>
+              <div class="bar"><i class="gold" style="width:60%"></i></div>
+            </div>
+            <div class="metric">
+              <div class="metric-head"><b>评分卡覆盖</b><span class="mn">高级后端工程师画像卡 v3.2 · 5 个维度</span><span class="mv">5/5</span></div>
+              <div class="bar"><i class="green" style="width:100%"></i></div>
+            </div>
+            <div class="metric">
+              <div class="metric-head"><b>打断候选人</b><span class="mn">上月场均 2.0 次</span><span class="mv">场均 1.2 次</span></div>
+              <div class="bar"><i style="width:30%"></i></div>
+            </div>
+            <div class="metric" style="margin-bottom:0;">
+              <div class="metric-head"><b>口头禅提示</b><span class="mn">「然后呢」出现频次</span><span class="mv">场均 6 次</span></div>
+              <div class="bar"><i class="gold" style="width:50%"></i></div>
+            </div>
+            <p class="muted mt">以上为 AI 基于面试纪要的统计建议，仅用于面试官自我改进，不进入绩效评价。</p>
+          </div>
+          <div class="p-body" id="tab-team" style="display:none;">
+            <div class="lock-panel">
+              <span class="lk-ico">🔒</span>
+              团队汇总视图需 HRD 角色授权后开启，且仅展示<b>去标识化</b>的分布数据，不展示面试官个体明细。<br>
+              当前登录角色：HRBP（赵一宁）· 无权限查看。
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="p-head"><b>评价一致性</b><span class="hint">同一候选人跨轮评分分差分布 · 本季 82 组双轮样本</span></div>
+          <div class="p-body">
+            <div class="vchart">
+              <div class="vcol"><span class="vnum">34</span><div class="vbar" style="height:100%" data-tip="34 组 · 占 41%"></div><span class="vlab">≤0.3 分</span></div>
+              <div class="vcol"><span class="vnum">27</span><div class="vbar" style="height:79%" data-tip="27 组 · 占 33%"></div><span class="vlab">0.3–0.8 分</span></div>
+              <div class="vcol"><span class="vnum">16</span><div class="vbar" style="height:47%" data-tip="16 组 · 占 20%"></div><span class="vlab">0.8–1.5 分</span></div>
+              <div class="vcol"><span class="vnum">5</span><div class="vbar warn" style="height:15%" data-tip="5 组 · 已自动提示复核"></div><span class="vlab">&gt;1.5 分</span></div>
+            </div>
+            <div class="vchart-base"></div>
+            <p class="muted mt">分差 &gt;1.5 的场次自动提示复核（AI 仅提示，复核结论由人工作出）。本季触发 5 场，3 场已完成人工复核，2 场复核中。</p>
+            <div class="evi"><span class="who">复核示例 · 候选人脱敏</span><span class="ts">质检记录 #R-0726</span>
+              候选人 顾**：一面 3.1 / 二面 2.4，叠加简历核验疑点，系统<b>建议</b>转入人工复核池 —— 已由 HRBP 赵一宁确认转入，等待人工终审。</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="panel mt">
+        <div class="p-head"><b>上线顺序承诺：先纪要，后质检</b><span class="hint">避免小样本数据误伤面试官</span></div>
+        <div class="p-body">
+          <div class="steps" style="margin-bottom:12px;">
+            <div class="st done"><span class="n">✓</span>第 1 阶段 · AI 面试纪要与证据链（已上线）</div>
+            <div class="st cur"><span class="n">2</span>第 2 阶段 · 违规实时提醒与组织质检（≥500 场解锁 · 当前 512 场）</div>
+            <div class="st"><span class="n">3</span>第 3 阶段 · 面试官个人成长建议（仅本人可见 · 规划中）</div>
+          </div>
+          <p class="muted">承诺：质检永远后于纪要上线。数据积累不足时，系统不输出任何面试官个体评价；所有 AI 质检结论均为「建议」，违规认定、复核结论与录用/淘汰决策均需人工确认。</p>
+        </div>
+      </div>
+
+      <p class="footnote">演示数据均为虚构 · 商汤科技 · 大模型生态渠道部</p>
+    </div>
+  </div>
+</div>
+<script>
+function toggleDetail(id, link) {
+  var row = document.getElementById(id);
+  var open = row.classList.toggle('hide');
+  link.textContent = open ? '展开详情 ▾' : '收起详情 ▴';
+}
+function switchTab(name, btn) {
+  document.getElementById('tab-self').style.display = (name === 'self') ? '' : 'none';
+  document.getElementById('tab-team').style.display = (name === 'team') ? '' : 'none';
+  var tabs = btn.parentNode.querySelectorAll('.qc-tab');
+  for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('on');
+  btn.classList.add('on');
+}
+</script>
+</body>
+</html>

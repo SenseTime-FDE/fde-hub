@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · 人机边界</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ============ boundary 页专属样式（b- 前缀） ============ */
+/* 品牌区（不改 style.css，写在页内） */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px}
+.topnav nav a{padding:7px 11px;font-size:13px}
+.site-footer .foot-brand img{height:18px}
+
+.b-sec { margin-bottom: 46px; }
+.b-head { display: flex; align-items: baseline; gap: 13px; margin-bottom: 16px; flex-wrap: wrap; }
+.b-head .no { flex: none; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: #fff; background: var(--ink); border-radius: 7px; padding: 5px 10px; }
+.b-head h2 { font-size: 21px; color: var(--ink); }
+.b-head h2 .hl { color: var(--warm-d); }
+.b-head p { font-size: 12px; color: var(--muted); }
+
+/* ---------- 01 四类节点 ---------- */
+.b-four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 1080px) { .b-four { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .b-four { grid-template-columns: 1fr; } }
+.b-node { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 17px 18px 15px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; border-top: 3px solid var(--teal); }
+.b-node.face { border-top-color: var(--warm); }
+.b-node.duty { border-top-color: var(--gold); }
+.b-node.doubt { border-top-color: var(--teal); }
+.b-node.drift { border-top-color: var(--warn); }
+.b-node .top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.b-node .ic { width: 36px; height: 36px; border-radius: 11px; background: var(--sky); display: grid; place-items: center; font-size: 17px; flex: none; }
+.b-node.face .ic { background: var(--cream); }
+.b-node.duty .ic { background: #F7F2E4; }
+.b-node.drift .ic { background: #FBEAEA; }
+.b-node .top small { display: block; font-size: 9.5px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); }
+.b-node .top b { display: block; font-size: 15.5px; color: var(--ink); line-height: 1.3; }
+.b-node .why { font-size: 12.5px; color: var(--sub); line-height: 1.6; margin-bottom: 10px; }
+.b-node .why b { color: var(--ink); display: block; font-size: 11px; letter-spacing: .5px; margin-bottom: 2px; }
+.b-node .lb { display: block; font-size: 10px; font-weight: 800; letter-spacing: 1px; color: var(--muted); margin-bottom: 5px; }
+.b-node .scen { margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.b-node .scen .lb { width: 100%; margin-bottom: 1px; }
+.b-node .trig { font-size: 11.5px; color: var(--sub); line-height: 1.6; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 11px; }
+.b-node .trig b { color: var(--teal-d); }
+.b-node .case { margin-top: auto; padding-top: 10px; font-size: 10.5px; color: var(--muted); line-height: 1.5; }
+.b-node .case b { color: var(--warm-d); }
+
+/* ---------- 02 L2 vs L3 双栏 ---------- */
+.b-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+@media (max-width: 980px) { .b-vs { grid-template-columns: 1fr; } }
+.b-vs .panel { display: flex; flex-direction: column; }
+.b-vs .panel.old { background: #FBFAF8; border-color: var(--cream2); }
+.b-vs .panel.old h3::before { background: var(--muted); }
+.b-vs .vtag { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 4px; }
+.b-vs .panel:not(.old) .vtag { color: var(--teal); }
+.b-vs .rate { font-size: 11.5px; color: var(--muted); margin: -6px 0 4px; }
+.b-vs .rate b { color: var(--warm-d); }
+.b-chain { font-size: 11px; font-weight: 700; color: var(--sub); background: var(--sky); border-radius: 8px; padding: 6px 11px; margin: 8px 0 2px; display: inline-block; }
+.panel.old .b-chain { background: var(--cream2); }
+.b-steps { list-style: none; margin-top: 6px; }
+.b-steps li { display: flex; gap: 9px; align-items: flex-start; padding: 8px 0; border-top: 1px dashed var(--card-b); font-size: 12.5px; color: var(--sub); line-height: 1.55; }
+.b-steps li:first-child { border-top: none; }
+.b-steps .n { flex: none; width: 19px; height: 19px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 10.5px; font-weight: 700; display: grid; place-items: center; margin-top: 1px; }
+.panel.old .b-steps .n { background: var(--muted); }
+.b-steps .tx { flex: 1; }
+.b-steps .tx b { color: var(--ink); font-weight: 600; }
+.b-steps .st { flex: none; font-size: 10.5px; font-weight: 800; border-radius: 999px; padding: 2px 9px; margin-top: 1px; white-space: nowrap; }
+.b-steps .st.stop { background: #FBEAEA; color: var(--warn); }
+.b-steps .st.auto { background: #E7F5EE; color: var(--ok); }
+.b-steps .st.gate { background: var(--cream); color: var(--warm-d); }
+.b-verdict { margin-top: auto; padding: 10px 13px; border-radius: 10px; font-size: 12.5px; line-height: 1.6; }
+.panel.old .b-verdict { background: var(--cream2); color: var(--sub); }
+.panel:not(.old) .b-verdict { background: var(--sky); color: var(--teal-d); font-weight: 600; }
+.b-band { margin-top: 16px; background: var(--ink); border-radius: 16px; padding: 20px 24px; color: #fff; display: flex; align-items: center; gap: 22px; flex-wrap: wrap; box-shadow: var(--shadow); }
+.b-band .num { text-align: center; flex: none; }
+.b-band .num .v { font-size: 32px; font-weight: 800; color: #E3C569; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.b-band .num .l { font-size: 11px; color: #B8C7D8; margin-top: 2px; }
+.b-band .sep { width: 1px; height: 40px; background: rgba(255,255,255,.15); flex: none; }
+.b-band .tx { flex: 1; min-width: 260px; font-size: 12.5px; color: #B8C7D8; line-height: 1.7; }
+.b-band .tx b { color: #fff; }
+.b-band .tx em { font-style: normal; color: #E3C569; }
+
+/* ---------- 03 边界配置 ---------- */
+.b-cfg { display: grid; grid-template-columns: 1.3fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 1080px) { .b-cfg { grid-template-columns: 1fr; } }
+.b-console { background: var(--white); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-sm); overflow: hidden; }
+.b-cbar { display: flex; align-items: center; gap: 9px; padding: 12px 18px; background: var(--ink); color: #fff; flex-wrap: wrap; }
+.b-cbar b { font-size: 13.5px; letter-spacing: .3px; }
+.b-cbar .who { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.b-cbar .who span { font-size: 10px; font-weight: 700; letter-spacing: .5px; background: rgba(255,255,255,.12); color: #D5DFEA; border-radius: 999px; padding: 3px 10px; }
+.b-crow { display: flex; gap: 13px; align-items: flex-start; padding: 13px 18px; border-top: 1px solid var(--line); }
+.b-crow:first-of-type { border-top: none; }
+.b-crow.lock { background: #FBFAF8; }
+.b-sw { flex: none; width: 34px; height: 20px; border-radius: 999px; background: var(--ok); position: relative; margin-top: 2px; }
+.b-sw::after { content: ""; position: absolute; top: 2px; right: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.b-sw.locked { background: var(--ink); }
+.b-sw.locked::before { content: "🔒"; position: absolute; left: 4px; top: 50%; transform: translateY(-50%); font-size: 9px; }
+.b-crow .bd { flex: 1; min-width: 0; }
+.b-crow .nm { font-size: 13px; font-weight: 700; color: var(--ink); }
+.b-crow .ds { font-size: 11.5px; color: var(--sub); line-height: 1.6; margin-top: 2px; }
+.b-crow .ds b { color: var(--warm-d); font-weight: 600; }
+.b-val { flex: none; font-size: 11px; font-weight: 700; color: var(--teal-d); background: var(--sky); border: 1px solid var(--sky2); border-radius: 8px; padding: 4px 10px; margin-top: 2px; white-space: nowrap; }
+.b-val.set { color: var(--muted); background: var(--bg); border-color: var(--line); }
+.b-val.hard { color: #fff; background: var(--ink); border-color: var(--ink); }
+.b-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.b-chips .c { font-size: 10.5px; font-weight: 700; border-radius: 999px; padding: 2.5px 9px; }
+.b-chips .c.yes { background: #E7F5EE; color: var(--ok); }
+.b-chips .c.no { background: #FBEAEA; color: var(--warn); }
+.b-cfoot { padding: 11px 18px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); background: var(--bg); line-height: 1.6; }
+.b-cfoot b { color: var(--teal-d); }
+.b-why .cap b { font-size: 13.5px; }
+.b-why .cap span { font-size: 12px; }
+.b-redline { margin-top: 16px; display: flex; gap: 13px; align-items: flex-start; background: #FFFDF7; border: 1px solid var(--warm-l); border-left: 4px solid var(--warm); border-radius: 14px; padding: 15px 18px; }
+.b-redline .rl { flex: none; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #fff; background: var(--warm-d); border-radius: 6px; padding: 4px 9px; margin-top: 2px; }
+.b-redline p { font-size: 13px; color: var(--sub); line-height: 1.7; }
+.b-redline p b { color: var(--ink); }
+
+/* ---------- 04 留痕表 ---------- */
+.b-scroll { overflow-x: auto; }
+.b-scroll .mini-table { min-width: 860px; }
+.b-scroll .mini-table td { font-size: 12px; line-height: 1.55; }
+.b-scroll .mini-table td .tag { white-space: nowrap; }
+.b-scroll .mini-table td small { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+
+/* ---------- 05 置信度示例 ---------- */
+.b-conf { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch; }
+@media (max-width: 980px) { .b-conf { grid-template-columns: 1fr; } .b-conf .mid { transform: rotate(90deg); margin: -4px auto; } }
+.b-conf .mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: var(--warn); font-weight: 800; }
+.b-conf .mid .stopsign { width: 44px; height: 44px; border-radius: 50%; background: var(--warn); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 800; box-shadow: 0 4px 12px rgba(217,83,79,.3); }
+.b-conf .mid small { font-size: 10px; letter-spacing: 1px; }
+.b-ccard { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 17px 19px; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
+.b-ccard.halt { border-color: #F3C4C2; background: #FFFCFA; }
+.b-ccard .ct { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.b-ccard .ct .dotic { width: 24px; height: 24px; border-radius: 8px; background: var(--sky); color: var(--teal-d); display: grid; place-items: center; font-size: 12px; flex: none; }
+.b-ccard.halt .ct .dotic { background: var(--cream); color: var(--warm-d); }
+.b-ccard .ct b { font-size: 13.5px; color: var(--ink); }
+.b-quote { font-size: 13px; color: var(--sub); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 13px; line-height: 1.65; }
+.b-quote b { color: var(--ink); }
+.b-read { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.b-read .rd { display: flex; gap: 9px; align-items: flex-start; font-size: 12px; color: var(--sub); line-height: 1.6; background: var(--white); border: 1px dashed var(--card-b); border-radius: 10px; padding: 8px 11px; }
+.b-read .rd .ab { flex: none; width: 18px; height: 18px; border-radius: 6px; background: var(--sky); color: var(--teal-d); font-size: 10.5px; font-weight: 800; display: grid; place-items: center; margin-top: 2px; }
+.b-read .rd.b .ab { background: var(--cream); color: var(--warm-d); }
+.b-read .rd b { color: var(--ink); }
+.b-meterwrap { margin-top: 13px; }
+.b-meterwrap .ml { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 5px; }
+.b-meterwrap .ml b { color: var(--warn); font-size: 12px; }
+.b-meter { position: relative; height: 10px; border-radius: 5px; background: var(--sky2); }
+.b-meter .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 61%; border-radius: 5px; background: linear-gradient(90deg, #E8A19E, var(--warn)); }
+.b-meter .th { position: absolute; left: 75%; top: -4px; bottom: -4px; width: 2px; background: var(--ink); border-radius: 1px; }
+.b-meter .th span { position: absolute; top: -19px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+.b-halted { margin-top: 12px; font-size: 12px; font-weight: 700; color: var(--warn); background: #FBEAEA; border-radius: 9px; padding: 8px 12px; line-height: 1.55; }
+.b-actrow { display: flex; gap: 7px; margin-top: 12px; flex-wrap: wrap; }
+.b-actrow span { font-size: 11.5px; font-weight: 600; border: 1px solid var(--sky2); background: var(--sky); color: var(--teal-d); border-radius: 8px; padding: 6px 12px; }
+.b-actrow span.pri { background: var(--warm); border-color: var(--warm); color: #fff; }
+.b-loop { margin-top: auto; padding-top: 12px; font-size: 11.5px; color: var(--muted); line-height: 1.65; border-top: 1px dashed var(--card-b); margin-top: 12px; }
+.b-loop b { color: var(--teal-d); }
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html">方案总览</a>
+    <a href="workroom.html">商机作战室</a>
+    <a href="autonomy.html">自主度分级</a>
+    <a href="deal.html">商机与团队</a>
+    <a href="boundary.html" class="active"><span class="dot"></span>人机边界</a>
+    <a href="queue.html">待决队列</a>
+    <a href="capability.html">能力集</a>
+    <a href="platform.html">Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <div class="eyebrow">Human Checkpoints · Where The System Must Stop</div>
+    <h1>自主，不等于失控 —— 四类节点，系统必须<span class="hl">停下来找人</span></h1>
+    <p class="sub">系统端到端自己跑，但它清楚地知道<b>什么时候必须停</b>：谁出面、谁担责、什么时候问、什么时候报，规则写得出来、边界配得出来、每一次都留了痕。<b>说不出「什么时候找人」的自主，才叫失控。</b></p>
+  </div>
+
+  <!-- ============ 01 四类节点 ============ -->
+  <section class="b-sec">
+    <div class="b-head"><span class="no">01</span><h2>四类必须找人的节点：<span class="hl">为什么必须是人</span></h2><p>反过来读更重要 —— 这四类写清楚了，「什么时候不找人」也就写清楚了</p></div>
+    <div class="b-four">
+      <div class="b-node face">
+        <div class="top"><span class="ic">🤝</span><div><small>NODE 01</small><b>要人脸出面</b></div></div>
+        <p class="why"><b>为什么必须是人</b>关系与信任无法委托 —— 客户要见的是能拍板、能负责的人，不是一段生成的话术。</p>
+        <div class="scen"><span class="lb">典型场景</span><span class="tag warm">首访</span><span class="tag warm">关键谈判</span><span class="tag warm">高层拜访</span></div>
+        <div class="trig"><b>怎么触发：</b>主 Agent 把「见面」排进推进计划时，直接调度人出场，并把背调、纪要、谈判要点提前备好 —— 人到场即开谈。</div>
+        <div class="case">金桥单出现 <b>3 次</b>：D5 首访 · D21 二访 · D27 商务谈判</div>
+      </div>
+      <div class="b-node duty">
+        <div class="top"><span class="ic">✍️</span><div><small>NODE 02</small><b>要人担责</b></div></div>
+        <p class="why"><b>为什么必须是人</b>法律与商业责任必须落到自然人 —— 系统可以把账算清楚，但不能替人签字。</p>
+        <div class="scen"><span class="lb">典型场景</span><span class="tag gold">报价定案</span><span class="tag gold">合同签署</span><span class="tag gold">对外承诺</span></div>
+        <div class="trig"><b>怎么触发：</b>动作命中授权清单即转授权人，附判断、依据与建议动作 —— 留给人的是拍板，不是分析。</div>
+        <div class="case">金桥单出现 <b>3 次</b>：D14 报价定案 · D34 账期授权 · D41 法务复核</div>
+      </div>
+      <div class="b-node doubt">
+        <div class="top"><span class="ic">🤔</span><div><small>NODE 03</small><b>AI 没把握</b></div></div>
+        <p class="why"><b>为什么必须是人</b>置信度低于阈值时，宁可停下来问，也不硬着头皮猜 —— 猜错的代价由商机承担。</p>
+        <div class="scen"><span class="lb">典型场景</span><span class="tag teal">客户意图模糊</span><span class="tag teal">信息互相冲突</span><span class="tag teal">没见过的场景</span></div>
+        <div class="trig"><b>怎么触发：</b>判断置信度低于企业设定阈值，立即停止自主执行，转人工并附上它纠结的几种解读。</div>
+        <div class="case">完整示例见本页 <b>05</b>：置信度 61%，低于阈值 75%</div>
+      </div>
+      <div class="b-node drift">
+        <div class="top"><span class="ic">📉</span><div><small>NODE 04</small><b>结果偏离</b></div></div>
+        <p class="why"><b>为什么必须是人</b>实际与预期偏差超过阈值，说明既有打法失效 —— 换方向这件事，该由人来定。</p>
+        <div class="scen"><span class="lb">典型场景</span><span class="tag warn">停滞超期</span><span class="tag warn">赢率骤降</span><span class="tag warn">客户降温</span></div>
+        <div class="trig"><b>怎么触发：</b>主 Agent 本来就在盯，偏差命中阈值即生成判断与建议，进待决队列 —— 不靠人报，也瞒不住。</div>
+        <div class="case">金桥单：<b>停滞 14 天（D21 异议起算）</b>由主 Agent 自动发现并进队列</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 四类之外不找人 ============ -->
+  <section class="b-sec">
+    <div class="b-head"><span class="no">02</span><h2>这四类之外，<span class="hl">系统不找人</span></h2><p>这是 L3 与 L2 的分水岭 —— 差别不在模型能力，在「谁被拴在流程上」</p></div>
+    <div class="b-vs">
+      <div class="panel old">
+        <div class="vtag">L2 · 代办工具的干法</div>
+        <h3>每一步都要人点确认</h3>
+        <p class="rate">自主完成率典型区间 <b>20–40%</b>（目标态示意 · 非承诺值）</p>
+        <span class="b-chain">同一条链路：二访结束 → 客户收到纪要 → 推进下一步</span>
+        <ol class="b-steps">
+          <li><span class="n">1</span><span class="tx">人发起转写，系统出<b>纪要草稿</b></span><span class="st stop">⏸ 等人确认</span></li>
+          <li><span class="n">2</span><span class="tx">系统起草<b>外部版纪要</b></span><span class="st stop">⏸ 等人确认</span></li>
+          <li><span class="n">3</span><span class="tx">外发给客户</span><span class="st stop">⏸ 等人点发送</span></li>
+          <li><span class="n">4</span><span class="tx">下一步做什么</span><span class="st stop">人自己想、自己发起</span></li>
+        </ol>
+        <div class="b-verdict">系统每走一步，人就要出现一次 —— <b>人还是被拴在流程上</b>，只是打字变成了点确认。</div>
+      </div>
+      <div class="panel">
+        <div class="vtag">L3 · 条件自主（本方案）</div>
+        <h3>只在四类节点出场</h3>
+        <p class="rate">自主完成率典型区间 <b>60–80%</b>（目标态示意 · 非承诺值）</p>
+        <span class="b-chain">同一条链路，系统一口气跑完</span>
+        <ol class="b-steps">
+          <li><span class="n">1</span><span class="tx">转写、分角色、抽取需求与异议</span><span class="st auto">✓ 自主 · 留痕</span></li>
+          <li><span class="n">2</span><span class="tx">生成外部版纪要，<b>比对边界配置</b>：内容类型在「可自主外发」清单内</span><span class="st auto">✓ 自主 · 留痕</span></li>
+          <li><span class="n">3</span><span class="tx">发出，并更新推进计划、排好下一步</span><span class="st auto">✓ 自主 · 留痕</span></li>
+          <li><span class="n">4</span><span class="tx">若下一步是<b>账期让步</b> —— 命中「要人担责」</span><span class="st gate">停 · 进待决队列</span></li>
+        </ol>
+        <div class="b-verdict">未命中四类节点，全程不打扰任何人；命中了，停下来，把判断和依据一起端给人。</div>
+      </div>
+    </div>
+    <div class="b-band">
+      <div class="num"><div class="v">137</div><div class="l">Agent 自主执行动作</div></div>
+      <div class="sep"></div>
+      <div class="num"><div class="v">6</div><div class="l">人出现的次数</div></div>
+      <div class="tx"><b>金桥制造 · 年度框架 ¥86 万，45 天从线索到签约</b>（目标态示意）。人出现的 6 次<em>全部落在四类节点里</em>：3 次要人脸出面（D5 首访 · D21 二访 · D27 谈判），3 次要人担责（D14 报价定案 · D34 账期授权 · D41 法务复核）。四类之外，系统一次也没来找过人。</div>
+    </div>
+  </section>
+
+  <!-- ============ 03 边界配置 ============ -->
+  <section class="b-sec">
+    <div class="b-head"><span class="no">03</span><h2>边界是<span class="hl">配置出来的</span>，不是写死的</h2><p>「哪些事系统可以自己做」由企业说了算 —— 每一项可开关、可设值，收放自如</p></div>
+    <div class="b-cfg">
+      <div class="b-console">
+        <div class="b-cbar"><b>⚙ 自主执行边界 · 配置</b><div class="who"><span>由企业管理员配置</span><span>每次修改留痕</span></div></div>
+        <div class="b-crow lock">
+          <span class="b-sw locked"></span>
+          <div class="bd"><div class="nm">担责类动作 · 必须找人</div><div class="ds">报价定案、合同签署、对外承诺，一律由授权人确认 —— <b>这一档锁死，不可配置为「自主」</b>。</div></div>
+          <span class="b-val hard">不可关闭</span>
+        </div>
+        <div class="b-crow">
+          <span class="b-sw"></span>
+          <div class="bd"><div class="nm">单笔金额阈值</div><div class="ds">涉案金额超过设定值的动作，停止自主执行、转授权人。</div></div>
+          <span class="b-val set">企业设定</span>
+        </div>
+        <div class="b-crow">
+          <span class="b-sw"></span>
+          <div class="bd"><div class="nm">折扣幅度上限</div><div class="ds">让价超过设定幅度即转授权 —— 系统可以测算让步空间，让不让由人定。</div></div>
+          <span class="b-val set">企业设定</span>
+        </div>
+        <div class="b-crow">
+          <span class="b-sw"></span>
+          <div class="bd"><div class="nm">账期上限</div><div class="ds">账期承诺超出设定上限，一律转授权。金桥单让步到 <b>75 天</b>，就是经待决队列授权后才落地的。</div></div>
+          <span class="b-val set">企业设定</span>
+        </div>
+        <div class="b-crow">
+          <span class="b-sw"></span>
+          <div class="bd"><div class="nm">可自主外发的内容类型</div><div class="ds">清单内的内容系统可直接外发并留痕；清单外的必须人确认。</div>
+            <div class="b-chips"><span class="c yes">外部版纪要 ✓</span><span class="c yes">日程邀请 ✓</span><span class="c yes">公开资料包 ✓</span><span class="c no">报价单 · 需确认</span><span class="c no">合同文本 · 需确认</span><span class="c no">商务承诺 · 需确认</span></div>
+          </div>
+          <span class="b-val">清单制</span>
+        </div>
+        <div class="b-crow">
+          <span class="b-sw"></span>
+          <div class="bd"><div class="nm">置信度阈值</div><div class="ds">判断置信度低于阈值即停止自主执行、转人工并附解读（见本页 05 示例）。</div></div>
+          <span class="b-val">示例：75%</span>
+        </div>
+        <div class="b-crow">
+          <span class="b-sw"></span>
+          <div class="bd"><div class="nm">停滞天数阈值</div><div class="ds">商机停滞超过设定天数即判定「结果偏离」，生成判断与建议进待决队列。金桥单的 14 天停滞即由此浮出。</div></div>
+          <span class="b-val">示例：14 天</span>
+        </div>
+        <div class="b-cfoot">以上数值均为目标态示意，非承诺值。<b>自主执行的边界、阈值与授权范围由企业配置；每一次自主执行与每一次找人都留痕可审计。</b></div>
+      </div>
+      <div>
+        <div class="panel b-why">
+          <h3>为什么边界必须可配置</h3>
+          <div class="cap-grid" style="grid-template-columns:1fr">
+            <div class="cap"><div class="ic">🏢</div><b>每家企业的授权制度不一样</b><span>折扣权限在谁手里、多大金额要走审批 —— 系统对齐的是企业既有的授权制度，不是反过来。</span></div>
+            <div class="cap warm"><div class="ic">📈</div><b>爬坡过程中逐步放宽</b><span>第 2 周从代办起步、逐件确认；第 3–4 周四类节点之外开始自主执行；第 2–3 月进入条件自主 —— 边界随信任一起放开。</span></div>
+            <div class="cap"><div class="ic">↩️</div><b>随时可以收回来</b><span>任何一项都能收紧或关闭，交出去的执行权每一步可回退 ——「上 AI」从一次性豪赌变成可控的爬坡。</span></div>
+          </div>
+          <div class="note">配置本身也是受管对象：<b>谁改的、什么时候改的、从什么值改到什么值</b>，全部留痕，随时可查。</div>
+        </div>
+      </div>
+    </div>
+    <div class="b-redline">
+      <span class="rl">红线 · 不可配置</span>
+      <p>涉及<b>法律与商业责任</b>的动作 —— 报价定案、合同签署、对外承诺 —— <b>必须由授权人确认</b>。这一条不随任何配置放开，也不随自主度爬坡放开。</p>
+    </div>
+  </section>
+
+  <!-- ============ 04 留痕 ============ -->
+  <section class="b-sec">
+    <div class="b-head"><span class="no">04</span><h2>每一次都留痕：<span class="hl">「自主」与「找人」同样可审计</span></h2><p>不只「找人」有记录 ——「没找人」的每一次自主执行，也带着判断依据与结果入档</p></div>
+    <div class="panel">
+      <h3>执行留痕 · 金桥制造 · 年度框架（节选）</h3>
+      <div class="b-scroll">
+        <table class="mini-table">
+          <thead><tr><th>时间</th><th>事项</th><th>判断依据</th><th>自主 or 找人</th><th>谁处理</th><th>结果</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><b>D21</b> 会后</td><td><b>外部版二访纪要</b>外发给周总</td><td>内容类型在「可自主外发」清单内</td>
+              <td><span class="tag ok">自主执行</span></td><td>商机主 Agent<small>调用内容生成能力</small></td><td>已发送，全文与发送时间入档</td>
+            </tr>
+            <tr>
+              <td><b>D27</b> 会前</td><td>谈判要点与同类案例备料</td><td>内部备料，不涉对外承诺</td>
+              <td><span class="tag ok">自主执行</span></td><td>商机主 Agent<small>调用研究与触达能力</small></td><td>谈判前送达王强，备料过程可回放</td>
+            </tr>
+            <tr>
+              <td><b>D21–D34</b></td><td>商务谈判停滞识别</td><td>里程碑停在 9/16，停滞满 14 天触达阈值，判定结果偏离</td>
+              <td><span class="tag warn">找人 · 结果偏离</span></td><td>进待决队列 → 李芳</td><td>判断与建议生成，D34 拍板</td>
+            </tr>
+            <tr>
+              <td><b>D34</b></td><td>账期让步授权</td><td>账期承诺属商业责任，命中「要人担责」</td>
+              <td><span class="tag warm">找人 · 要人担责</span></td><td>李芳授权<small>王强执行</small></td><td>授权账期 75 天，换预付 30%</td>
+            </tr>
+            <tr>
+              <td><b>D34</b> 后</td><td>客户动作与竞品信号例行监测</td><td>未命中任何找人节点</td>
+              <td><span class="tag ok">自主执行</span></td><td>商机主 Agent</td><td>持续在盯，无异常不打扰任何人</td>
+            </tr>
+            <tr>
+              <td><b>D41</b></td><td>合同文本复核</td><td>合同签署必须由授权人确认</td>
+              <td><span class="tag warm">找人 · 要人担责</span></td><td>法务复核</td><td>修订逐条留痕，确认后进入签署</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note">两种记录同样可审计、可回放：每一条都能回溯到原始记录与时间戳。想验证系统某次判断对不对，从任何一条点进去回放即可 —— <b>看板降级后承担的正是这个审计与追溯入口</b>。过程数据用于赋能与组织沉淀，不用于监控个人；采集、保存、查看范围由企业规则配置。</div>
+    </div>
+  </section>
+
+  <!-- ============ 05 置信度示例 ============ -->
+  <section class="b-sec">
+    <div class="b-head"><span class="no">05</span><h2>AI 没把握的时候：<span class="hl">一次「停下来」的完整过程</span></h2><p>置信度不够，系统不硬猜 —— 停下来，把它纠结的两种解读一起端给人</p></div>
+    <div class="b-conf">
+      <div class="b-ccard">
+        <div class="ct"><span class="dotic">👁</span><b>信号 · 客户意图模糊</b></div>
+        <div class="b-quote">D27 商务谈判后，客户方对下一轮安排只回了一句：<b>「先按这个方向准备着，具体节奏我们内部再对一下。」</b></div>
+        <div class="b-read">
+          <div class="rd"><span class="ab">A</span><span><b>积极信号：</b>方向已被认可，应自主准备下一版材料并主动约时间 —— 若为真，宜快。</span></div>
+          <div class="rd b"><span class="ab">B</span><span><b>委婉观望：</b>客户内部尚未对齐，此时催进度可能适得其反 —— 若为真，宜等。</span></div>
+        </div>
+        <div class="b-meterwrap">
+          <div class="ml"><span>意图判断置信度</span><b>61%</b></div>
+          <div class="b-meter"><span class="fill"></span><span class="th"><span>阈值 75%</span></span></div>
+        </div>
+        <div class="b-halted">61% 低于阈值 75% —— 停止自主执行，转人工。两种解读、全部依据一并附上。</div>
+      </div>
+      <div class="mid"><span class="stopsign">停</span><small>转人工</small></div>
+      <div class="b-ccard halt">
+        <div class="ct"><span class="dotic">👤</span><b>王强收到 · 待人定夺</b></div>
+        <div class="b-quote"><b>商机主 Agent：</b>这句话我拿不准，先停下来给你看。两种解读都可能成立，依据（二访纪要、谈判记录）已附在卡片里，点开可回放原文。</div>
+        <div class="b-actrow"><span class="pri">按解读 A 推进</span><span>按解读 B 先等</span><span>我来直接联系客户</span></div>
+        <div class="b-loop">王强的选择会连同上下文一起<b>回流为校准信号</b>：同类场景的判断置信度逐步爬升，下一次也许就不用问了 —— 自主完成率从第 30 天的 55% 走向季度 72%（目标态示意），靠的正是这一次次「问过之后学会了」。</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+
+</body>
+</html>

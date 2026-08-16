@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native Hire · HR 管理 · 商汤生态渠道</title>
+<meta name="description" content="AI Native Hire 是面向企业招聘流程的 AI 招聘专员，覆盖简历筛选、候选人分发、约面催办、面试评估与流程跟进。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+<script>
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.addEventListener("load", function () { window.scrollTo(0, 0); });
+  window.addEventListener("pageshow", function () { window.scrollTo(0, 0); });
+</script>
+<style>
+.hr-clean{padding:20px 0 40px}
+.hr-clean .wrap{max-width:1180px}
+.hr-overview{display:block;max-width:1120px;margin:18px auto 0;padding:30px 32px 28px;border:1px solid rgba(231,36,39,.10);border-radius:32px;background:linear-gradient(180deg,#fffdfb 0%,#ffffff 100%);box-shadow:0 24px 60px -52px rgba(15,18,24,.30)}
+.hr-overview-copy{padding:0 0 4px;max-width:820px;margin:0 auto 18px;text-align:center}
+.hr-overview-badge{display:inline-flex;align-items:center;gap:8px;color:var(--red);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.hr-overview-copy h2{font-size:34px;line-height:1.18;letter-spacing:-.03em;margin:10px 0 16px}
+.hr-overview-copy p{font-size:15.5px;line-height:1.85;color:var(--gray);margin:0 auto 16px;max-width:76ch}
+.hr-overview-copy p strong{color:var(--ink)}
+.hr-overview-copy .hr-keyline{font-size:16px;color:var(--ink);margin-top:20px}
+.hr-hover{background:transparent;border:0;box-shadow:none;padding:0;margin-top:28px}.hr-hover-shell{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:28px;align-items:center}.hr-hover-list{display:grid;gap:12px}.hr-hover-item{position:relative;padding:24px 26px;border-radius:24px;border:1px solid transparent;background:#F7F9FC;cursor:pointer;transition:all .2s}.hr-hover-item:hover,.hr-hover-item.active{background:#fff;border-color:rgba(231,36,39,.16);box-shadow:0 16px 32px -28px rgba(15,18,24,.26)}.hr-hover-item b{display:block;font-size:24px;line-height:1.25;color:var(--ink);margin-bottom:10px;letter-spacing:-.02em}.hr-hover-item p{margin:0;color:var(--gray);font-size:16px;line-height:1.75}.hr-preview-stack{display:grid;gap:14px;align-self:center}.hr-preview{display:none;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#fff;box-shadow:0 18px 44px -34px rgba(15,18,24,.24)}.hr-preview.active{display:block}.hr-preview img{width:100%;display:block;height:auto;object-fit:contain;background:#F4F7FB}.hr-preview figcaption{padding:22px 26px 26px}.hr-preview figcaption b{display:block;font-size:24px;color:var(--ink);margin-bottom:8px;letter-spacing:-.02em}.hr-preview figcaption p{margin:0;color:var(--gray);font-size:16px;line-height:1.75}.hr-slim{margin-top:40px}
+.hr-slim-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.hr-slim-head h2{font-size:26px;letter-spacing:-.03em}
+.hr-slim-head p{color:var(--gray);font-size:14px;line-height:1.7;max-width:52ch}
+
+.hr-slim-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.hr-slim-head h2{font-size:26px;letter-spacing:-.03em}
+.hr-slim-head p{color:var(--gray);font-size:14px;line-height:1.7;max-width:52ch}
+.hr-embed{border:1px solid var(--line);border-radius:28px;overflow:hidden;background:#fff;box-shadow:0 20px 50px -38px rgba(15,18,24,.28)}
+.hr-embed iframe{width:100%;height:980px;border:0;display:block;background:#fff}
+.hr-cta{margin-top:28px;padding:22px 24px;border-radius:24px;border:1px solid rgba(231,36,39,.12);background:linear-gradient(135deg,#FFF8F2,#fff 60%,#FBFCFF);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.hr-cta h3{font-size:20px;margin:0 0 6px;letter-spacing:-.02em}
+.hr-cta p{margin:0;color:var(--gray);font-size:14px;line-height:1.7;max-width:60ch}
+@media (max-width: 980px){
+  .hr-overview{padding:24px 20px}
+  .hr-hover-shell{grid-template-columns:1fr}
+  .hr-cta{flex-direction:column;align-items:flex-start}
+}
+@media (max-width: 760px){
+  .hr-slim-head{flex-direction:column;align-items:flex-start}
+  .hr-embed iframe{height:920px}
+}
+</style>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <nav id="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img class="st-logo" src="images/sensetime-logo.png" alt="商汤科技 SenseTime">
+        <span class="brand-div"></span>
+        <span class="fde-lockup">
+          <span class="fde-word">生态渠道</span>
+          <span class="fde-cap">AI Ecosystem Partnerships - FDE INSIDE</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="solutions.html" class="cur">产品与方案</a>
+        <a href="tokenplan.html">Token Plan</a>
+        <a href="events.html">市场活动</a>
+        <a href="careers.html">人才招聘</a>
+        <a href="forum.html">技术交流</a>
+        <a href="partners.html">加入生态</a>
+      </div>
+      <a href="https://app.jingsocial.com/mF/commonLandingPage/CTA/6d34eaf60a434d7d8600094418b7a044?pushId=Das2J4qeZ5X6xGo4A5L7xn1" class="btn btn-red nav-cta">申请加入</a>
+    </div>
+  </nav>
+
+  <main id="top" class="hr-clean">
+    <header class="hero hero-sub">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-grid-lines" aria-hidden="true"></div>
+      <div class="wrap hero-center">
+        <span class="eyebrow">AI Native Hire · HR 管理</span>
+        <h1>让 AI 负责推进<br><span class="hl">让人负责决策</span></h1>
+        <p class="lead">AI Native Hire 是面向企业招聘流程的 AI 招聘专员。它把简历筛选、候选人分发、约面催办、面试评估和流程跟进串成一个持续运转的工作流，让 HR 回到关键判断与沟通上。</p>
+      </div>
+    </header>
+
+    <section class="wrap">
+      <div class="hr-overview reveal">
+        <div class="hr-overview-copy">
+          <span class="hr-overview-badge">产品概览</span>
+          <h2>把招聘流程交给 AI，把关键决策留给人</h2>
+          <p><strong>AI Native Hire 不是一套表单系统，而是一位持续在岗的 AI 招聘专员。</strong>它会自动接住招聘流程中的高频动作：初筛、分发、约面、催办、评估和跟进，并把每一步都留成可追溯的证据链。</p>
+          <p>HR、业务和面试官共用一套岗位标准，AI 只做执行与建议，录用、淘汰、拒信和标准生效由人确认。这样做的结果很简单：流程更快，判断更稳，数据还能留下来。</p>
+          <p class="hr-keyline">让 AI 负责“推进”，让人负责“决策”，招聘就会从人工驱动走向 AI Native。</p>
+        </div>
+        <aside class="hr-hover" id="hoverModule">
+          <div class="hr-hover-shell">
+            <div class="hr-hover-list">
+              <div class="hr-hover-item active" data-preview="preview-1">
+                <b>AI 主动推进招聘流程</b>
+                <p>自动筛简历、约面、催反馈、处理常规改期与异常上报。</p>
+              </div>
+              <div class="hr-hover-item" data-preview="preview-2">
+                <b>统一岗位标准</b>
+                <p>HR、业务和面试官共同建立岗位画像，让筛选、面试和录用使用同一套标准。</p>
+              </div>
+              <div class="hr-hover-item" data-preview="preview-3">
+                <b>证据驱动评估</b>
+                <p>每项 AI 结论都关联简历原文或面试原话与时间戳，结果可追溯、可核验。</p>
+              </div>
+              <div class="hr-hover-item" data-preview="preview-4">
+                <b>全流程可视与可审计</b>
+                <p>自动沉淀招聘漏斗、流程事件、评估结果和操作记录，形成完整的数据资产。</p>
+              </div>
+            </div>
+            <div class="hr-preview-stack">
+              <figure class="hr-preview active" id="preview-1">
+                <img src="images/ai-native-hire/conversation.png" alt="与 AI 招聘专员对话界面">
+                <figcaption><b>对话式推进</b><p>HR 直接用自然语言下达指令，AI 自动整理待办并写入审计日志。</p></figcaption>
+              </figure>
+              <figure class="hr-preview" id="preview-2">
+                <img src="images/ai-native-hire/dashboard.png" alt="今日任务队列界面">
+                <figcaption><b>任务队列</b><p>集中看板展示候选、约面、反馈催办和例外上报，所有事项按状态推进。</p></figcaption>
+              </figure>
+              <figure class="hr-preview" id="preview-3">
+                <img src="images/ai-native-hire/evaluation.png" alt="候选人评估界面">
+                <figcaption><b>评估留痕</b><p>每个维度都有打分、证据链和结论，便于面试后复核与复盘。</p></figcaption>
+              </figure>
+              <figure class="hr-preview" id="preview-4">
+                <img src="images/ai-native-hire/compliance.png" alt="合规中心界面">
+                <figcaption><b>合规控制</b><p>把告知同意、审计日志、数据可见范围和审批边界统一放进一个控制层。</p></figcaption>
+              </figure>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="wrap hr-slim reveal">
+      <div class="hr-slim-head">
+        <div>
+          <span class="hr-overview-badge">产品体验</span>
+          <h2>直接进入产品，自己点一遍流程</h2>
+        </div>
+        <p>下面嵌入的是本地 `ai_native_hr` 产品演示站。它和上面的概览是同一套产品，只是更适合完整体验流程。</p>
+      </div>
+      <div class="hr-embed">
+        <iframe src="ai_native_hr/index.html" title="AI Native HR 产品演示" loading="lazy"></iframe>
+      </div>
+      <div class="hr-cta">
+        <div>
+          <h3>想看更完整的操作流？</h3>
+          <p>可以继续在嵌入站里点「进入产品演示」，看岗位包、画像、筛选、评估、合规和平台管理的完整闭环。</p>
+        </div>
+        <a class="btn btn-red" href="ai_native_hr/index.html" target="_blank" rel="noopener">打开完整产品站</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot-legal">
+      <p class="foot-copy">
+        沪 ICP 备 19044592 号-3 ｜
+        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener"><img src="images/gongan.png" alt="" onerror="this.style.display='none'">沪公网安备 31010402009327 号</a>
+        © 2014–2026 SenseTime. All Rights Reserved. 上海商汤智能科技有限公司
+      </p>
+      <p class="foot-sub">商汤科技 · 大模型生态渠道部 ｜ 上海商汤智能科技有限公司是商汤集团旗下子公司</p>
+    </div>
+  </footer>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/main.js"></script>
+  <script>
+    (function () {
+      const items = Array.from(document.querySelectorAll('.hr-hover-item'));
+      const previews = Array.from(document.querySelectorAll('.hr-preview'));
+      const module = document.getElementById('hoverModule');
+
+      function showPreview(id) {
+        items.forEach(item => item.classList.toggle('active', item.dataset.preview === id));
+        previews.forEach(preview => preview.classList.toggle('active', preview.id === id));
+      }
+
+      items.forEach(item => {
+        item.addEventListener('mouseenter', () => showPreview(item.dataset.preview));
+        item.addEventListener('focus', () => showPreview(item.dataset.preview));
+        item.addEventListener('click', () => showPreview(item.dataset.preview));
+      });
+
+      if (module) {
+        module.addEventListener('mouseleave', () => showPreview('preview-1'));
+      }
+    })();
+  </script>
+</body>
+</html>

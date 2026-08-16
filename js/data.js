@@ -20,28 +20,6 @@ const CATEGORIES = [
   { key: "utilities", label: "水务能源 Utilities" },
 ];
 
-/* 六大核心角色（取自 FDE 介绍）。num 为编号，title 标题，desc 说明。 */
-/* 角色配图：均为 Unsplash 免版权图（Unsplash License，可商用、免署名），
-   通过官方图床直接引用。要换图把 img 换成新的 Unsplash 图床地址即可。 */
-const U = (id) => `https://images.unsplash.com/photo-${id}?q=80&w=900&auto=format&fit=crop`;
-const ROLES = [
-  { num: "01", icon: "convert",  img: U("1758518729685-f88df7890776"), title: "客户需求翻译器", desc: "将客户模糊需求转化为清晰的业务场景和技术需求。" },
-  { num: "02", icon: "design",   img: U("1523961131990-5ea7c61b2107"), title: "AI 场景设计师", desc: "基于商汤模型、Token Plan、SoWork、X-Design、Agent 等能力设计解决方案。" },
-  { num: "03", icon: "demo",     img: U("1754039984985-ef607d80113a"), title: "Demo / PoC 推动者", desc: "快速构建可演示、可验证、可试用的场景样板。" },
-  { num: "04", icon: "feedback", img: U("1677506048148-0c914dd8197b"), title: "产品反馈收集者", desc: "将客户真实问题反馈给产品与研发团队，推动能力持续优化。" },
-  { num: "05", icon: "flag",     img: U("1521791136064-7986c2920216"), title: "价值交付陪跑者", desc: "陪伴客户完成试点、上线、培训、复盘和扩容。" },
-  { num: "06", icon: "layers",   img: U("1695668548342-c0c1ad479aee"), title: "场景资产沉淀者", desc: "将一次性客户经验沉淀为可复制方案、模板和 SOP。" },
-];
-
-/* FDE 对客户的价值（取自 FDE 介绍）。 */
-const VALUES = [
-  { title: "更快找到场景", desc: "帮客户从业务流程中找到最适合 AI 切入的点。" },
-  { title: "更快看到 Demo", desc: "快速构建可验证样板，降低试错成本。" },
-  { title: "更快推动试点", desc: "陪跑客户完成 PoC、培训和反馈。" },
-  { title: "更易形成共识", desc: "帮客户准备方案、价值说明和试点结果。" },
-  { title: "更易规模化使用", desc: "沉淀模板、流程和方法，方便推广到更多部门。" },
-  { title: "更易衡量价值", desc: "用使用数据、效率提升与业务贡献，清晰评估落地效果。" },
-];
 
 /* ============================================================
    Demo 作品列表。新增一个 Demo = 加一个对象。
@@ -164,7 +142,7 @@ const PROJECTS = [
     "live": true
   },
   {
-    cat: "utilities", badge: "水务能源", title: "中海油 AI 方案",
+    cat: "utilities", badge: "水务能源", title: "能源集团 AI 方案",
     desc: "面向能源行业业务场景，展示 AI 方案设计、能力组合和落地路径。",
     tags: ["能源行业", "AI 方案", "方案展示"],
     url: "https://sensetime-fde.github.io/Demo/%E4%B8%AD%E6%B5%B7%E6%B2%B9AI%E6%96%B9%E6%A1%88",
@@ -185,7 +163,7 @@ const PROJECTS = [
     hue: 26, live: true,
   },
   {
-    cat: "prototype", badge: "业务原型", title: "君度业务原型",
+    cat: "prototype", badge: "业务原型", title: "律所业务原型",
     desc: "面向行业场景方案沟通，展示核心业务流程、页面结构和交互体验。",
     tags: ["业务原型", "行业场景", "交互演示"],
     url: "https://sensetime-fde.github.io/Demo/jundu_proto",
@@ -224,4 +202,4 @@ const PROJECTS = [
 ];
 
 // 暴露给 main.js（普通 <script> 引入，无需打包工具）
-window.FDE_DATA = { CATEGORIES, ROLES, VALUES, PROJECTS };
+window.FDE_DATA = { CATEGORIES, PROJECTS };

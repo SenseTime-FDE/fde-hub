@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 专员对话 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ---------- 本页专属：IM 对话 ---------- */
+.chat { padding: 18px 20px; max-height: 620px; overflow-y: auto; scroll-behavior: smooth; background: var(--soft2); }
+.tdiv { text-align: center; font-size: 11px; color: var(--faint); margin: 6px 0 14px; }
+.tdiv span { background: var(--soft); padding: 2px 12px; border-radius: 999px; }
+.msg { display: flex; gap: 10px; margin-bottom: 16px; align-items: flex-start; }
+.msg .ava { width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--navy); display: flex; align-items: center; justify-content: center; font-size: 17px; }
+.msg .bw { max-width: 78%; }
+.msg .meta { font-size: 11px; color: var(--faint); margin-bottom: 4px; }
+.msg .bub { background: #fff; border: 1px solid var(--cbord); border-radius: 4px 12px 12px 12px; padding: 12px 16px; font-size: 13px; box-shadow: 0 1px 4px rgba(27,58,99,.04); }
+.msg.hr { justify-content: flex-end; }
+.msg.hr .bw { display: flex; flex-direction: column; align-items: flex-end; }
+.msg.hr .bub { background: var(--gold-bg); border-color: var(--gold-soft); border-radius: 12px 4px 12px 12px; color: var(--navy); }
+.bub b { color: var(--navy); }
+.bub ul { margin: 6px 0 2px 18px; }
+.bub ul li { margin-bottom: 4px; }
+.bub .jump { display: inline-block; margin-top: 8px; color: var(--blue); font-weight: 700; font-size: 12.5px; border-bottom: 1px solid transparent; }
+.bub .jump:hover { border-bottom-color: var(--blue); }
+.bub .tag { display: inline-block; background: var(--soft); color: var(--steel); border-radius: 4px; font-size: 11px; padding: 1px 8px; margin-right: 6px; font-weight: 700; }
+/* 聊天流内的例外上报卡片 */
+.msg .im-card { margin-top: 8px; }
+.msg .im-card.handled .im-actions { display: none; }
+.msg .im-card .im-done { display: none; padding: 10px 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--green); font-weight: 700; }
+.msg .im-card.handled .im-done { display: block; }
+/* 漏斗小数据块 */
+.fun { margin-top: 8px; min-width: 300px; }
+.fun .fr { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.fun .fl { width: 72px; flex: none; font-size: 12px; color: var(--muted); text-align: right; }
+.fun .bar { flex: 1; }
+.fun b { width: 34px; flex: none; text-align: right; color: var(--navy); font-size: 12.5px; }
+.fun .fnote { font-size: 11.5px; color: var(--faint); margin-top: 6px; padding-left: 82px; }
+/* 输入区与预设指令 */
+.compose { border-top: 1px solid var(--line); padding: 14px 20px; background: #fff; border-radius: 0 0 12px 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip { border: 1px solid var(--cbord); background: var(--soft2); color: var(--steel); border-radius: 999px; font-size: 12.5px; padding: 6px 14px; cursor: pointer; font-family: inherit; transition: all .15s; }
+.chip:hover { border-color: var(--gold); background: var(--gold-bg); color: var(--navy); }
+.chip.used { opacity: .55; }
+.inrow { display: flex; gap: 10px; }
+.inrow input { flex: 1; border: 1px solid var(--cbord); border-radius: 8px; padding: 10px 14px; font-size: 13px; font-family: inherit; color: var(--body); outline: none; }
+.inrow input:focus { border-color: var(--gold); }
+/* 右侧任务队列 */
+.task { display: flex; align-items: flex-start; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.task:last-child { border-bottom: none; }
+.task .tk { flex: 1; min-width: 0; }
+.task .tk b { display: block; color: var(--navy); font-size: 13px; }
+.task .tk span { font-size: 11.5px; color: var(--muted); }
+.task .pill { flex: none; margin-top: 2px; }
+/* 规则要点 */
+.rule { display: flex; gap: 10px; margin-bottom: 12px; }
+.rule:last-child { margin-bottom: 0; }
+.rule .rn { width: 20px; height: 20px; flex: none; border-radius: 50%; background: var(--gold-bg); border: 1px solid var(--gold-soft); color: var(--amber); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+.rule p { font-size: 12.5px; }
+.rule p b { color: var(--navy); }
+.sla { background: var(--soft2); border-radius: 8px; padding: 10px 14px; font-size: 11.5px; color: var(--muted); margin-top: 14px; }
+/* 悬停提示 */
+[data-tip] { position: relative; cursor: help; border-bottom: 1px dashed var(--faint); }
+[data-tip]:hover::after {
+  content: attr(data-tip); position: absolute; left: 0; bottom: calc(100% + 6px); z-index: 40;
+  background: var(--navy); color: #fff; font-size: 11.5px; line-height: 1.6; font-weight: 400;
+  padding: 8px 12px; border-radius: 8px; width: 240px; white-space: normal;
+  box-shadow: 0 4px 14px rgba(12,37,69,.25);
+}
+.onstat { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--green); font-weight: 700; }
+.onstat i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: inline-block; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html" class="on">🤖 AI 专员对话</a>
+      <a href="profile.html">🎯 岗位画像共建</a>
+      <a href="screening.html">🗂 简历筛选与分发</a>
+      <a href="evaluation.html">📝 证据链评估报告</a>
+      <a href="board.html">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html">📊 面试质检</a>
+      <a href="compliance.html">🛡 合规与数据权属</a>
+      <a href="platform.html">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>AI 专员对话</h1><span class="crumb">AI 招聘专员 / 招聘工作台 / AI 专员对话</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+      <div class="page-head">
+        <h2>像带一个下属，而不是学一套系统</h2>
+        <p>晨报汇报、例外上报、自然语言指令——AI 专员主动干活、主动汇报，需要决策时才来找你。</p>
+      </div>
+
+      <div class="cols c32">
+        <!-- ================= 左：对话主体 ================= -->
+        <div class="panel">
+          <div class="p-head">
+            <b>与 AI 招聘专员的对话</b>
+            <span class="onstat"><i></i>在线 · 今日已自动处理 23 项</span>
+            <span class="hint">对话与代发动作全程写入审计日志</span>
+          </div>
+
+          <div class="chat" id="chat">
+            <div class="tdiv"><span>今天 09:00</span></div>
+
+            <!-- 1. 晨报 -->
+            <div class="msg agent">
+              <div class="ava">🤖</div>
+              <div class="bw">
+                <div class="meta">AI 招聘专员 · 09:00 · 每日晨报</div>
+                <div class="bub">
+                  早上好，这是今天的晨报：<br>
+                  <ul>
+                    <li><span class="tag">初筛</span>昨日新收简历 <b>12 份</b>，已全部完成自动初筛，其中 <b>3 份</b>建议推送用人部门，已按审定模板以你的名义发出。</li>
+                    <li><span class="tag">面试</span>今天 14:00 <b>陈砚秋</b>（高级后端工程师）二面已确认，二面官<b>刘慕青·技术总监</b>，会议邀请与候选人资料包已同步双方。</li>
+                    <li><span class="tag">待办</span>待你处理 <b>2 件</b>：① 林晚晴第 2 次请求改期（例外上报，见下）；② 2 份部门反馈已超 <span data-tip="部门反馈时效为方案目标值（目标 48h），演示数据为虚构示意。">目标 48h</span>，我已自动催办，若 18:00 前仍无回复建议升级。</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. 例外上报卡片 -->
+            <div class="msg agent">
+              <div class="ava">🤖</div>
+              <div class="bw">
+                <div class="meta">AI 招聘专员 · 09:00 · 例外上报（打包待决策）</div>
+                <div class="im-card" id="excCard">
+                  <div class="im-head">⚠️ 例外上报 · 需要你一次决策 · 编号 EX-0810-01</div>
+                  <div class="im-body">
+                    候选人<b>林晚晴</b>（高级后端工程师 · 综合建议 <span data-tip="AI 打分一律是「建议分」，录用／淘汰结论只能由人确认。">3.9／5</span> · 待安排一面）<b>第 2 次</b>请求改期，本次原因：「临时出差」。<br>
+                    <span class="muted">按规则：重复改期不再逐条打扰你，由我打包上报、给出建议选项，你一次决策。</span>
+                  </div>
+                  <div class="im-actions">
+                    <button class="btn gold" onclick="excChoose('A')">A 改约下周一 10:00（王梓航日历空闲）</button>
+                    <button class="btn ghost" onclick="excChoose('B')">B 转我人工跟进</button>
+                  </div>
+                  <div class="im-done" id="excDone"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="tdiv"><span>今天 09:41</span></div>
+
+            <!-- 3. 自然语言指令示例 -->
+            <div class="msg hr">
+              <div class="bw">
+                <div class="meta">你 · 09:41</div>
+                <div class="bub">拉一下后端岗这周的漏斗</div>
+              </div>
+            </div>
+            <div class="msg agent">
+              <div class="ava">🤖</div>
+              <div class="bw">
+                <div class="meta">AI 招聘专员 · 09:41</div>
+                <div class="bub">
+                  好的，「高级后端工程师」本周（8 月 4 日–8 月 10 日）漏斗如下：
+                  <div class="fun">
+                    <div class="fr"><span class="fl">新简历</span><div class="bar"><i style="width:100%"></i></div><b>47</b></div>
+                    <div class="fr"><span class="fl">初筛通过</span><div class="bar"><i style="width:38%"></i></div><b>18</b></div>
+                    <div class="fr"><span class="fl">部门通过</span><div class="bar"><i class="gold" style="width:23%"></i></div><b>11</b></div>
+                    <div class="fr"><span class="fl">面试中</span><div class="bar"><i class="gold" style="width:9%"></i></div><b>4</b></div>
+                    <div class="fr"><span class="fl">终面</span><div class="bar"><i class="green" style="width:5%"></i></div><b>2</b></div>
+                    <div class="fnote">自动初筛覆盖 100%；部门待反馈 6 份（2 份超目标 48h，已自动催办）。</div>
+                  </div>
+                  <a class="jump" href="board.html">查看完整看板 →</a>
+                </div>
+              </div>
+            </div>
+
+            <div class="tdiv"><span>今天 15:12</span></div>
+
+            <!-- 4. 报告生成推送 -->
+            <div class="msg agent">
+              <div class="ava">🤖</div>
+              <div class="bw">
+                <div class="meta">AI 招聘专员 · 15:12 · 主动推送</div>
+                <div class="bub">
+                  <span class="tag">报告</span><b>陈砚秋</b>二面结束，证据链评估报告已生成，用时 <b>8 分 12 秒</b>。综合<span data-tip="该分数为 AI 建议分，附逐条证据链引用；结论需二面官确认后才生效。">建议 4.2／5</span>，关键判断均附访谈原文时间戳引用。<br>
+                  <span class="muted">按红线：该结论为「建议」，已发送二面官刘慕青确认，确认前不进入下一环节。</span><br>
+                  <a class="jump" href="evaluation.html">打开报告 →</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 预设指令 + 输入 -->
+          <div class="compose">
+            <div class="chips">
+              <button class="chip" id="chip-c1" onclick="askChip('c1')">明天有哪些面试？</button>
+              <button class="chip" id="chip-c2" onclick="askChip('c2')">顾北辰为什么进复核池？</button>
+              <button class="chip" id="chip-c3" onclick="askChip('c3')">给部门再催一下反馈</button>
+            </div>
+            <div class="inrow">
+              <input id="inbox" type="text" placeholder="用自然语言下指令，就像给下属发消息……（演示环境）" onkeydown="if(event.key==='Enter')sendFree()">
+              <button class="btn primary" onclick="sendFree()">发送</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= 右：任务队列 + 规则 ================= -->
+        <div>
+          <div class="panel">
+            <div class="p-head"><b>agent 今日任务队列</b><span class="hint">8 月 10 日</span></div>
+            <div class="p-body" style="padding-top:8px;padding-bottom:8px;">
+              <div class="task"><div class="tk"><b>简历初筛 12 份</b><span>昨日新收，自动初筛覆盖 100%</span></div><span class="pill green">已完成</span></div>
+              <div class="task"><div class="tk"><b>约面 2 场</b><span>沈知远（二面）／苏念安（二面邀请已发）</span></div><span class="pill green">已完成</span></div>
+              <div class="task"><div class="tk"><b>陈砚秋 二面证据链报告</b><span>综合建议 4.2／5，15:12 已推送刘慕青</span></div><span class="pill amber">待面试官确认</span></div>
+              <div class="task"><div class="tk"><b>部门反馈催办</b><span>待反馈 6 份，2 份超目标 48h 已自动催办</span></div><span class="pill blue">进行中</span></div>
+              <div class="task"><div class="tk"><b>例外上报 1 件</b><span>林晚晴第 2 次改期 · EX-0810-01</span></div><span class="pill gold" id="excPill">待 HR 决策</span></div>
+              <div class="task"><div class="tk"><b>周远帆 拒绝信草拟</b><span>淘汰已人工确认（2.1），拒信按红线须人批后发出</span></div><span class="pill amber">待人工批准</span></div>
+            </div>
+          </div>
+
+          <div class="panel mt">
+            <div class="p-head"><b>代发与决策规则</b><span class="hint">红线内置，不可绕过</span></div>
+            <div class="p-body">
+              <div class="rule"><span class="rn">1</span><p><b>日常沟通 agent 代发、署你的名。</b>约面、提醒、资料收集等使用审定模板，以 HR 名义发出，候选人体验一致。</p></div>
+              <div class="rule"><span class="rn">2</span><p><b>拒绝信必须人工批准。</b>agent 只草拟、不发出；未经你批准，任何拒绝类消息不会触达候选人。</p></div>
+              <div class="rule"><span class="rn">3</span><p><b>录用／淘汰只由人确认。</b>AI 输出一律是「建议」；例外情况由 agent 打包上报，你一次决策即可。</p></div>
+              <div class="sla">服务目标（方案目标值，非既成承诺）：初筛报告目标 10 分钟内、部门反馈目标 48h、候选人打扰触点目标 ≤3 次。面试质检结果仅面试官本人可见。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="footnote">演示数据均为虚构 · 商汤科技 · 大模型生态渠道部</p>
+    </div>
+  </div>
+</div>
+
+<script>
+var chat = document.getElementById('chat');
+
+function scrollBottom() { chat.scrollTop = chat.scrollHeight; }
+
+function addHR(html) {
+  var d = document.createElement('div');
+  d.className = 'msg hr';
+  d.innerHTML = '<div class="bw"><div class="meta">你 · 刚刚</div><div class="bub">' + html + '</div></div>';
+  chat.appendChild(d); scrollBottom();
+}
+
+function addAgent(html, delay) {
+  setTimeout(function () {
+    var d = document.createElement('div');
+    d.className = 'msg agent';
+    d.innerHTML = '<div class="ava">🤖</div><div class="bw"><div class="meta">AI 招聘专员 · 刚刚</div><div class="bub">' + html + '</div></div>';
+    chat.appendChild(d); scrollBottom();
+  }, delay || 450);
+}
+
+/* 例外上报决策 */
+var excHandled = false;
+function excChoose(opt) {
+  if (excHandled) return;
+  excHandled = true;
+  var card = document.getElementById('excCard');
+  var done = document.getElementById('excDone');
+  var pill = document.getElementById('excPill');
+  card.classList.add('handled');
+  if (opt === 'A') {
+    done.textContent = '✓ 已选择 A · 改约下周一 10:00';
+    addHR('选 A，按下周一 10:00 改约。');
+    addAgent('已重新发出面试邀请并更新双方日历：<b>8 月 17 日（周一）10:00</b>，一面官<b>王梓航</b>。改期原因已记录进候选人档案；若第 3 次改期，将按升级规则同步 HRBP <b>赵一宁</b>。本次代发消息署你的名，动作已写入审计日志。');
+  } else {
+    done.textContent = '✓ 已选择 B · 转 HR 人工跟进';
+    addHR('先转我人工跟进吧。');
+    addAgent('好的，已将<b>林晚晴</b>标记为「HR 人工跟进」，自动约面已暂停，她的简历、沟通记录与两次改期原因已整理成摘要放入你的待办。你跟进有结论后告诉我，我来继续走流程。');
+  }
+  if (pill) { pill.className = 'pill green'; pill.textContent = '已决策'; }
+}
+
+/* 预设指令 chip */
+var chipQA = {
+  c1: {
+    q: '明天有哪些面试？',
+    a: '明天（8 月 11 日·周二）共 2 场：<ul>' +
+       '<li><b>10:00 沈知远</b> · 高级后端工程师 · 二面（二面官刘慕青·技术总监，双方已确认）；一面综合建议 3.8，一面官王梓航。</li>' +
+       '<li><b>15:00 苏念安</b> · 解决方案架构师 · 二面（邀请已发出，候选人尚未确认，我会在今晚 20:00 前跟进）。</li></ul>' +
+       '另：林晚晴的改期事项以上方例外上报卡片的决策为准。'
+  },
+  c2: {
+    q: '顾北辰为什么进复核池？',
+    a: '<b>顾北辰</b>（高级后端工程师）自动初筛综合建议 <b>2.4／5</b>，低于阈值 3.0。按红线<b>不自动拒绝</b>，已转入人工复核池并暂停自动流程。两条存疑点：<ul>' +
+       '<li>简历称「主导千万级并发网关改造」，但证据链显示对应项目周期仅 2 个月，且无量化指标佐证；</li>' +
+       '<li>近 3 年 3 次跳槽，与画像卡 v3.2（HRBP 赵一宁）的稳定性要求存在冲突。</li></ul>' +
+       '以上均为建议结论，是否淘汰由你确认。<a class="jump" href="screening.html">查看人工复核池（当前 5 人）→</a>'
+  },
+  c3: {
+    q: '给部门再催一下反馈',
+    a: '已向用人部门再次发送反馈提醒（审定模板、署你的名），并抄送 HRBP <b>赵一宁</b>。当前推送部门待反馈 <b>6 份</b>，其中 <b>2 份</b>已超目标 48h。本次催办动作已写入审计日志，若明日 12:00 前仍无回复，我会给出升级建议供你决策。<a class="jump" href="compliance.html">查看审计日志说明 →</a>'
+  }
+};
+function askChip(key) {
+  var c = chipQA[key];
+  if (!c) return;
+  addHR(c.q);
+  addAgent(c.a);
+  var btn = document.getElementById('chip-' + key);
+  if (btn) btn.classList.add('used');
+}
+
+/* 自由输入（演示环境预设回复） */
+function sendFree() {
+  var box = document.getElementById('inbox');
+  var t = (box.value || '').trim();
+  if (!t) return;
+  box.value = '';
+  addHR(t.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+  addAgent('收到，我来处理，完成后主动向你汇报。（演示环境为预设回复；正式版本中由大模型解析该指令、编排工具执行，涉及录用／淘汰或对外发送拒绝信时仍会回到你这里确认。）');
+}
+
+scrollBottom();
+</script>
+</body>
+</html>

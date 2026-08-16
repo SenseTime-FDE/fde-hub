@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>坐席工作台 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/voice.js"></script>
+<script>
+VX.page("workbench", async (root, ctx) => {
+  const { data, me } = ctx;
+  const myScenes = me.perms.viewAll ? Object.keys(VX.SC).filter(s=>s!=="*") : (me.scenarios||[]).filter(s=>s!=="*");
+  const voices = data.voices.filter(v=>v.status==="on");
+  let S = null; // 当前会话状态
+
+  root.innerHTML = `
+  <div class="grid" style="grid-template-columns:340px 1fr;gap:18px;align-items:start">
+    <!-- 左:会话配置 + 语音控制 -->
+    <div class="grid" style="gap:16px">
+      <div class="card pad">
+        <div class="hd"><h3>🎧 新建会话</h3></div>
+        <label class="fld"><span class="lb">业务场景</span><select id="sc"></select></label>
+        <label class="fld"><span class="lb">模式</span>
+          <select id="md"><option value="omni">🌐 全渠道统一(售前+售后)</option><option value="service">AI 客服 · Inbound</option><option value="sales">AI 销售</option><option value="outbound">AI 外呼</option></select></label>
+        <div id="omnibar" class="notice" style="margin:-4px 0 12px;display:none">🌐 <b>一个 Agent</b> · 语音+文本全双工 · 全渠道统一 · 售前售后一体 · 一套知识库 · SenseAudio V2.0</div>
+        <label class="fld"><span class="lb">Agent</span><select id="ag"></select></label>
+        <div class="two" style="gap:10px">
+          <label class="fld"><span class="lb">音色</span><select id="vo"></select></label>
+          <label class="fld"><span class="lb">语种</span><select id="lg">
+            <option value="zh">中文</option><option value="yue">粤语</option><option value="en">English</option>
+            <option value="ar">العربية</option><option value="th">ไทย</option><option value="es">Español</option><option value="id">Bahasa</option>
+          </select></label>
+        </div>
+        <label class="fld"><span class="lb">渠道</span><select id="ch">
+          <option value="voice">🎧 电话语音</option><option value="web">🌐 网页</option><option value="app">📱 App</option>
+          <option value="miniapp">🟢 小程序</option><option value="wechat">💬 微信</option><option value="email">✉️ 邮件</option>
+          <option value="sms">📩 短信</option><option value="whatsapp">🟩 WhatsApp</option><option value="line">🟦 LINE</option></select></label>
+        <button class="btn voice lg" id="startbtn" style="width:100%;justify-content:center">▶ 开始全双工会话</button>
+      </div>
+
+      <div class="card pad" id="voicepanel" style="display:none">
+        <div class="between"><div class="hd" style="margin:0"><h3>实时语音</h3></div><div id="rtstate" class="live"><span class="pulse"></span>连接中</div></div>
+        <div class="wave" id="wave" style="margin:16px 0 8px;justify-content:center"></div>
+        <div style="text-align:center;color:var(--ink-3);font-size:12px" id="wavehint">SenseAudio Realtime 2.0 · 端到端可打断</div>
+        <div class="hr"></div>
+        <div class="row" style="gap:8px">
+          <button class="btn" id="micbtn" style="flex:1;justify-content:center">🎙️ 开启麦克风</button>
+          <button class="btn" id="bargebtn" style="flex:1;justify-content:center" title="模拟用户插话打断">✋ 打断</button>
+        </div>
+        <div class="stats" style="grid-template-columns:1fr 1fr;margin-top:14px;gap:10px">
+          <div class="stat voice"><div class="k">端到端延迟</div><div class="v" id="mLat">—<small>ms</small></div></div>
+          <div class="stat"><div class="k">对话轮次</div><div class="v" id="mTurn">0</div></div>
+          <div class="stat voice"><div class="k">打断次数</div><div class="v" id="mBarge">0</div></div>
+          <div class="stat"><div class="k">时长</div><div class="v" id="mDur">0<small>s</small></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右:对话 + Copilot -->
+    <div class="grid" style="grid-template-columns:1fr 300px;gap:16px;align-items:start">
+      <div class="card" style="display:flex;flex-direction:column;height:calc(100vh - 130px);min-height:520px">
+        <div class="between" style="padding:14px 18px;border-bottom:1px solid var(--line)">
+          <div><b id="cvTitle" style="color:#fff">未开始会话</b> <span id="cvSub" class="sub"></span></div>
+          <div id="cvBadge"></div>
+        </div>
+        <div class="chat" id="chat" style="flex:1;overflow-y:auto;padding:18px">
+          <div class="empty"><div class="ic">💬</div><div>选择场景与 Agent,点击「开始全双工会话」<br/>可用语音(需麦克风)或文本与 AI 实时对话</div></div>
+        </div>
+        <div id="interim" style="padding:0 18px;color:var(--teal);font-size:12.5px;min-height:20px"></div>
+        <div style="padding:12px 16px;border-top:1px solid var(--line);display:flex;gap:10px">
+          <input id="tin" placeholder="输入文本消息…(全双工:也可直接说话)" disabled/>
+          <button class="btn pri" id="sendbtn" disabled>发送</button>
+        </div>
+      </div>
+
+      <div class="grid" style="gap:16px">
+        <div class="card pad">
+          <div class="hd"><h3>🤖 坐席 Copilot</h3></div>
+          <div class="kv"><span class="k">识别意图</span><span class="v" id="cIntent">—</span></div>
+          <div class="kv"><span class="k">情绪</span><span class="v" id="cSent">—</span></div>
+          <div class="kv"><span class="k">命中 SOP</span><span class="v" id="cSop">—</span></div>
+          <div class="kv"><span class="k">引擎</span><span class="v" id="cSrc">—</span></div>
+          <div id="sopSteps" style="margin-top:12px"></div>
+        </div>
+        <div class="card pad">
+          <div class="hd"><h3>会话动作</h3></div>
+          <div class="grid" style="gap:9px">
+            <button class="btn" id="transferbtn" disabled>🙋 转人工坐席</button>
+            <button class="btn pri" id="savebtn" disabled>💾 结束并保存留痕</button>
+            <button class="btn ghost sm" id="clearbtn" disabled>清空对话</button>
+          </div>
+          <div class="notice" style="margin-top:12px">语音+文本混合全双工:AI 播报时用户开口即打断;每通对话自动沉淀客户画像与意图,可在「会话留痕」复盘。</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  // ---- 填充下拉 ----
+  const $=VX.$;
+  $("#sc").innerHTML = myScenes.map(s=>`<option value="${s}">${VX.scEmoji(s)} ${VX.scLabel(s)}</option>`).join("");
+  $("#vo").innerHTML = voices.map(v=>`<option value="${v.id}">${VX.esc(v.name)}</option>`).join("");
+  function fillAgents(){
+    const sc=$("#sc").value, md=$("#md").value;
+    $("#omnibar").style.display = md==="omni" ? "flex" : "none";
+    // omni 全渠道统一 Agent 跨场景:忽略场景匹配;其余按 场景+模式
+    const ags = md==="omni" ? data.agents.filter(a=>a.mode==="omni") : data.agents.filter(a=>a.scenario===sc && a.mode===md);
+    $("#ag").innerHTML = ags.length?ags.map(a=>`<option value="${a.id}">${VX.esc(a.name)} ${a.status==="on"?"":"(下线)"}</option>`).join(""):`<option value="">— 无匹配 Agent,可直接对话 —</option>`;
+    if(ags[0]){ const a=ags[0]; if(a.voiceId) $("#vo").value=a.voiceId; if(a.langs&&a.langs[0]) $("#lg").value=a.langs[0]; }
+  }
+  $("#sc").onchange=fillAgents; $("#md").onchange=fillAgents; fillAgents();
+  $("#ag").onchange=()=>{ const a=data.agents.find(x=>x.id===$("#ag").value); if(a){ if(a.voiceId)$("#vo").value=a.voiceId; if(a.langs&&a.langs[0])$("#lg").value=a.langs[0]; } };
+
+  // 波形条
+  const wave=$("#wave"); wave.innerHTML=Array.from({length:28},()=>`<i></i>`).join("");
+  const bars=VX.$$("#wave i");
+  function setWave(mode,level){ // mode: idle|listen|speak
+    wave.className = "wave " + (mode==="speak"?"coral live":mode==="listen"?"live":"");
+    bars.forEach((b,i)=>{ const base = mode==="idle"?0.12 : (0.2+0.7*Math.abs(Math.sin(i*0.6))*(level||0.5)); b.style.height=(base*100)+"%"; });
+  }
+  setWave("idle");
+
+  let voice=null;
+  function pushBubble(role,text,meta){
+    const c=$("#chat"); if(c.querySelector(".empty")) c.innerHTML="";
+    const who = role==="user"?"客户":role==="ai"?"AI":"系统";
+    const b=VX.el(`<div class="bub ${role}"><div class="meta">${who}${meta?" · "+VX.esc(meta):""}</div><div>${VX.esc(text)}</div></div>`);
+    c.appendChild(b); c.scrollTop=c.scrollHeight; return b;
+  }
+  function updCopilot(r){
+    $("#cIntent").textContent=r.intent||"—";
+    $("#cSent").innerHTML = r.sentiment==="negative"?VX.badge("负向 · 需安抚","bad"):VX.badge("中性/正向","on");
+    $("#cSop").textContent = r.sop?r.sop.title:"—";
+    $("#cSrc").innerHTML = r.source==="live"?VX.badge("实时端点 Live","ai"):VX.badge("内置引擎","run");
+    const sop = r.sop ? data.scripts.find(s=>s.id===r.sop.id) : null;
+    $("#sopSteps").innerHTML = sop ? `<div class="sub" style="margin-bottom:6px">${VX.esc(sop.title)} · 建议步骤</div>`+sop.steps.map((st,i)=>`<div class="chip" style="display:flex;margin:4px 0">${i+1}. ${VX.esc(st)}</div>`).join("") : "";
+    if(r.transfer){ $("#transferbtn").classList.add("pri"); }
+  }
+
+  async function aiRespond(userText){
+    if(!S) return;
+    const t0=performance.now();
+    let r;
+    try{ const resp=await VX.api("/api/rt/reply","POST",{scenario:S.scenario,mode:S.mode,agentName:S.agentName,history:S.transcript,text:userText,lang:S.lang}); r=resp.reply; }
+    catch(e){ VX.toast(e.message,"err"); return; }
+    S.transcript.push({role:"user",text:userText});
+    pushBubble("ai",r.text);
+    S.transcript.push({role:"ai",text:r.text});
+    S.turns++; S.lastLat=r.latencyMs; if(r.transfer) S.resolvedBy="human"; S.intent=r.intent; if(r.sop)S.sop=r.sop;
+    $("#mTurn").textContent=S.turns; $("#mLat").innerHTML=r.latencyMs+'<small>ms</small>';
+    updCopilot(r);
+    if(r.transfer) pushBubble("sys","已转接人工坐席,完整上下文已同步");
+    // TTS 播报(全双工:播报中可被打断)
+    if(voice){ setWave("speak",0.7); $("#rtstate").innerHTML=`<span class="pulse"></span>AI 播报中 · 可打断`; $("#wavehint").textContent="AI 正在说话 —— 开口即打断(barge-in)";
+      await voice.say(r.text, S.lang); setWave(voice.listening?"listen":"idle"); $("#rtstate").innerHTML=`<span class="pulse"></span>${voice.listening?"聆听中":"待命"}`; $("#wavehint").textContent="SenseAudio Realtime 2.0 · 端到端可打断"; }
+  }
+
+  function startSession(){
+    const sc=$("#sc").value, md=$("#md").value, ag=data.agents.find(a=>a.id===$("#ag").value);
+    S={ scenario:sc, mode:md, channel:$("#ch").value, lang:$("#lg").value, voiceId:$("#vo").value,
+        agentId:ag?ag.id:"", agentName:ag?ag.name:"通用坐席", voiceName:(voices.find(v=>v.id===$("#vo").value)||{}).name||"",
+        transcript:[], turns:0, barge:0, start:Date.now(), resolvedBy:"ai", intent:"", sop:null, lastLat:0 };
+    $("#voicepanel").style.display="block";
+    $("#chat").innerHTML=""; $("#tin").disabled=false; $("#sendbtn").disabled=false;
+    $("#transferbtn").disabled=false; $("#savebtn").disabled=false; $("#clearbtn").disabled=false;
+    $("#startbtn").textContent="■ 结束会话"; $("#startbtn").classList.remove("voice"); $("#startbtn").classList.add("pri");
+    $("#cvTitle").textContent=S.agentName; $("#cvSub").textContent=`${VX.scLabel(sc)} · ${VX.MODE[md]} · ${VX.LANG[S.lang]||S.lang}`;
+    $("#cvBadge").innerHTML=VX.modeBadge(md)+" "+VX.badge(VX.CH[S.channel]||S.channel,"off");
+    $("#rtstate").innerHTML=`<span class="pulse"></span>已就绪`; setWave("idle");
+    pushBubble("sys",`会话已建立 · SenseAudio Realtime 2.0 · 音色「${S.voiceName}」`);
+    // 开场白
+    aiRespond(md==="outbound"?"（外呼接通）":"你好");
+    // 计时
+    S.timer=setInterval(()=>{ $("#mDur").innerHTML=Math.floor((Date.now()-S.start)/1000)+'<small>s</small>'; },1000);
+  }
+  function endSession(reset){
+    if(S&&S.timer)clearInterval(S.timer);
+    if(voice){voice.dispose();voice=null;}
+    $("#micbtn").textContent="🎙️ 开启麦克风"; setWave("idle");
+    $("#startbtn").textContent="▶ 开始全双工会话"; $("#startbtn").classList.add("voice"); $("#startbtn").classList.remove("pri");
+    $("#tin").disabled=true; $("#sendbtn").disabled=true; $("#transferbtn").disabled=true; $("#savebtn").disabled=true; $("#clearbtn").disabled=true;
+    if(reset)S=null;
+  }
+
+  $("#startbtn").onclick=()=>{ if(S){ if(confirmEnd()) return;} else startSession(); };
+  function confirmEnd(){ VX.confirm("结束当前会话?未保存的留痕将丢失。",()=>{ endSession(true); $("#voicepanel").style.display="none"; $("#chat").innerHTML='<div class="empty"><div class="ic">💬</div><div>会话已结束</div></div>'; }); return true; }
+
+  $("#sendbtn").onclick=()=>{ const v=$("#tin").value.trim(); if(!v||!S)return; pushBubble("user",v); $("#tin").value=""; aiRespond(v); };
+  $("#tin").onkeydown=(e)=>{ if(e.key==="Enter"){ e.preventDefault(); $("#sendbtn").click(); } };
+
+  $("#micbtn").onclick=async()=>{
+    if(!S){ VX.toast("请先开始会话","err"); return; }
+    if(!voice){
+      voice=new VXVoice.VoiceSession({ lang:S.lang, onEvent:(type,p)=>{
+        if(type==="user"){ $("#interim").textContent=""; pushBubble("user",p.text); aiRespond(p.text); }
+        else if(type==="interim"){ $("#interim").textContent="🎙️ "+p.text; }
+        else if(type==="level"){ if(!voice.speaking) setWave("listen",p.level); }
+        else if(type==="bargein"){ S.barge++; $("#mBarge").textContent=S.barge; pushBubble("sys","⚡ 用户插话,已打断 AI(barge-in)"); }
+        else if(type==="nomic"){ VX.toast(p.reason,"err"); $("#micbtn").textContent="🎙️ 麦克风不可用"; }
+        else if(type==="listen"){ $("#rtstate").innerHTML=`<span class="pulse"></span>聆听中`; }
+      }});
+      const ok=await voice.enableMic();
+      if(ok){ voice.startListen(); $("#micbtn").textContent="🔴 麦克风开启中 · 点此关闭"; setWave("listen",0.4); $("#wavehint").textContent="正在聆听 —— 请说话"; }
+      else { voice=null; }
+    } else { voice.dispose(); voice=null; $("#micbtn").textContent="🎙️ 开启麦克风"; setWave("idle"); }
+  };
+  $("#bargebtn").onclick=()=>{ if(voice&&voice.speaking){ voice.bargeIn(); } else if(S){ S.barge++; $("#mBarge").textContent=S.barge; pushBubble("sys","⚡ 模拟用户插话打断(barge-in)"); } };
+  $("#transferbtn").onclick=()=>{ if(!S)return; S.resolvedBy="human"; pushBubble("sys","🙋 已转接人工坐席 · 上下文已完整交接"); VX.toast("已转人工","ok"); };
+  $("#clearbtn").onclick=()=>{ if(!S)return; VX.confirm("清空当前对话记录?",()=>{ S.transcript=[]; S.turns=0; $("#chat").innerHTML=""; $("#mTurn").textContent=0; }); };
+
+  $("#savebtn").onclick=async()=>{
+    if(!S||!S.transcript.length){ VX.toast("暂无对话内容","err"); return; }
+    const rec={ scenario:S.scenario, mode:S.mode, channel:S.channel, lang:S.lang, agentId:S.agentId, agentName:S.agentName,
+      voiceId:S.voiceId, voiceName:S.voiceName, customer:"工作台会话", intent:S.intent||"实时会话",
+      outcome:S.resolvedBy==="human"?"转人工处理":"AI 自助完成", resolvedBy:S.resolvedBy,
+      durationSec:Math.floor((Date.now()-S.start)/1000), turns:S.turns, latencyMs:S.lastLat, bargeIn:S.barge>0,
+      sopId:S.sop?S.sop.id:"", sopTitle:S.sop?S.sop.title:"", transcript:S.transcript, tags:["工作台","实时"] };
+    try{ await VX.api("/api/call","POST",rec); VX.toast("会话留痕已保存,可在「会话留痕」查看","ok"); endSession(true); $("#voicepanel").style.display="none"; $("#chat").innerHTML='<div class="empty"><div class="ic">✅</div><div>留痕已保存</div></div>'; }
+    catch(e){ VX.toast(e.message,"err"); }
+  };
+});
+</script>
+</body></html>

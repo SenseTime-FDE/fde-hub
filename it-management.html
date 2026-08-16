@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能需求管理平台 · IT 需求管理 · 商汤生态渠道</title>
+<meta name="description" content="智能需求管理平台让需求从一份文档变成可执行的研发蓝图，自动完成需求质检、功能分解、流程与原型生成，并通过人工在环确保每一项 AI 输出可追溯、可确认。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/style.css">
+<script>
+  if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+  window.addEventListener("load", function () { window.scrollTo(0, 0); });
+  window.addEventListener("pageshow", function () { window.scrollTo(0, 0); });
+</script>
+<style>
+.req-clean{padding:20px 0 40px}
+.req-clean .wrap{max-width:1180px}
+.req-overview{display:block;max-width:1120px;margin:18px auto 0;padding:30px 32px 28px;border:1px solid rgba(231,36,39,.10);border-radius:32px;background:linear-gradient(180deg,#fffdfb 0%,#ffffff 100%);box-shadow:0 24px 60px -52px rgba(15,18,24,.30)}
+.req-overview-copy{padding:0 0 4px;max-width:820px;margin:0 auto 18px;text-align:center}
+.req-overview-badge{display:inline-flex;align-items:center;gap:8px;color:var(--red);font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.req-overview-copy h2{font-size:34px;line-height:1.18;letter-spacing:-.03em;margin:10px 0 16px}
+.req-overview-copy p{font-size:15.5px;line-height:1.85;color:var(--gray);margin:0 auto 16px;max-width:76ch}
+.req-overview-copy p strong{color:var(--ink)}
+.req-overview-copy .req-keyline{font-size:16px;color:var(--ink);margin-top:20px}
+.req-hover{background:transparent;border:0;box-shadow:none;padding:0;margin-top:28px}
+.req-hover-shell{display:grid;grid-template-columns:minmax(300px,360px) minmax(0,1fr);gap:28px;align-items:center}
+.req-hover-list{display:grid;gap:12px}
+.req-hover-item{position:relative;padding:24px 26px;border-radius:24px;border:1px solid transparent;background:#F7F9FC;cursor:pointer;transition:all .2s}
+.req-hover-item:hover,.req-hover-item.active{background:#fff;border-color:rgba(231,36,39,.16);box-shadow:0 16px 32px -28px rgba(15,18,24,.26)}
+.req-hover-item b{display:block;font-size:24px;line-height:1.25;color:var(--ink);margin-bottom:10px;letter-spacing:-.02em}
+.req-hover-item p{margin:0;color:var(--gray);font-size:16px;line-height:1.75}
+.req-preview-stack{display:grid;gap:14px;align-self:center}
+.req-preview{display:none;border-radius:22px;overflow:hidden;border:1px solid var(--line);background:#fff;box-shadow:0 18px 44px -34px rgba(15,18,24,.24)}
+.req-preview.active{display:block}
+.req-preview img{width:100%;display:block;height:auto;object-fit:contain;background:#F4F7FB}
+.req-preview figcaption{padding:22px 26px 26px}
+.req-preview figcaption b{display:block;font-size:24px;color:var(--ink);margin-bottom:8px;letter-spacing:-.02em}
+.req-preview figcaption p{margin:0;color:var(--gray);font-size:16px;line-height:1.75}
+.req-slim{margin-top:40px}
+.req-slim-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}
+.req-slim-head h2{font-size:26px;letter-spacing:-.03em}
+.req-slim-head p{color:var(--gray);font-size:14px;line-height:1.7;max-width:52ch}
+.req-embed{border:1px solid var(--line);border-radius:28px;overflow:hidden;background:#fff;box-shadow:0 20px 50px -38px rgba(15,18,24,.28)}
+.req-embed iframe{width:100%;height:980px;border:0;display:block;background:#fff}
+.req-cta{margin-top:28px;padding:22px 24px;border-radius:24px;border:1px solid rgba(231,36,39,.12);background:linear-gradient(135deg,#FFF8F2,#fff 60%,#FBFCFF);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.req-cta h3{font-size:20px;margin:0 0 6px;letter-spacing:-.02em}
+.req-cta p{margin:0;color:var(--gray);font-size:14px;line-height:1.7;max-width:60ch}
+@media (max-width: 980px){
+  .req-overview{padding:24px 20px}
+  .req-hover-shell{grid-template-columns:1fr}
+  .req-cta{flex-direction:column;align-items:flex-start}
+}
+@media (max-width: 760px){
+  .req-slim-head{flex-direction:column;align-items:flex-start}
+  .req-embed iframe{height:920px}
+}
+</style>
+</head>
+<body>
+  <div id="progress"></div>
+
+  <nav id="nav">
+    <div class="nav-inner">
+      <a class="brand" href="index.html">
+        <img class="st-logo" src="images/sensetime-logo.png" alt="商汤科技 SenseTime">
+        <span class="brand-div"></span>
+        <span class="fde-lockup">
+          <span class="fde-word">生态渠道</span>
+          <span class="fde-cap">AI Ecosystem Partnerships - FDE INSIDE</span>
+        </span>
+      </a>
+      <div class="nav-links">
+        <a href="solutions.html" class="cur">产品与方案</a>
+        <a href="tokenplan.html">Token Plan</a>
+        <a href="events.html">市场活动</a>
+        <a href="careers.html">人才招聘</a>
+        <a href="forum.html">技术交流</a>
+        <a href="partners.html">加入生态</a>
+      </div>
+      <a href="https://app.jingsocial.com/mF/commonLandingPage/CTA/6d34eaf60a434d7d8600094418b7a044?pushId=Das2J4qeZ5X6xGo4A5L7xn1" class="btn btn-red nav-cta">申请加入</a>
+    </div>
+  </nav>
+
+  <main id="top" class="req-clean">
+    <header class="hero hero-sub">
+      <div class="hero-glow" aria-hidden="true"></div>
+      <div class="hero-grid-lines" aria-hidden="true"></div>
+      <div class="wrap hero-center">
+        <span class="eyebrow">智能需求管理平台 · IT 需求管理</span>
+        <h1>让需求从一份文档<br><span class="hl">变成可执行的研发蓝图</span></h1>
+        <p class="lead">基于企业私有化大模型，自动完成需求质检、功能分解、流程与原型生成，并通过人工在环确保每一项 AI 输出可追溯、可确认。打通从需求输入到评审基线的完整链路。</p>
+      </div>
+    </header>
+
+    <section class="wrap">
+      <div class="req-overview reveal">
+        <div class="req-overview-copy">
+          <span class="req-overview-badge">产品概览</span>
+          <h2>把需求文档变成研发可以直接执行的蓝图</h2>
+          <p><strong>智能需求管理平台不是一个简单的文档整理工具，而是一套把需求、质检、分解、原型和基线确认串成闭环的平台。</strong>它会先识别需求中的缺口、冲突和模糊项，再把需求拆成可执行的功能段、流程图和原型建议，最后交给业务和技术一起确认。</p>
+          <p>系统把“需求从哪里来、谁确认、谁负责、哪里还缺信息”都放在同一套链路里。这样一来，评审不再围着文档原文争论，而是围着可执行的结果对齐，需求也会沉淀成可验证、可复用的研发资产。</p>
+          <p class="req-keyline">让 AI 先做质检和拆解，让人做确认和取舍，需求就会从文本变成蓝图。</p>
+        </div>
+        <aside class="req-hover" id="hoverModule">
+          <div class="req-hover-shell">
+            <div class="req-hover-list">
+              <div class="req-hover-item active" data-preview="preview-1">
+                <b>项目总览</b>
+                <p>用一屏看清文档数、质检问题、已答复比例和基线状态。</p>
+              </div>
+              <div class="req-hover-item" data-preview="preview-2">
+                <b>质检报告</b>
+                <p>逐条问题定位到文档原文，并给出修改建议与待业务答复项。</p>
+              </div>
+              <div class="req-hover-item" data-preview="preview-3">
+                <b>澄清管理</b>
+                <p>把待答复问题单独拉出来，按文档逐项推进澄清和补齐。</p>
+              </div>
+              <div class="req-hover-item" data-preview="preview-4">
+                <b>评审与基线</b>
+                <p>评审通过后才能冻结基线，避免边看边改，版本失控。</p>
+              </div>
+            </div>
+            <div class="req-preview-stack">
+              <figure class="req-preview active" id="preview-1">
+                <img src="images/it-req/overview.png" alt="项目总览界面">
+                <figcaption><b>项目总览</b><p>从整体上看文档数、质检问题和基线状态，先知道当前处在什么阶段。</p></figcaption>
+              </figure>
+              <figure class="req-preview" id="preview-2">
+                <img src="images/it-req/report.png" alt="需求质检报告界面">
+                <figcaption><b>质检报告</b><p>把问题逐条定位到原文，方便业务、产品和技术对齐修改建议。</p></figcaption>
+              </figure>
+              <figure class="req-preview" id="preview-3">
+                <img src="images/it-req/review.png" alt="澄清管理界面">
+                <figcaption><b>澄清管理</b><p>把待答复项集中管理，逐条推进业务回复和确认。</p></figcaption>
+              </figure>
+              <figure class="req-preview" id="preview-4">
+                <img src="images/it-req/baseline.png" alt="评审与基线界面">
+                <figcaption><b>评审与基线</b><p>通过评审后再冻结基线，保证后续版本是在明确边界上演进。</p></figcaption>
+              </figure>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="wrap req-slim reveal">
+      <div class="req-slim-head">
+        <div>
+          <span class="req-overview-badge">产品体验</span>
+          <h2>直接进入产品，自己看一遍需求闭环</h2>
+        </div>
+        <p>下面嵌入的是本地 `智能需求管理平台 Demo` 站点。它和上面的概览是同一套产品，只是更适合完整体验。</p>
+      </div>
+      <div class="req-embed">
+        <iframe src="./智能需求管理平台 Demo/智能需求管理平台Demo.html" title="智能需求管理平台 Demo" loading="lazy"></iframe>
+      </div>
+      <div class="req-cta">
+        <div>
+          <h3>想看更完整的操作流？</h3>
+          <p>可以继续在嵌入站里看质检、澄清、评审与基线，体验从需求输入到研发确认的完整闭环。</p>
+        </div>
+        <a class="btn btn-red" href="./智能需求管理平台 Demo/智能需求管理平台Demo.html" target="_blank" rel="noopener">打开完整产品站</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap foot-legal">
+      <p class="foot-copy">
+        沪 ICP 备 19044592 号-3 ｜
+        <a href="https://beian.mps.gov.cn/" target="_blank" rel="noopener"><img src="images/gongan.png" alt="" onerror="this.style.display='none'">沪公网安备 31010402009327 号</a>
+        © 2014–2026 SenseTime. All Rights Reserved. 上海商汤智能科技有限公司
+      </p>
+      <p class="foot-sub">商汤科技 · 大模型生态渠道部 ｜ 上海商汤智能科技有限公司是商汤集团旗下子公司</p>
+    </div>
+  </footer>
+
+  <script src="./js/data.js"></script>
+  <script src="./js/auth.js"></script>
+  <script src="./js/main.js"></script>
+  <script>
+    (function () {
+      const items = Array.from(document.querySelectorAll('.req-hover-item'));
+      const previews = Array.from(document.querySelectorAll('.req-preview'));
+      const module = document.getElementById('hoverModule');
+      function showPreview(id) {
+        items.forEach(item => item.classList.toggle('active', item.dataset.preview === id));
+        previews.forEach(preview => preview.classList.toggle('active', preview.id === id));
+      }
+      items.forEach(item => {
+        item.addEventListener('mouseenter', () => showPreview(item.dataset.preview));
+        item.addEventListener('focus', () => showPreview(item.dataset.preview));
+        item.addEventListener('click', () => showPreview(item.dataset.preview));
+      });
+      if (module) module.addEventListener('mouseleave', () => showPreview('preview-1'));
+    })();
+  </script>
+</body>
+</html>

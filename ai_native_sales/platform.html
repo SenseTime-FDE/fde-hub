@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · Agent 平台</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ===== platform.html 页面专属样式（前缀 ap-） ===== */
+
+/* 顶部品牌区（双 logo）与导航单行 */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px}
+.topnav nav a{padding:7px 11px;font-size:13px}
+.site-footer .foot-brand img{height:18px}
+
+/* 区块骨架 */
+.ap-sec{margin-bottom:46px}
+.ap-head{display:flex;align-items:baseline;gap:13px;margin-bottom:16px;flex-wrap:wrap}
+.ap-head .no{flex:none;font-size:11px;font-weight:800;letter-spacing:1.5px;color:#fff;background:var(--ink);border-radius:7px;padding:5px 10px}
+.ap-head h2{font-size:21px;color:var(--ink);line-height:1.4}
+.ap-head h2 .hl{color:var(--warm-d)}
+.ap-head p{font-size:12px;color:var(--muted);line-height:1.6}
+
+/* 开篇断言条 */
+.ap-band{background:linear-gradient(120deg,var(--ink) 0%,var(--ink3) 100%);border-radius:18px;padding:20px 24px;color:#fff;display:flex;gap:16px;align-items:center;flex-wrap:wrap;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.ap-band::after{content:"";position:absolute;right:-100px;top:-120px;width:250px;height:250px;border-radius:50%;background:radial-gradient(circle,rgba(194,161,75,.28),transparent 70%);pointer-events:none}
+.ap-band>*{position:relative;z-index:1}
+.ap-band .lab{flex:none;font-size:10.5px;font-weight:800;letter-spacing:2px;color:#E6C969;border:1px solid rgba(230,201,105,.45);border-radius:999px;padding:4px 12px}
+.ap-band p{font-size:15.5px;font-weight:700;color:#fff;line-height:1.7;flex:1;min-width:280px}
+.ap-band p em{font-style:normal;color:#E6C969}
+
+/* 运行态 KPI */
+.ap-kpi-label{font-size:11px;font-weight:800;letter-spacing:2px;color:var(--teal);margin:30px 0 10px}
+.ap-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ap-kpi{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:15px 18px;box-shadow:var(--shadow-sm)}
+.ap-kpi span{display:block;font-size:11px;color:var(--muted)}
+.ap-kpi b{display:block;color:var(--ink);font-size:26px;line-height:1.4;font-variant-numeric:tabular-nums}
+.ap-kpi b em{font-style:normal;font-size:14px;color:var(--muted);font-weight:600}
+.ap-kpi small{display:inline-block;margin-top:5px;border-radius:999px;padding:2px 8px;background:var(--sky);color:var(--teal-d);font-size:10.5px;font-weight:700}
+.ap-kpi.hot small{background:var(--cream);color:var(--warm-d)}
+
+/* 五层架构 */
+.ap-arch{display:flex;flex-direction:column;gap:10px}
+.ap-layer{display:grid;grid-template-columns:150px 1fr 300px;background:var(--white);border:1px solid var(--line);border-radius:15px;overflow:hidden;box-shadow:var(--shadow-sm)}
+.ap-layer .l-name{background:var(--ink);color:#fff;padding:15px;display:flex;flex-direction:column;justify-content:center}
+.ap-layer .l-name b{font-size:15.5px;letter-spacing:1px}
+.ap-layer .l-name i{font-style:normal;font-size:9.5px;letter-spacing:1.6px;color:var(--teal-l);margin-top:3px}
+.ap-layer.hot .l-name{background:linear-gradient(150deg,var(--warm-d),var(--ink))}
+.ap-layer.hot .l-name i{color:#EBDFBF}
+.ap-layer .l-body{padding:14px 18px}
+.ap-layer .l-body p{font-size:12.5px;color:var(--sub);line-height:1.75}
+.ap-layer .l-body p b{color:var(--ink)}
+.ap-layer .l-caps{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.ap-layer .l-caps span{font-size:11px;font-weight:600;color:var(--teal-d);background:var(--sky);border:1px solid var(--sky2);border-radius:999px;padding:3px 10px}
+.ap-layer.hot .l-caps span{color:var(--warm-d);background:var(--cream);border-color:var(--warm-l)}
+.ap-layer .l-prob{background:var(--cream);border-left:1px dashed var(--warm-l);padding:14px 17px;font-size:11.5px;color:var(--sub);line-height:1.75}
+.ap-layer .l-prob b{display:block;font-size:9.5px;font-weight:800;letter-spacing:1.6px;color:var(--gold);margin-bottom:4px}
+.ap-base{margin-top:10px;background:var(--cream);border:1px solid var(--warm-l);border-radius:15px;padding:15px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.ap-base .bl{flex:none;font-size:10.5px;font-weight:800;letter-spacing:2px;color:#fff;background:var(--warm-d);border-radius:999px;padding:4px 12px}
+.ap-base p{font-size:12.5px;color:var(--sub);line-height:1.75;flex:1;min-width:280px}
+.ap-base p b{color:var(--ink)}
+
+/* 编排舞台 */
+.ap-stage{background:linear-gradient(160deg,var(--ink) 0%,var(--ink3) 100%);border-radius:20px;padding:24px 26px 20px;color:#fff;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.ap-stage::after{content:"";position:absolute;right:-110px;top:-130px;width:290px;height:290px;border-radius:50%;background:radial-gradient(circle,rgba(194,161,75,.30),transparent 70%);pointer-events:none}
+.ap-stage-top{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:18px;position:relative;z-index:1}
+.ap-modes,.ap-guard{display:flex;gap:8px;flex-wrap:wrap}
+.ap-modes span,.ap-guard span{font-size:11px;font-weight:700;border-radius:999px;padding:4px 12px;border:1px solid rgba(169,198,227,.35);color:var(--teal-l);background:rgba(44,100,152,.20)}
+.ap-modes span.on{background:rgba(194,161,75,.22);border-color:rgba(230,201,105,.55);color:#E6C969}
+.ap-pipe{display:grid;grid-template-columns:1fr 22px 1.05fr 22px 1.2fr 22px 1.05fr 22px 1.2fr;align-items:center;position:relative;z-index:1}
+.ap-node{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:13px;padding:13px;min-height:118px}
+.ap-node.hot{border-color:rgba(230,201,105,.6);background:rgba(194,161,75,.12)}
+.ap-node .ic{width:30px;height:30px;border-radius:9px;background:rgba(194,161,75,.18);color:#E6C969;display:grid;place-items:center;font-size:15px;margin-bottom:7px}
+.ap-node b{display:block;font-size:13px;color:#fff}
+.ap-node span{display:block;font-size:10.5px;color:#B8C7D8;line-height:1.6;margin-top:4px}
+.ap-node span em{font-style:normal;color:#E6C969;font-weight:700}
+.ap-arr{text-align:center;color:var(--warm);font-size:17px;font-weight:800}
+.ap-par,.ap-fan{display:flex;flex-direction:column;gap:6px}
+.ap-par .cap-label,.ap-fan .cap-label{font-size:10px;font-weight:800;letter-spacing:1.5px;color:#E6C969;margin-bottom:1px}
+.ap-chip{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:6px 9px;font-size:10.8px;color:#DFE8F2;line-height:1.5}
+.ap-chip b{color:#fff;font-size:11.2px}
+.ap-chip small{color:#9FB3C8;font-size:10px;display:block;line-height:1.5}
+.ap-chip.hot{border-color:rgba(230,201,105,.55);background:rgba(194,161,75,.14)}
+.ap-chip.hot small{color:#E6C969}
+/* 回退回流线：跨「子 Agent 并行 → 评审」两列 */
+.ap-back{grid-column:5/8;grid-row:2;margin-top:10px;height:52px;border-left:2px dashed rgba(230,201,105,.75);border-right:2px dashed rgba(230,201,105,.75);border-bottom:2px dashed rgba(230,201,105,.75);border-radius:0 0 14px 14px;position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px}
+.ap-back::before{content:"▲";position:absolute;top:-9px;left:-8px;color:#E6C969;font-size:12px}
+.ap-back i{font-style:normal;font-size:10.5px;font-weight:700;color:#E6C969;text-align:center;line-height:1.5;padding:0 10px}
+.ap-roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px;position:relative;z-index:1}
+.ap-role{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px 14px}
+.ap-role .rl{font-size:9.5px;font-weight:800;letter-spacing:1.6px;color:#E6C969}
+.ap-role b{display:block;font-size:13px;color:#fff;margin-top:3px}
+.ap-role span{display:block;font-size:10.8px;color:#B8C7D8;line-height:1.65;margin-top:4px}
+.ap-caption{position:relative;z-index:1;margin-top:16px;font-size:11.5px;color:#AFC2D6;line-height:1.75;border-top:1px solid rgba(255,255,255,.12);padding-top:12px}
+.ap-caption b{color:#E6C969}
+
+/* Agent 注册表 */
+.ap-reg{overflow-x:auto}
+.ap-reg .mini-table{min-width:920px}
+.ap-reg .mini-table td:nth-child(4){min-width:220px}
+.ap-reg .mini-table td:nth-child(1),.ap-reg .mini-table td:nth-child(2),.ap-reg .mini-table td:nth-child(5){white-space:nowrap}
+
+/* 观测与审计 */
+.ap-split{display:grid;grid-template-columns:1fr 1.12fr;gap:18px;align-items:start}
+.ap-kv{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--sub)}
+.ap-kv:last-child{border-bottom:none}
+.ap-kv b{color:var(--ink);font-variant-numeric:tabular-nums}
+.ap-dims{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.ap-dim{background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.ap-dim b{display:block;font-size:12.5px;color:var(--ink)}
+.ap-dim span{display:block;font-size:11.5px;color:var(--sub);line-height:1.6;margin-top:2px}
+.ap-trace{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.ap-step{display:grid;grid-template-columns:24px 1fr;gap:10px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:9px 11px}
+.ap-step .n{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;font-weight:800;display:grid;place-items:center;margin-top:1px}
+.ap-step b{display:block;font-size:12.3px;color:var(--ink)}
+.ap-step span{display:block;font-size:11px;color:var(--sub);line-height:1.6;margin-top:2px}
+.ap-step .meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:5px}
+.ap-step .meta em{font-style:normal;font-size:10px;font-weight:700;border-radius:999px;padding:2px 8px;background:var(--sky);color:var(--teal-d)}
+.ap-step.retry{background:#FFF8E5;border-color:var(--warm-l)}
+.ap-step.retry .n{background:var(--warm)}
+.ap-step.retry .meta em.hl{background:var(--cream);color:var(--warm-d)}
+.ap-audit{overflow-x:auto;margin-top:6px}
+.ap-audit .mini-table{min-width:520px}
+
+/* 安全四格 / 三列卡 */
+.ap-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ap-3col{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.ap-mcard{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow-sm)}
+.ap-mcard .ic{width:36px;height:36px;border-radius:11px;background:var(--sky);color:var(--teal-d);display:grid;place-items:center;font-size:17px;margin-bottom:10px}
+.ap-mcard.warm .ic{background:var(--cream);color:var(--warm-d)}
+.ap-mcard h3{font-size:15px;color:var(--ink);margin-bottom:6px}
+.ap-mcard h3 .tag{margin-left:6px;vertical-align:1px}
+.ap-mcard p{font-size:12px;color:var(--sub);line-height:1.7}
+
+/* 页内 note */
+.ap-note{background:var(--sky);border:1px solid var(--sky2);border-radius:14px;padding:14px 18px;font-size:12.5px;color:var(--sub);line-height:1.8}
+.ap-note b{color:var(--teal-d)}
+
+@media(max-width:1080px){
+  .ap-kpis{grid-template-columns:1fr 1fr}
+  .ap-layer{grid-template-columns:1fr}
+  .ap-layer .l-name{flex-direction:row;align-items:baseline;gap:10px;padding:11px 16px}
+  .ap-layer .l-prob{border-left:none;border-top:1px dashed var(--warm-l)}
+  .ap-grid4{grid-template-columns:1fr 1fr}
+  .ap-3col{grid-template-columns:1fr}
+  .ap-split{grid-template-columns:1fr}
+  .ap-pipe{grid-template-columns:1fr}
+  .ap-arr{transform:rotate(90deg);padding:6px 0}
+  .ap-node{min-height:0}
+  .ap-back{grid-column:1;grid-row:auto;height:auto;border:1px dashed rgba(230,201,105,.6);border-radius:12px;padding:10px;margin-top:10px}
+  .ap-back::before{display:none}
+  .ap-roles{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .ap-kpis,.ap-grid4{grid-template-columns:1fr}
+  .ap-band p{font-size:14px}
+}
+</style>
+</head>
+<body>
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html">方案总览</a>
+    <a href="workroom.html">商机作战室</a>
+    <a href="autonomy.html">自主度分级</a>
+    <a href="deal.html">商机与团队</a>
+    <a href="boundary.html">人机边界</a>
+    <a href="queue.html">待决队列</a>
+    <a href="capability.html">能力集</a>
+    <a href="platform.html" class="active"><span class="dot"></span>Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <div class="eyebrow">Agent Platform · 自主度的承重结构</div>
+    <h1>让一支 Agent 团队<span class="hl">能长期跑下去的那一层</span></h1>
+    <p class="sub"><b>没有它，自主度只能停在演示里。</b>演示里让 Agent 端到端跑一遍不难；难的是它每天自己跑、跑错了能只回退错的那一段、跑了什么花了多少都算得清、企业还敢把真实客户数据和一部分执行权交给它。这一层就是为这四件事存在的 —— 接入、模型、编排、治理、观测。</p>
+  </div>
+
+  <!-- ① 断言 + 运行态 -->
+  <section class="ap-sec">
+    <div class="ap-band">
+      <span class="lab">一句话</span>
+      <p>L2 的工具可以没有平台，因为<em>每一步都有人点确认，人就是兜底</em>；L3 必须有平台，因为<em>人不在场的时候，得有一层东西替它兜底</em>。</p>
+    </div>
+
+    <div class="ap-kpi-label">平台运行态 · 目标态示意</div>
+    <div class="ap-kpis">
+      <div class="ap-kpi"><span>纳管 Agent</span><b>12 <em>个</em></b><small>1 主 · 6 子 · 5 治理常驻</small></div>
+      <div class="ap-kpi"><span>今日调用</span><b>1,847 <em>次</em></b><small>绝大多数无人在场</small></div>
+      <div class="ap-kpi"><span>调用成功率</span><b>99.2<em>%</em></b><small>失败回流为优化线索</small></div>
+      <div class="ap-kpi hot"><span>今日 token 成本</span><b>¥86</b><small>目标态示意 · 非真实账单</small></div>
+    </div>
+  </section>
+
+  <!-- ② 五层架构 -->
+  <section class="ap-sec">
+    <div class="ap-head"><span class="no">01</span><h2>平台<span class="hl">五层架构</span></h2><p>接入 · 模型 · 编排 · 治理 · 观测 —— 每一层都对应一个「缺了它，自主度就掉回 L2」的问题</p></div>
+    <div class="ap-arch">
+
+      <div class="ap-layer">
+        <div class="l-name"><b>接入层</b><i>ACCESS</i></div>
+        <div class="l-body">
+          <p><b>职责：</b>信号从这里进来，动作从这里出去。商机主 Agent 要盯的四类信号 —— 客户动作、竞品动向、内部进度、时间流逝 —— 在这一层统一订阅；Agent 自主执行产生的结果再从这一层回写 CRM、推到企业微信与移动端、送进待决队列。<b>不替代 CRM</b>，过程与结果回写 CRM，不搬家不重建。</p>
+          <div class="l-caps"><span>四类信号订阅</span><span>动作回写 CRM</span><span>待决队列出口</span><span>企业微信 / 移动端触达</span><span>Open API</span></div>
+        </div>
+        <div class="l-prob"><b>没有它会怎样</b>系统只能等人打开、等人输入。人不动，商机就不动 —— 自主完成率天然是 0，再强的模型也只是个搜索框。</div>
+      </div>
+
+      <div class="ap-layer">
+        <div class="l-name"><b>模型层</b><i>MODELS</i></div>
+        <div class="l-body">
+          <p><b>职责：</b>把能力接进来，并且随时能换掉。语言模型、语音与声纹模型、企业已有的私有化推理服务与第三方 Agent，用 OpenAI 兼容协议填地址即纳管；同一任务允许多方案并跑，按赢单贡献、成功率、人工纠偏率与成本自动择优。<b>交付的是效果，不是型号清单。</b></p>
+          <div class="l-caps"><span>语言模型（按效果择优）</span><span>语音与声纹模型</span><span>企业私有化模型</span><span>兼容协议纳管第三方 Agent</span><span>多方案并跑择优</span></div>
+        </div>
+        <div class="l-prob"><b>没有它会怎样</b>能力被锁死在某一个供应商的某一个版本上：效果退步换不掉、成本上涨躲不开，企业已有的私有化推理服务也白投。</div>
+      </div>
+
+      <div class="ap-layer hot">
+        <div class="l-name"><b>编排层</b><i>ORCHESTRATION</i></div>
+        <div class="l-body">
+          <p><b>职责：</b>让一支 Agent 团队像团队一样干活。主 Agent 规划分发，子 Agent 并行执行，评审 Agent 质检；不通过时不整条重跑，而是按「精准修改指令」只回退出错的那一个子 Agent。双模式并存：开放型任务走<b>自主规划</b>，强合规链路走<b>流程编排</b>的固定画布。</p>
+          <div class="l-caps"><span>主 Agent 规划分发</span><span>子 Agent 并行</span><span>评审精准回退</span><span>自主规划 / 流程编排双模式</span><span>单节点重试 3 次</span><span>超时熔断</span></div>
+        </div>
+        <div class="l-prob"><b>没有它会怎样</b>一个环节出错整条链路作废，也没人知道该重跑哪一段。人得守在旁边看着 —— 那就退回到 L2 的「逐个发起、逐个确认」。</div>
+      </div>
+
+      <div class="ap-layer">
+        <div class="l-name"><b>治理层</b><i>GOVERNANCE</i></div>
+        <div class="l-body">
+          <p><b>职责：</b>先划边界，才敢放权。四类必须找人的节点、各自的阈值与授权范围在这一层由企业配置；三角色分权、逐 Agent 最小授权、敏感字段脱敏；涉及法律与商业责任的动作（报价定案、合同签署、对外承诺）强制由授权人确认。<b>每一次自主执行与每一次找人都留痕可审计。</b></p>
+          <div class="l-caps"><span>四类节点与阈值配置</span><span>三角色分权</span><span>逐 Agent 最小授权</span><span>敏感字段脱敏</span><span>强制人工确认清单</span></div>
+        </div>
+        <div class="l-prob"><b>没有它会怎样</b>企业不敢把执行权交出去，只能靠「每一步点一下确认」找安全感 —— 于是永远停在 L2，人始终被拴在流程上。</div>
+      </div>
+
+      <div class="ap-layer">
+        <div class="l-name"><b>观测层</b><i>OBSERVABILITY</i></div>
+        <div class="l-body">
+          <p><b>职责：</b>自主度必须能被度量，否则不成立。按 Agent 统计调用量、耗时与成本；每一次运行可逐步回放（含评审回退）；自主完成率、人工纠偏率、建议采纳率与单位成本汇成能力记分卡，连续不达标的 Agent 下架换掉。看板也在这一层 —— <b>降级为审计与追溯入口</b>。</p>
+          <div class="l-caps"><span>按 Agent 调用量 / 耗时 / 成本</span><span>运行 Trace 逐步回放</span><span>全链路埋点</span><span>能力记分卡</span><span>审计日志</span></div>
+        </div>
+        <div class="l-prob"><b>没有它会怎样</b>答不出「上个月自主完成了多少动作、人纠偏了多少次」。按自评三问，答不出就等于没有自主度 —— 续不续用只能靠感觉。</div>
+      </div>
+    </div>
+
+    <div class="ap-base"><span class="bl">底座</span><p><b>以商机为中心的统一数据对象：</b>客户、关键人、商机、里程碑、拜访记录、纪要、知识条目、标讯、合同、回款节点、留痕事件 —— 一支 Agent 团队共用同一份商机上下文，不做第二份主数据。上下文不统一，主 Agent 就没法「盯」，也没法「判」。</p></div>
+
+    <p class="ap-note" style="margin-top:14px"><b>合规口径：</b>自主执行的边界、阈值与授权范围由企业配置；每一次自主执行与每一次找人都留痕可审计。五层能力均支持本地化部署，敏感字段自动脱敏、数据不出内网。</p>
+  </section>
+
+  <!-- ③ 编排与回退 -->
+  <section class="ap-sec">
+    <div class="ap-head"><span class="no">02</span><h2>编排与回退：<span class="hl">一次没有人在场的运行</span></h2><p>金桥制造停滞 14 天 —— 不是有人发现后点了按钮，是主 Agent 自己发现、自己拆解、自己重跑、最后才决定要不要叫人</p></div>
+    <div class="ap-stage">
+      <div class="ap-stage-top">
+        <div class="ap-modes"><span class="on">自主规划 · 本链路（主 Agent 动态拆解）</span><span>流程编排 · 强合规链路固定画布</span></div>
+        <div class="ap-guard"><span>单节点重试 3 次</span><span>超时熔断</span><span>异常自动降级</span><span>全链路埋点</span></div>
+      </div>
+      <div class="ap-pipe">
+        <div class="ap-node">
+          <div class="ic">◎</div>
+          <b>信号触发</b>
+          <span>金桥制造 ¥86 万 · D27 谈判后商机停滞，停滞天数越过企业配置的阈值。<em>无人发起、无人点按钮</em> —— 主 Agent 本来就在盯。</span>
+        </div>
+        <div class="ap-arr">→</div>
+        <div class="ap-node hot">
+          <div class="ic">⌘</div>
+          <b>主 Agent · 规划分发</b>
+          <span>判断「卡点是什么、要哪些依据、这件事该子 Agent 做还是必须叫人」，把任务拆成三件并行的事派下去，并负责收口。</span>
+        </div>
+        <div class="ap-arr">→</div>
+        <div class="ap-par">
+          <div class="cap-label">子 AGENT 并行 ×3</div>
+          <div class="ap-chip"><b>数据分析</b><small>同类 6 单中 5 单在账期让步后 2 周内签约</small></div>
+          <div class="ap-chip"><b>现场记录与理解</b><small>回溯 D21 二访纪要 00:14:32 周总原话</small></div>
+          <div class="ap-chip"><b>条款与风险</b><small>账期让步对照企业红线库逐条校验</small></div>
+        </div>
+        <div class="ap-arr">→</div>
+        <div class="ap-node hot">
+          <div class="ic">✓</div>
+          <b>评审 Agent · 质检</b>
+          <span>依据是否可回溯、口径是否一致、是否触碰红线，逐项打分。不通过 → 出「精准修改指令」，只回退对应的那一个子 Agent。</span>
+        </div>
+        <div class="ap-arr">→</div>
+        <div class="ap-fan">
+          <div class="cap-label">主 AGENT 收口分发 ×4</div>
+          <div class="ap-chip hot"><b>待决队列</b><small>判断 + 依据 + 建议 + 三个按钮，送到李芳</small></div>
+          <div class="ap-chip"><b>商机卡</b><small>里程碑 9/16 · 商务谈判</small></div>
+          <div class="ap-chip"><b>审计留痕</b><small>本次自主执行全量入日志</small></div>
+          <div class="ap-chip"><b>叫人</b><small>D34 账期授权 · 属「要人担责」</small></div>
+        </div>
+        <div class="ap-back"><i>质检不通过 → 精准修改指令回退（本次：1 条依据缺原话时间戳，仅回退「现场记录与理解」子 Agent 重跑，重试 1/3；其余两个子 Agent 结果保留，不整条重来）</i></div>
+      </div>
+
+      <div class="ap-roles">
+        <div class="ap-role"><span class="rl">主 AGENT</span><b>盯 · 判 · 调</b><span>持续盯这个商机的所有信号；判断现在最该做什么、该子 Agent 做还是必须叫人；派活、收口，并把人需要的东西提前备好。它对推进结果负责，不对某个岗位负责。</span></div>
+        <div class="ap-role"><span class="rl">子 AGENT</span><b>并行 · 单一职责</b><span>六类能力按需被调度，各自只对一件事负责，互不阻塞。单个失败不拖垮整条链路，也不需要人来接手 —— 重试与降级在编排层内建。</span></div>
+        <div class="ap-role"><span class="rl">评审 AGENT</span><b>质检 · 精准回退</b><span>人不在场时的第一道闸。不通过不是整条重跑，而是给出精准修改指令，只回退出错的那一个子 Agent —— 这是「没人盯着也敢跑」的技术前提。</span></div>
+      </div>
+
+      <div class="ap-caption"><b>双模式调度：</b>强合规链路（合同条款比对、投标合规自检、对外内容发出前）走<b>流程编排</b>的固定画布，可视化可核查；开放型任务走<b>自主规划</b>，主 Agent 按目标动态拆解。所有节点带重试与超时熔断，异常自动降级并留痕；每一步的输入、输出、耗时与成本全链路埋点，可在观测层逐步回放。<b>这条链路里人只出现一次 —— 在最后，因为账期授权要人担责。</b></div>
+    </div>
+  </section>
+
+  <!-- ④ Agent 注册表 -->
+  <section class="ap-sec">
+    <div class="ap-head"><span class="no">03</span><h2>Agent 注册表 · <span class="hl">12 个</span></h2><p>1 个商机主 Agent + 6 类能力子 Agent + 5 个跨商机常驻的治理类 Agent，在同一张表里注册、授权、计费与下架</p></div>
+    <div class="panel">
+      <div class="ap-reg">
+        <table class="mini-table">
+          <thead><tr><th>Agent</th><th>角色</th><th>绑定能力</th><th>知识库授权</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td><b>商机主 Agent</b></td><td><span class="tag warm">主</span></td><td>语言模型（按效果择优）</td><td>该商机全量上下文 · 企业打法与红线库</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>研究与触达</b></td><td><span class="tag teal">子</span></td><td>语言模型（按效果择优）</td><td>客户画像库 · 决策链图谱 · 行业与竞品库</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>现场记录与理解</b></td><td><span class="tag teal">子</span></td><td>语音与声纹模型 + 语言模型</td><td>拜访语料（已脱敏）· 需求与异议库</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>数据分析</b></td><td><span class="tag teal">子</span></td><td>语言模型（按效果择优）</td><td>客户 · 商机 · 合同 · 纪要 · 案例 · 报价 · 竞品（按权限）</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>内容生成</b></td><td><span class="tag teal">子</span></td><td>语言模型（按效果择优）</td><td>方案库 · 标书模板库 · 报价库</td><td><span class="tag warm">多方案并跑择优中</span></td></tr>
+            <tr><td><b>条款与风险</b></td><td><span class="tag teal">子</span></td><td>语言模型（按效果择优）</td><td>企业红线库 · 投标合规与废标规则库</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>回款与履约</b></td><td><span class="tag teal">子</span></td><td>语言模型（按效果择优）</td><td>合同履约里程碑 · 回款节点台账</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>评审 Agent</b></td><td><span class="tag gold">治理</span></td><td>语言模型（按效果择优）</td><td>口径库 · 合规规则库 · 企业红线库</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>问数 Agent</b></td><td><span class="tag gold">治理</span></td><td>语言模型（按效果择优）</td><td>经营数据集市（按角色权限）</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>陪练 Agent</b></td><td><span class="tag gold">治理</span></td><td>语音与声纹模型 + 语言模型</td><td>异议应答库 · 考核题库</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>知识萃取 Agent</b></td><td><span class="tag gold">治理</span></td><td>语言模型（按效果择优）</td><td>全量拜访语料（已脱敏）· 赢单打法库</td><td><span class="tag ok">运行中</span></td></tr>
+            <tr><td><b>标讯监测 Agent</b></td><td><span class="tag gold">治理</span></td><td>语言模型（按效果择优）</td><td>标讯源目录 · 企业资质库</td><td><span class="tag warm">新版本灰度中</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note"><b>怎么读这张表：</b>「主」只有一个，每支商机团队各起一份实例，对该商机的推进结果负责；「子」是主 Agent 手里的六类能力，按需调度，<b>不对应任何一个人的岗位</b>；「治理」是跨商机常驻的 5 个，不隶属任何一支商机团队，由平台直接调度。<b>绑定能力写的是能力，不是型号</b> —— 同一格能力可由不同实现承担，按效果择优、随时替换；企业已有的私有化推理服务与第三方 Agent 填地址即纳管。模型、知识库与插件权限逐 Agent 独立配置、互相隔离、按需最小授权。</p>
+    </div>
+  </section>
+
+  <!-- ⑤ 观测与审计 -->
+  <section class="ap-sec">
+    <div class="ap-head"><span class="no">04</span><h2>观测与审计：<span class="hl">自主度必须能被度量</span></h2><p>人不在场，就得靠留痕说话 —— 每一次调用可度量、每一次运行可回放、每一个动作可追责</p></div>
+    <div class="ap-split">
+      <div class="panel">
+        <h3>观测大盘 · 今日</h3>
+        <div>
+          <div class="ap-kv"><span>纳管 Agent</span><b>12 个（1 主 · 6 子 · 5 治理）</b></div>
+          <div class="ap-kv"><span>今日调用合计</span><b>1,847 次</b></div>
+          <div class="ap-kv"><span>调用成功率</span><b>99.2%</b></div>
+          <div class="ap-kv"><span>今日 token 成本合计</span><b>¥86</b></div>
+          <div class="ap-kv"><span>输入 / 输出 / 耗时 / 成本埋点</span><b>全量</b></div>
+        </div>
+        <h3 style="margin-top:18px">按 Agent 下钻的三个维度</h3>
+        <div class="ap-dims">
+          <div class="ap-dim"><b>调用量</b><span>这个 Agent 被主 Agent 派了多少活。派得少，说明它在这个业务里没被真正用起来；派得多但纠偏率高，说明该换掉。</span></div>
+          <div class="ap-dim"><b>耗时</b><span>「信号到动作时延」的分母就在这里。哪个节点在拖，逐 Agent 一眼看到，而不是笼统地说系统慢。</span></div>
+          <div class="ap-dim"><b>成本</b><span>能力记分卡的成本项。同一任务多方案并跑时，效果与成本一起比，才叫按效果择优。</span></div>
+        </div>
+        <p class="note"><b>观测不等于监控个人：</b>大盘按 Agent 与链路统计，用于容量、成本与质量运营；过程数据用于赋能与组织沉淀，不用于监控个人，采集、保存与查看范围由企业规则配置。</p>
+      </div>
+
+      <div class="panel">
+        <h3>单次运行逐步回放 · 金桥制造停滞处置</h3>
+        <div class="ap-trace">
+          <div class="ap-step"><div class="n">1</div><div><b>信号触发 · 停滞（D28 起）</b><span>商务谈判停滞天数越过企业配置的阈值，主 Agent 自主发起本次运行 —— 整个停滞期没有任何人报告。</span><div class="meta"><em>自主执行</em><em>无人在场</em></div></div></div>
+          <div class="ap-step"><div class="n">2</div><div><b>主 Agent 规划分发</b><span>判定卡点方向并列出需要的依据，拆成三件事派给三个子 Agent。</span><div class="meta"><em>自主规划</em><em>3 子任务</em></div></div></div>
+          <div class="ap-step"><div class="n">3</div><div><b>子 Agent 并行执行 ×3</b><span>数据分析 / 现场记录与理解 / 条款与风险，互不阻塞。</span><div class="meta"><em>并行</em><em>全链路埋点</em></div></div></div>
+          <div class="ap-step retry"><div class="n">4</div><div><b>评审 Agent 首轮不通过</b><span>1 条依据缺原话时间戳，不可回溯 → 出「精准修改指令」，仅回退「现场记录与理解」子 Agent 重跑。</span><div class="meta"><em class="hl">重试 1/3</em><em class="hl">其余结果保留</em></div></div></div>
+          <div class="ap-step"><div class="n">5</div><div><b>二轮质检通过</b><span>每条依据都能回溯到原始记录与时间戳，红线校验无触碰。</span><div class="meta"><em>可回溯</em><em>无红线触碰</em></div></div></div>
+          <div class="ap-step"><div class="n">6</div><div><b>收口分发 · 并决定叫人</b><span>待决队列条目送达李芳（判断 / 依据 / 建议 / 三个按钮）；商机卡与看板同步留痕；D34 李芳授权后由王强本周内谈。</span><div class="meta"><em>要人担责</em><em>4 个出口</em></div></div></div>
+        </div>
+
+        <h3 style="margin-top:18px">审计日志（节选）</h3>
+        <div class="ap-audit">
+          <table class="mini-table">
+            <thead><tr><th>类型</th><th>事件</th><th>主体</th><th>留痕</th></tr></thead>
+            <tbody>
+              <tr><td><span class="tag teal">登录</span></td><td>控制台登录成功（内网）</td><td><b>管理员</b></td><td>全量</td></tr>
+              <tr><td><span class="tag teal">修改</span></td><td>「停滞天数」阈值与账期授权范围调整</td><td><b>运维</b></td><td>全量</td></tr>
+              <tr><td><span class="tag gold">发布</span></td><td>标讯监测 Agent 新版本灰度发布</td><td><b>管理员</b></td><td>全量</td></tr>
+              <tr><td><span class="tag ok">自主执行</span></td><td>自主发现商机停滞（D28 起）并生成待决条目</td><td><b>商机主 Agent</b></td><td>全量</td></tr>
+              <tr><td><span class="tag warm">找人</span></td><td>D34 账期授权 · 属「要人担责」，进入待决队列</td><td><b>商机主 Agent → 李芳</b></td><td>全量</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note"><b>「没找人」也是一条记录：</b>四类节点之外系统不找人，但每一次「判断为无需找人」同样入日志、同样可复核 —— 这是把执行权交出去之后，唯一能回头对账的东西。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ⑥ 私有化与安全 -->
+  <section class="ap-sec">
+    <div class="ap-head"><span class="no">05</span><h2>私有化与安全：<span class="hl">先划边界，才敢放权</span></h2><p>企业交出去的不只是数据，还有一部分执行权 —— 这四件事是交权的前置条件</p></div>
+    <div class="ap-grid4">
+      <div class="cap"><div class="ic">⛁</div><b>数据不出内网</b><span>支持本地化部署与企业已有的私有化推理服务，全链路在内网闭环，模型调用不留存客户业务数据。</span></div>
+      <div class="cap"><div class="ic">⊘</div><b>敏感字段脱敏</b><span>客户名称、金额、联系方式等按企业规则自动脱敏后再进模型；脱敏规则可逐字段配置。</span></div>
+      <div class="cap warm"><div class="ic">▣</div><b>逐 Agent 最小授权</b><span>每个 Agent 独立的模型、知识库与插件权限，互相隔离、按需开通；越权调用与越权提问直接拦截。</span></div>
+      <div class="cap"><div class="ic">☷</div><b>三角色分权</b><span>管理员 / 运维 / 业务三类角色分权，控制台每一个操作都进审计日志，改了什么、谁改的、什么时候改的可追。</span></div>
+    </div>
+    <p class="ap-note" style="margin-top:14px"><b>合规口径：</b>涉及法律与商业责任的动作（报价定案、合同签署、对外承诺）必须由授权人确认，平台不允许被配置为自主执行；录音需提前告知参会方，录音原文默认仅销售本人可见；过程数据用于赋能与组织沉淀，不用于监控个人。</p>
+  </section>
+
+  <!-- ⑦ 部署三模式 -->
+  <section class="ap-sec">
+    <div class="ap-head"><span class="no">06</span><h2>部署三模式</h2><p>按企业 IT 现状选，三种模式能力同源 —— 换的是部署形态，不是自主度上限</p></div>
+    <div class="panel">
+      <div class="flow">
+        <div class="f-step hot"><div class="n">A</div><b>本地化部署</b><span>数据全内网 · 适配企业已有的私有化推理服务 · 零第三方依赖</span></div>
+        <div class="f-arrow">或</div>
+        <div class="f-step"><div class="n">B</div><b>云端部署</b><span>快速开通 · 先在一个团队试点，跑通再扩量</span></div>
+        <div class="f-arrow">或</div>
+        <div class="f-step"><div class="n">C</div><b>对接企业现有系统</b><span>CRM、OA、企业微信渐进接入 · 不推翻现有流程，过程与结果回写</span></div>
+      </div>
+      <p class="note"><b>底座与第一批能力同期上线：</b>自主度是逐步交出去的，但承接自主度的这一层必须一开始就在 —— 观察期只读不写的那一周，接入、治理与观测三层就已经在跑，否则第 2 周之后没有东西可以对表。落地节奏见 <a href="roadmap.html" style="color:var(--warm-d);font-weight:700">落地路线 →</a></p>
+    </div>
+  </section>
+
+  <!-- ⑧ 收尾 note -->
+  <div class="ap-note"><b>合规与口径：</b>本页平台侧数字（纳管 Agent 数、调用量、成功率、token 成本等）<b>均为目标态示意，非真实运行数据</b>；自主执行的边界、阈值与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计；敏感字段自动脱敏、模型调用不留存客户业务数据、数据不出内网；录音需提前告知参会方，录音原文默认仅销售本人可见；过程数据用于赋能与组织沉淀，不用于监控个人；涉及法律与商业责任的动作必须由授权人确认。</div>
+</main>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+</body>
+</html>

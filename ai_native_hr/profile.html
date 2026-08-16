@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>岗位画像共建 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ---- 本页特有样式（profile.html） ---- */
+.p-head .pill, .diff-head .pill, .party-row .pill { white-space: nowrap; }
+.pos-tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+.pos-tab { background: #fff; border: 1px solid var(--cbord); border-radius: 999px; padding: 7px 18px; font-size: 13px; color: var(--muted); cursor: pointer; font-family: inherit; display: flex; align-items: center; gap: 8px; }
+.pos-tab:hover { border-color: var(--blue); color: var(--blue); }
+.pos-tab.on { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 700; }
+.pos-tab .v { font-size: 11px; font-weight: 400; opacity: .75; }
+
+.req-list { list-style: none; }
+.req-list li { padding: 6px 0 6px 18px; position: relative; font-size: 13px; }
+.req-list li::before { content: ""; position: absolute; left: 2px; top: 14px; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+.req-list li b { color: var(--navy); }
+.req-tag { font-size: 11px; color: var(--amber); background: var(--amber-bg); border-radius: 4px; padding: 1px 6px; margin-left: 6px; font-weight: 700; }
+
+.sec-title { font-size: 13px; font-weight: 700; color: var(--navy); letter-spacing: .5px; margin: 20px 0 10px; padding-top: 16px; border-top: 1px dashed var(--line); display: flex; align-items: center; gap: 8px; }
+.sec-title:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+.sec-title .sub { font-size: 11px; color: var(--faint); font-weight: 400; margin-left: auto; }
+
+.dim-item { padding: 10px 0; border-bottom: 1px solid var(--soft); }
+.dim-item:last-child { border-bottom: none; }
+.dim-head { display: flex; align-items: center; gap: 10px; }
+.dim-head .no { width: 20px; height: 20px; flex: none; border-radius: 50%; background: var(--soft); color: var(--steel); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.dim-head b { color: var(--navy); font-size: 13.5px; }
+.dim-head .w { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--navy); flex: none; }
+.dim-head .bar { width: 110px; flex: none; }
+.dim-desc { font-size: 12px; color: var(--muted); margin: 4px 0 0 30px; }
+
+.kw-group { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.kw-group:last-child { margin-bottom: 0; }
+.kw-label { flex: none; width: 74px; font-size: 12px; font-weight: 700; color: var(--steel); padding-top: 3px; }
+.kw-items { display: flex; flex-wrap: wrap; gap: 8px; }
+.hit { font-size: 10.5px; font-weight: 700; color: var(--amber); background: var(--gold-bg); border-radius: 999px; padding: 0 6px; margin-left: 4px; }
+.tip { position: relative; cursor: help; }
+.tip:hover::after { content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 50%; transform: translateX(-50%); background: var(--navy); color: #fff; font-size: 11px; font-weight: 400; line-height: 1.5; padding: 6px 10px; border-radius: 6px; white-space: nowrap; z-index: 40; box-shadow: 0 4px 12px rgba(12,37,69,.25); }
+.tip:hover::before { content: ""; position: absolute; bottom: calc(100% + 2px); left: 50%; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--navy); z-index: 40; }
+
+.party-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--soft); }
+.party-av { width: 34px; height: 34px; flex: none; border-radius: 50%; background: var(--soft); color: var(--steel); font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.party-meta { min-width: 0; }
+.party-meta b { display: block; color: var(--navy); font-size: 13px; }
+.party-meta span { font-size: 11.5px; color: var(--faint); }
+.party-row .pill { margin-left: auto; flex: none; }
+.rec-row { padding: 12px 0 2px; }
+.rec-row .rec-line { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--body); }
+.rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); flex: none; }
+.toggle-link { color: var(--blue); font-size: 12px; cursor: pointer; margin-left: auto; user-select: none; }
+.toggle-link:hover { text-decoration: underline; }
+.trans-box { display: none; margin-top: 8px; }
+.trans-box.open { display: block; }
+
+.diff-card { border: 1px solid var(--cbord); border-left: 3px solid var(--red); border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; background: var(--soft2); }
+.diff-card:last-child { margin-bottom: 0; }
+.diff-card.resolved { border-left-color: var(--green); }
+.diff-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.diff-head b { color: var(--navy); font-size: 13px; }
+.diff-head .pill { margin-left: auto; }
+.diff-side { display: flex; gap: 8px; font-size: 12.5px; margin-bottom: 6px; }
+.diff-side .tag { flex: none; width: 20px; height: 20px; border-radius: 50%; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; background: var(--soft); color: var(--steel); }
+.diff-side p b { color: var(--navy); }
+.diff-ai { font-size: 12px; color: var(--muted); background: #fff; border: 1px dashed var(--gold-soft); border-radius: 6px; padding: 7px 10px; margin: 8px 0; }
+.diff-ai b { color: var(--amber); }
+.diff-opts { display: flex; gap: 8px; }
+.opt-btn { flex: 1; background: #fff; border: 1px solid var(--cbord); border-radius: 6px; padding: 7px 4px; font-size: 12px; color: var(--steel); cursor: pointer; font-family: inherit; transition: all .12s; }
+.opt-btn:hover { border-color: var(--blue); color: var(--blue); }
+.opt-btn.sel { background: var(--navy); border-color: var(--navy); color: #fff; font-weight: 700; }
+.opt-btn.sel::before { content: "✓ "; color: var(--gold); }
+
+.gold-row td { background: var(--gold-bg) !important; border-bottom: 1px solid var(--gold-soft); }
+.gold-row td b { color: var(--amber); }
+
+.confirm-bar { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding: 14px 18px; background: var(--soft2); border: 1px solid var(--cbord); border-radius: 10px; }
+.confirm-bar .note { font-size: 12px; color: var(--muted); }
+.btn:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+
+.sa-summary td { font-size: 13px; }
+.view-hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html">🤖 AI 专员对话</a>
+      <a href="profile.html" class="on">🎯 岗位画像共建</a>
+      <a href="screening.html">🗂 简历筛选与分发</a>
+      <a href="evaluation.html">📝 证据链评估报告</a>
+      <a href="board.html">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html">📊 面试质检</a>
+      <a href="compliance.html">🛡 合规与数据权属</a>
+      <a href="platform.html">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>岗位画像共建</h1><span class="crumb">AI 招聘专员 / 招聘工作台 / 岗位画像</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+
+      <div class="page-head">
+        <h2>岗位画像共建 · 三方对齐</h2>
+        <p>用人部门 + HRBP + 面试官三方输入，AI 聚合为画像草稿并高亮分歧；AI 输出仅为建议，画像以 HRBP 确认后生效。</p>
+      </div>
+
+      <div class="pos-tabs">
+        <button class="pos-tab on" id="tab-be" onclick="switchPos('be')">高级后端工程师 <span class="v">画像卡 v3.2 · 草稿</span></button>
+        <button class="pos-tab" id="tab-sa" onclick="switchPos('sa')">解决方案架构师 <span class="v">画像卡 v1.4 · 已生效</span></button>
+      </div>
+
+      <!-- ============ 视图：高级后端工程师 ============ -->
+      <div id="view-be">
+
+        <div class="steps">
+          <div class="st done"><span class="n">✓</span>三方输入</div>
+          <div class="st done"><span class="n">✓</span>AI 聚合草稿</div>
+          <div class="st cur"><span class="n">3</span>分歧对齐<span class="pill red" id="diff-count-pill" style="margin-left:auto;">剩 2 处</span></div>
+          <div class="st"><span class="n">4</span>确认生效</div>
+        </div>
+
+        <div class="cols c32">
+
+          <!-- 左：画像卡 -->
+          <div class="panel">
+            <div class="p-head">
+              <b>高级后端工程师 · 画像卡 v3.2（草稿）</b>
+              <span class="pill amber">草稿 · 待确认</span>
+              <span class="hint">负责人：HRBP 赵一宁 · 更新于 2026-08-08</span>
+            </div>
+            <div class="p-body">
+
+              <div class="sec-title">职责与硬性条件</div>
+              <ul class="req-list">
+                <li><b>核心职责：</b>负责核心交易链路服务端架构设计与演进，主导高并发场景性能优化与稳定性保障。</li>
+                <li><b>协作职责：</b>带 2—3 人虚拟小组完成迭代交付，参与跨团队接口与容量评审。</li>
+                <li><b>硬性条件：</b>本科及以上（特例进人工复核池）；Java 技术栈；分布式系统实际落地经验。</li>
+                <li><b>年限要求：</b>后端开发经验年限尚未定稿<span class="req-tag">分歧 #1 待对齐</span></li>
+                <li><b>行业背景：</b>金融行业背景是否必须尚未定稿<span class="req-tag">分歧 #2 待对齐</span></li>
+              </ul>
+
+              <div class="sec-title">胜任力维度（5 项）<span class="sub">与面试评分卡同源，权重合计 100%</span></div>
+
+              <div class="dim-item">
+                <div class="dim-head"><span class="no">1</span><b>系统设计能力</b><div class="bar"><i style="width:25%"></i></div><span class="w">25%</span></div>
+                <p class="dim-desc">达标线 L4：能独立完成中型系统的模块划分、容量规划与技术选型，取舍有明确依据。</p>
+              </div>
+              <div class="dim-item">
+                <div class="dim-head"><span class="no">2</span><b>工程质量意识</b><div class="bar"><i style="width:20%"></i></div><span class="w">20%</span></div>
+                <p class="dim-desc">达标线 L4：主动建设测试与可观测性，能讲清一次由自己推动的质量改进闭环。</p>
+              </div>
+              <div class="dim-item">
+                <div class="dim-head"><span class="no">3</span><b>高并发实战</b><div class="bar"><i class="gold" style="width:25%"></i></div><span class="w">25%</span></div>
+                <p class="dim-desc">达标线 L4：有真实大流量场景压测与调优经历，能量化说明优化前后指标变化。</p>
+              </div>
+              <div class="dim-item">
+                <div class="dim-head"><span class="no">4</span><b>协作与沟通</b><div class="bar"><i style="width:15%"></i></div><span class="w">15%</span></div>
+                <p class="dim-desc">达标线 L3：能向非技术角色解释技术方案，跨团队冲突中能推动共识而非回避。</p>
+              </div>
+              <div class="dim-item">
+                <div class="dim-head"><span class="no">5</span><b>责任心与韧性</b><div class="bar"><i style="width:15%"></i></div><span class="w">15%</span></div>
+                <p class="dim-desc">达标线 L3：对线上问题有 Owner 意识，能举例说明高压交付期的自我管理方式。</p>
+              </div>
+
+              <div class="sec-title">关键词组<span class="sub">命中率 = 上季度含该词简历进入二面的比例（示意）</span></div>
+
+              <div class="kw-group">
+                <span class="kw-label">核心词</span>
+                <div class="kw-items">
+                  <span class="pill navy tip" data-tip="按上季度 12 个录用结果回流重算">分布式<span class="hit">68%</span></span>
+                  <span class="pill navy tip" data-tip="按上季度 12 个录用结果回流重算">高并发<span class="hit">74%</span></span>
+                  <span class="pill navy tip" data-tip="按上季度 12 个录用结果回流重算">JVM 调优<span class="hit">52%</span></span>
+                  <span class="pill navy tip" data-tip="按上季度 12 个录用结果回流重算">微服务治理<span class="hit">61%</span></span>
+                </div>
+              </div>
+              <div class="kw-group">
+                <span class="kw-label">同义词</span>
+                <div class="kw-items">
+                  <span class="pill blue">K8s ≈ Kubernetes</span>
+                  <span class="pill blue">MQ ≈ 消息队列</span>
+                  <span class="pill blue">压测 ≈ 性能测试</span>
+                </div>
+              </div>
+              <div class="kw-group">
+                <span class="kw-label">加分信号</span>
+                <div class="kw-items">
+                  <span class="pill green">开源贡献</span>
+                  <span class="pill green">千万级 QPS 实战</span>
+                  <span class="pill green">核心链路 Owner 经历</span>
+                </div>
+              </div>
+              <div class="kw-group">
+                <span class="kw-label">排除信号</span>
+                <div class="kw-items">
+                  <span class="pill amber tip" data-tip="命中不直接淘汰，进入人工复核池">纯外包驻场经历 · 需复核</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- 右：输入进度 + 分歧 -->
+          <div>
+            <div class="panel">
+              <div class="p-head"><b>三方输入进度</b><span class="pill green">3/3 已提交</span></div>
+              <div class="p-body" style="padding-top:8px;">
+                <div class="party-row">
+                  <div class="party-av">刘</div>
+                  <div class="party-meta"><b>刘慕青 · 用人部门（技术总监）</b><span>结构化问卷 + 需求会发言 · 08-01 提交</span></div>
+                  <span class="pill green">已提交</span>
+                </div>
+                <div class="party-row">
+                  <div class="party-av">赵</div>
+                  <div class="party-meta"><b>赵一宁 · HRBP（画像负责人）</b><span>历史录用复盘 + 市场供给参考 · 08-02 提交</span></div>
+                  <span class="pill green">已提交</span>
+                </div>
+                <div class="party-row" style="border-bottom:none;">
+                  <div class="party-av">王</div>
+                  <div class="party-meta"><b>王梓航 · 面试官（资深工程师）</b><span>一面考察点与题库建议 · 08-03 提交</span></div>
+                  <span class="pill green">已提交</span>
+                </div>
+                <div class="rec-row">
+                  <div class="rec-line">
+                    <span class="rec-dot"></span>需求会录音已转写（45 分钟）
+                    <span class="toggle-link" id="trans-toggle" onclick="toggleTrans()">查看转写摘录 ▾</span>
+                  </div>
+                  <div class="trans-box" id="trans-box">
+                    <div class="evi"><span class="who">刘慕青（用人部门）</span><span class="ts">00:12:36</span>「这个岗位最怕的是只会背八股，真正扛过大流量的人一聊就能听出来。」</div>
+                    <div class="evi"><span class="who">赵一宁（HRBP）</span><span class="ts">00:31:04</span>「年限卡太死会把去年那类高潜候选人挡在外面，建议看能力达标线而不是年头。」</div>
+                    <p class="muted" style="margin-top:6px;">转写全文仅参会三方可见，AI 仅提取与画像相关的结论片段。</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="panel mt">
+              <div class="p-head"><b>分歧高亮</b><span class="pill red" id="diff-pill">2 处待对齐</span></div>
+              <div class="p-body">
+
+                <div class="diff-card" id="diff1">
+                  <div class="diff-head"><b>分歧 #1 · 工作年限门槛</b><span class="pill amber" id="diff1-st">待对齐</span></div>
+                  <div class="diff-side"><span class="tag">A</span><p><b>用人部门 · 刘慕青：</b>要求 5 年以上后端经验，保证独立扛事。</p></div>
+                  <div class="diff-side"><span class="tag">B</span><p><b>HRBP · 赵一宁：</b>建议 3 年以上 + 能力达标即可，年限让位于实测。</p></div>
+                  <div class="diff-ai"><b>AI 建议（仅供参考）：</b>近两季录用样本中，3—5 年与 5 年以上候选人的二面通过率无显著差异；建议采纳 B，并在一面增加系统设计实测题兜底。</div>
+                  <div class="diff-opts">
+                    <button class="opt-btn" onclick="pick(this,'diff1')">采纳 A</button>
+                    <button class="opt-btn" onclick="pick(this,'diff1')">采纳 B</button>
+                    <button class="opt-btn" onclick="pick(this,'diff1')">线下对齐</button>
+                  </div>
+                </div>
+
+                <div class="diff-card" id="diff2">
+                  <div class="diff-head"><b>分歧 #2 · 是否必须金融行业背景</b><span class="pill amber" id="diff2-st">待对齐</span></div>
+                  <div class="diff-side"><span class="tag">A</span><p><b>用人部门 · 刘慕青：</b>必须有金融行业背景，减少业务磨合成本。</p></div>
+                  <div class="diff-side"><span class="tag">B</span><p><b>HRBP · 赵一宁：</b>建议改为加分信号，不作硬性门槛，扩大候选池。</p></div>
+                  <div class="diff-ai"><b>AI 建议（仅供参考）：</b>设为硬性条件将使可触达候选池缩小约 40%（示意）；建议列入加分信号，由面试官在业务理解题中验证。</div>
+                  <div class="diff-opts">
+                    <button class="opt-btn" onclick="pick(this,'diff2')">采纳 A</button>
+                    <button class="opt-btn" onclick="pick(this,'diff2')">采纳 B</button>
+                    <button class="opt-btn" onclick="pick(this,'diff2')">线下对齐</button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 底部：版本与回流 -->
+        <div class="panel mt">
+          <div class="p-head"><b>版本与回流</b><span class="hint">画像不是一次定稿，而是随录用结果持续回流校准</span></div>
+          <div class="p-body" style="padding:0;">
+            <table class="tbl">
+              <thead>
+                <tr><th style="width:80px;">版本</th><th style="width:150px;">时间</th><th>变更</th><th>依据</th><th style="width:150px;">确认人</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><b>v3.0</b></td><td>2026-07-15 10:02</td>
+                  <td>AI 聚合三方输入与需求会转写，生成初版画像草稿</td>
+                  <td>三方结构化输入 + 需求会录音转写（45 分钟）</td>
+                  <td>赵一宁（HRBP）</td>
+                </tr>
+                <tr>
+                  <td><b>v3.1</b></td><td>2026-07-22 16:40</td>
+                  <td>「高并发实战」权重 20%→25%；新增排除信号「纯外包驻场经历需复核」</td>
+                  <td>近 8 例二面淘汰原因归因复盘</td>
+                  <td>刘慕青（用人部门）</td>
+                </tr>
+                <tr>
+                  <td><b>v3.2</b></td><td>2026-08-05 09:18</td>
+                  <td>硬性条件微调：学历特例改走人工复核池，不做系统自动拦截</td>
+                  <td>HRBP 校准会纪要</td>
+                  <td>赵一宁（HRBP）</td>
+                </tr>
+                <tr class="gold-row">
+                  <td><b>v3.2</b></td><td>2026-08-08 14:20</td>
+                  <td><b>关键词命中率按上季度 12 个录用结果重算</b>（分布式 61%→68%，高并发 70%→74%）</td>
+                  <td>录用结果数据回流（2026 Q2 · 12 例）</td>
+                  <td>系统回流 · 赵一宁复核</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="confirm-bar" style="margin:16px 20px 20px;">
+              <button class="btn gold" id="confirm-btn" disabled onclick="confirmProfile()">确认生效并通知三方（需人工确认）</button>
+              <span class="note" id="confirm-note">2 处分歧全部处理后方可确认生效；确认动作由 HRBP 人工执行，AI 不自动定稿。</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ============ 视图：解决方案架构师（简要） ============ -->
+      <div id="view-sa" class="view-hidden">
+        <div class="panel">
+          <div class="p-head">
+            <b>解决方案架构师 · 画像卡 v1.4（已生效）</b>
+            <span class="pill green">已生效</span>
+            <span class="hint">生效于 2026-07-30 · 负责人：HRBP 赵一宁</span>
+          </div>
+          <div class="p-body">
+            <table class="tbl sa-summary">
+              <thead><tr><th>字段</th><th>内容</th></tr></thead>
+              <tbody>
+                <tr><td><b>试点状态</b></td><td>第二个试点岗位，画像已定稿并投入简历筛选</td></tr>
+                <tr><td><b>胜任力维度</b></td><td>方案设计 / 行业理解 / 售前表达 / 跨部门协同 / 交付兜底意识（5 项，权重合计 100%）</td></tr>
+                <tr><td><b>版本历史</b></td><td>v1.0 初稿 → v1.4 现行，共 2 次三方对齐、1 次回流校准</td></tr>
+                <tr><td><b>说明</b></td><td>本演示以「高级后端工程师」画像为主线展示共建过程，本卡仅作岗位切换示意</td></tr>
+              </tbody>
+            </table>
+            <p class="muted mt">切换回「高级后端工程师」标签可查看完整的三方共建与分歧对齐流程。</p>
+          </div>
+        </div>
+      </div>
+
+      <p class="footnote">演示数据均为虚构 · 商汤科技 · 大模型生态渠道部</p>
+    </div>
+  </div>
+</div>
+
+<script>
+function switchPos(which) {
+  var be = which === 'be';
+  document.getElementById('view-be').classList.toggle('view-hidden', !be);
+  document.getElementById('view-sa').classList.toggle('view-hidden', be);
+  document.getElementById('tab-be').classList.toggle('on', be);
+  document.getElementById('tab-sa').classList.toggle('on', !be);
+}
+
+function toggleTrans() {
+  var box = document.getElementById('trans-box');
+  var link = document.getElementById('trans-toggle');
+  var open = box.classList.toggle('open');
+  link.textContent = open ? '收起转写摘录 ▴' : '查看转写摘录 ▾';
+}
+
+function pick(btn, cardId) {
+  var card = document.getElementById(cardId);
+  var btns = card.querySelectorAll('.opt-btn');
+  for (var i = 0; i < btns.length; i++) btns[i].classList.remove('sel');
+  btn.classList.add('sel');
+  card.classList.add('resolved');
+  var st = document.getElementById(cardId + '-st');
+  st.textContent = '已选：' + btn.textContent.replace('✓ ', '');
+  st.className = 'pill green';
+  updateDiffCount();
+}
+
+function updateDiffCount() {
+  var remain = 2 - document.querySelectorAll('.diff-card.resolved').length;
+  var pill = document.getElementById('diff-pill');
+  var stepPill = document.getElementById('diff-count-pill');
+  var btn = document.getElementById('confirm-btn');
+  var note = document.getElementById('confirm-note');
+  if (remain <= 0) {
+    pill.textContent = '全部已处理';
+    pill.className = 'pill green';
+    stepPill.textContent = '已对齐';
+    stepPill.className = 'pill green';
+    btn.disabled = false;
+    note.textContent = '分歧已全部处理，可由 HRBP 点击确认生效；确认后系统通知三方并归档 v3.2 正式版。';
+  } else {
+    pill.textContent = remain + ' 处待对齐';
+    stepPill.textContent = '剩 ' + remain + ' 处';
+  }
+}
+
+function confirmProfile() {
+  var btn = document.getElementById('confirm-btn');
+  btn.textContent = '已提交确认 · 等待三方回执（演示态）';
+  btn.disabled = true;
+  document.getElementById('confirm-note').textContent = '演示环境不产生真实通知；正式环境中 HRBP 确认后画像 v3.2 生效并同步至简历筛选与面试评分卡。';
+}
+</script>
+</body>
+</html>

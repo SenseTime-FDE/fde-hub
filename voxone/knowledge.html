@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>知识库 · 话术 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("knowledge", async (root, ctx) => {
+  let { data, me } = ctx;
+  const $ = VX.$, $$ = VX.$$, esc = VX.esc;
+  const editConfig = !!me.perms.editConfig;
+  const myScenes = me.perms.viewAll
+    ? ["ecom","app","fintech","local","auto"]
+    : (me.scenarios || []).filter(s => s !== "*");
+  const inScope = (sc) => sc === "*" || myScenes.includes(sc);
+  const SCENE_ORDER = ["ecom","app","fintech","local","auto","*"];
+
+  let tab = "kb"; // kb | sop
+
+  // ---- 数据裁剪(按 viewAll / me.scenarios,知识/话术均可含 '*' 全局)----
+  const visibleKB = () => (data.knowledge || []).filter(k => inScope(k.scenario));
+  const visibleScripts = () => (data.scripts || []).filter(s => inScope(s.scenario));
+  const sceneLabel = (sc) => sc === "*" ? "🌐 全局" : (VX.scEmoji(sc) + " " + VX.scLabel(sc));
+
+  // ---- 场景下拉(含全部场景 '*'),始终包含当前记录场景 ----
+  function sceneOpts(sel) {
+    const set = new Set(myScenes); set.add("*"); if (sel) set.add(sel);
+    const list = [...set].sort((a,b) => SCENE_ORDER.indexOf(a) - SCENE_ORDER.indexOf(b));
+    return list.map(s => `<option value="${s}" ${sel===s?"selected":""}>${s==="*"?"🌐 全部场景":esc(VX.scEmoji(s)+" "+VX.scLabel(s))}</option>`).join("");
+  }
+  function modeOpts(sel) {
+    return ["service","sales","outbound"].map(m => `<option value="${m}" ${sel===m?"selected":""}>${VX.MODE[m]}</option>`).join("");
+  }
+
+  // ---- 页面外壳(pagehero + tabs + body)----
+  root.innerHTML = `
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-voice);display:grid;place-items:center;font-size:22px">📚</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">知识库 · 话术</div>
+      <div class="sub">RAG 知识 + SOP 话术 · 可推送坐席${editConfig?"":" · 当前为只读视图"}</div>
+    </div>
+    <div class="row" style="gap:8px">
+      <span class="chip"><span class="dot g"></span>知识 <b id="kbCount" style="color:#fff;margin-left:4px">0</b></span>
+      <span class="chip"><span class="dot b"></span>话术 <b id="sopCount" style="color:#fff;margin-left:4px">0</b></span>
+    </div>
+  </div>
+  <div class="tabs" id="tabs">
+    <div class="t on" data-tab="kb">📚 知识库(RAG)</div>
+    <div class="t" data-tab="sop">🗂️ 话术 / SOP</div>
+  </div>
+  <div id="tabbody" style="margin-top:16px"></div>`;
+
+  $$("#tabs .t").forEach(t => t.onclick = () => {
+    if (t.dataset.tab === tab) return;
+    tab = t.dataset.tab;
+    $$("#tabs .t").forEach(x => x.classList.toggle("on", x.dataset.tab === tab));
+    renderTab();
+  });
+
+  function updHero() {
+    $("#kbCount").textContent = VX.fmtNum(visibleKB().length);
+    $("#sopCount").textContent = VX.fmtNum(visibleScripts().length);
+  }
+
+  // ---- 改动后重取 bootstrap 重渲染当前 Tab ----
+  async function refresh() {
+    try { const fresh = await VX.api("/api/bootstrap"); data = fresh.data; }
+    catch (e) { VX.toast(e.message, "err"); return; }
+    renderTab();
+  }
+
+  function renderTab() {
+    updHero();
+    if (tab === "kb") renderKB(); else renderSOP();
+  }
+
+  // ==========================================================================
+  //  Tab ①  知识库(RAG)
+  // ==========================================================================
+  function renderKB() {
+    const body = $("#tabbody");
+    const rows = visibleKB();
+    body.innerHTML = `
+    <div class="card pad">
+      <div class="hd">
+        <h3>RAG 知识库</h3>
+        <span class="sub">命中关键词 → 检索 answer · 共 ${VX.fmtNum(rows.length)} 条</span>
+        <div class="sp"></div>
+        ${editConfig ? `<button class="btn pri sm" id="kbNew">+ 新建知识</button>` : ""}
+      </div>
+      ${rows.length ? `
+      <div style="overflow-x:auto">
+      <table class="tb">
+        <thead><tr><th>标题</th><th>场景</th><th>命中关键词</th><th>关联 SOP</th><th>更新</th><th style="text-align:right">操作</th></tr></thead>
+        <tbody>
+        ${rows.map(k => `
+          <tr>
+            <td class="nm"><span data-view="${k.id}" style="cursor:pointer">${esc(k.title)}</span>${k.answer_i18n&&k.answer_i18n.en?` <span class="tag">🌐 EN</span>`:""}</td>
+            <td style="white-space:nowrap">${esc(sceneLabel(k.scenario))}</td>
+            <td>${(k.keywords||[]).slice(0,6).map(w=>`<span class="tag" style="margin:1px 2px;display:inline-block">${esc(w)}</span>`).join("")||"<span class='muted'>—</span>"}</td>
+            <td>${k.sopTitle?`<span class="chip">🗂️ ${esc(k.sopTitle)}</span>`:"<span class='muted'>—</span>"}</td>
+            <td style="white-space:nowrap;color:var(--ink-3)">${VX.fmtTs(k.updated)}</td>
+            <td style="text-align:right;white-space:nowrap">
+              <button class="btn ghost sm" data-view="${k.id}">查看</button>
+              ${editConfig?`<button class="btn sm" data-edit="${k.id}">编辑</button><button class="btn danger sm" data-del="${k.id}">删除</button>`:""}
+            </td>
+          </tr>`).join("")}
+        </tbody>
+      </table>
+      </div>` : `<div class="empty"><div class="ic">📚</div>暂无知识条目${editConfig?" · 点击右上「+ 新建知识」添加":""}</div>`}
+    </div>`;
+
+    if (editConfig) $("#kbNew").onclick = () => kbForm(null);
+    $$("[data-view]", body).forEach(b => b.onclick = () => viewKB(b.dataset.view));
+    $$("[data-edit]", body).forEach(b => b.onclick = () => kbForm(kbById(b.dataset.edit)));
+    $$("[data-del]", body).forEach(b => b.onclick = () => delKB(kbById(b.dataset.del)));
+  }
+  const kbById = (id) => (data.knowledge || []).find(k => k.id === id);
+
+  function viewKB(id) {
+    const k = kbById(id); if (!k) return;
+    const sop = k.sopId ? (data.scripts || []).find(s => s.id === k.sopId) : null;
+    const body = `
+      <div class="kv"><span class="k">业务场景</span><span class="v">${esc(sceneLabel(k.scenario))}</span></div>
+      <div class="kv"><span class="k">更新时间</span><span class="v">${VX.fmtTs(k.updated)}</span></div>
+      <div style="margin:14px 0 6px" class="sub">命中关键词</div>
+      <div class="row" style="gap:6px">${(k.keywords||[]).map(w=>`<span class="chip">${esc(w)}</span>`).join("")||"<span class='muted'>—</span>"}</div>
+      <div style="margin:16px 0 6px" class="sub">回答(中文)</div>
+      <div style="background:#0d223f;border:1px solid var(--line);border-radius:10px;padding:12px 14px;line-height:1.7">${esc(k.answer||"")}</div>
+      ${k.answer_i18n&&k.answer_i18n.en?`<div style="margin:16px 0 6px" class="sub">回答(English)</div><div style="background:#0d223f;border:1px solid var(--line);border-radius:10px;padding:12px 14px;line-height:1.7">${esc(k.answer_i18n.en)}</div>`:""}
+      ${sop?`<div style="margin:16px 0 6px" class="sub">关联 SOP · ${esc(sop.title)}</div><div class="row" style="gap:6px">${(sop.steps||[]).map((st,i)=>`<span class="chip">${i+1}. ${esc(st)}</span>`).join("")}</div>`:""}`;
+    VX.modal({ title: "📚 " + k.title, body, wide: true });
+  }
+
+  function kbForm(editing) {
+    const sopList = visibleScripts();
+    const bodyEl = VX.el(`<div>
+      <label class="fld"><span class="lb">标题 *</span><input id="kbTitle" placeholder="例如:退换货政策与流程" value="${editing?esc(editing.title):""}"/></label>
+      <div class="two" style="gap:12px">
+        <label class="fld"><span class="lb">业务场景 *</span><select id="kbScene">${sceneOpts(editing?editing.scenario:myScenes[0])}</select></label>
+        <label class="fld"><span class="lb">关联 SOP(可空)</span><select id="kbSop">
+          <option value="">— 不关联 —</option>
+          ${sopList.map(s=>`<option value="${s.id}" ${editing&&editing.sopId===s.id?"selected":""}>${esc(s.title)}</option>`).join("")}
+        </select></label>
+      </div>
+      <label class="fld"><span class="lb">命中关键词(逗号分隔)</span><input id="kbKw" placeholder="退货, 退款, refund, return" value="${editing?esc((editing.keywords||[]).join(", ")):""}"/></label>
+      <label class="fld"><span class="lb">回答(中文)*</span><textarea id="kbAns" rows="4" placeholder="AI 命中该知识后播报/回复的内容">${editing?esc(editing.answer||""):""}</textarea></label>
+      <label class="fld"><span class="lb">回答(English,可选)</span><textarea id="kbEn" rows="3" placeholder="Optional English answer for multilingual scenes">${editing&&editing.answer_i18n?esc(editing.answer_i18n.en||""):""}</textarea></label>
+    </div>`);
+    const save = VX.el(`<button class="btn pri">保存</button>`);
+    const m = VX.modal({ title: editing ? "编辑知识" : "新建知识", body: bodyEl, footer: save, wide: true });
+    save.onclick = async () => {
+      const title = $("#kbTitle", bodyEl).value.trim();
+      const scenario = $("#kbScene", bodyEl).value;
+      const answer = $("#kbAns", bodyEl).value.trim();
+      const en = $("#kbEn", bodyEl).value.trim();
+      const sopId = $("#kbSop", bodyEl).value;
+      if (!title) return VX.toast("请填写标题", "err");
+      if (!answer) return VX.toast("请填写回答内容", "err");
+      const keywords = $("#kbKw", bodyEl).value.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+      const sop = sopId ? sopList.find(s => s.id === sopId) : null;
+      const rec = {
+        id: editing ? editing.id : "kb_" + Date.now(),
+        scenario, title, keywords, answer,
+        answer_i18n: en ? { en } : {},
+        sopId: sop ? sop.id : "", sopTitle: sop ? sop.title : "",
+        updated: new Date().toISOString(),
+      };
+      try {
+        // 兼容后端记录键(knowledge)与文档约定键(kb)
+        await VX.change("kb.upsert", { kb: rec, knowledge: rec });
+        m.close(); await refresh(); VX.toast(editing ? "知识已更新" : "知识已新建", "ok");
+      } catch (e) { VX.toast(e.message, "err"); }
+    };
+  }
+
+  function delKB(k) {
+    if (!k) return;
+    VX.confirm(`删除知识「${k.title}」?此操作不可撤销。`, async () => {
+      try { await VX.change("kb.delete", { id: k.id }); await refresh(); VX.toast("已删除", "ok"); }
+      catch (e) { VX.toast(e.message, "err"); }
+    }, "删除");
+  }
+
+  // ==========================================================================
+  //  Tab ②  话术 / SOP
+  // ==========================================================================
+  function renderSOP() {
+    const body = $("#tabbody");
+    const rows = visibleScripts();
+    body.innerHTML = `
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd">
+        <h3>话术 / SOP</h3>
+        <span class="sub">可一键推送到坐席工作台 Copilot · 共 ${VX.fmtNum(rows.length)} 套</span>
+        <div class="sp"></div>
+        ${editConfig ? `<button class="btn pri sm" id="sopNew">+ 新建话术</button>` : ""}
+      </div>
+      <div class="notice">🗂️ 话术即坐席的标准作业流程(SOP)。推送后,坐席在实时会话中会自动看到命中的建议步骤。</div>
+    </div>
+    ${rows.length ? `
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px">
+      ${rows.map(s => `
+        <div class="card pad" style="display:flex;flex-direction:column">
+          <div class="between" style="align-items:flex-start">
+            <div>
+              <b style="color:#fff;font-size:14.5px">${esc(s.title)}</b>
+              <div class="sub" style="margin-top:3px">${esc(sceneLabel(s.scenario))}</div>
+            </div>
+            <div class="row" style="gap:6px;justify-content:flex-end">${VX.modeBadge(s.mode)}${VX.statusBadge(s.status)}</div>
+          </div>
+          <ol style="margin:12px 0 0;padding-left:20px;color:var(--ink-1);font-size:13px;line-height:1.75">
+            ${(s.steps||[]).map(st=>`<li>${esc(st)}</li>`).join("")||"<li class='muted'>暂无步骤</li>"}
+          </ol>
+          <div style="flex:1"></div>
+          <div class="between" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
+            <span class="sub">📤 已推送 ${VX.fmtNum(s.pushCount||0)} 次 · ${VX.fmtTs(s.updated)}</span>
+            ${editConfig ? `<div class="row" style="gap:6px">
+              <button class="btn pri sm" data-push="${s.id}">📤 推送坐席</button>
+              <button class="btn sm" data-edit="${s.id}">编辑</button>
+              <button class="btn danger sm" data-del="${s.id}">删除</button>
+            </div>` : ""}
+          </div>
+        </div>`).join("")}
+    </div>` : `<div class="empty"><div class="ic">🗂️</div>暂无话术 / SOP${editConfig?" · 点击右上「+ 新建话术」添加":""}</div>`}`;
+
+    if (editConfig) $("#sopNew").onclick = () => sopForm(null);
+    $$("[data-push]", body).forEach(b => b.onclick = () => pushSOP(b.dataset.push));
+    $$("[data-edit]", body).forEach(b => b.onclick = () => sopForm(sopById(b.dataset.edit)));
+    $$("[data-del]", body).forEach(b => b.onclick = () => delSOP(sopById(b.dataset.del)));
+  }
+  const sopById = (id) => (data.scripts || []).find(s => s.id === id);
+
+  function sopForm(editing) {
+    let on = editing ? editing.status === "on" : true;
+    const bodyEl = VX.el(`<div>
+      <label class="fld"><span class="lb">话术标题 *</span><input id="spTitle" placeholder="例如:退换货 SOP" value="${editing?esc(editing.title):""}"/></label>
+      <div class="two" style="gap:12px">
+        <label class="fld"><span class="lb">业务场景 *</span><select id="spScene">${sceneOpts(editing?editing.scenario:myScenes[0])}</select></label>
+        <label class="fld"><span class="lb">模式 *</span><select id="spMode">${modeOpts(editing?editing.mode:"service")}</select></label>
+      </div>
+      <div class="fld"><span class="lb">状态</span>
+        <div class="row" style="align-items:center;gap:10px">
+          <div class="switch ${on?"on":""}" id="spSwitch"><b></b></div>
+          <span class="sub" id="spSwLbl">${on?"已上线 · 坐席可用":"已下线"}</span>
+        </div>
+      </div>
+      <label class="fld"><span class="lb">步骤(每行一步)*</span><textarea id="spSteps" rows="6" placeholder="核对订单号与商品状态&#10;判断是否在 15 天无理由范围&#10;生成退货面单并说明质检时效">${editing?esc((editing.steps||[]).join("\n")):""}</textarea></label>
+    </div>`);
+    const sw = $("#spSwitch", bodyEl), swLbl = $("#spSwLbl", bodyEl);
+    sw.onclick = () => { on = !on; sw.classList.toggle("on", on); swLbl.textContent = on ? "已上线 · 坐席可用" : "已下线"; };
+    const save = VX.el(`<button class="btn pri">保存</button>`);
+    const m = VX.modal({ title: editing ? "编辑话术 / SOP" : "新建话术 / SOP", body: bodyEl, footer: save, wide: true });
+    save.onclick = async () => {
+      const title = $("#spTitle", bodyEl).value.trim();
+      const scenario = $("#spScene", bodyEl).value;
+      const mode = $("#spMode", bodyEl).value;
+      const steps = $("#spSteps", bodyEl).value.split(/\n/).map(s => s.trim()).filter(Boolean);
+      if (!title) return VX.toast("请填写话术标题", "err");
+      if (!steps.length) return VX.toast("请至少填写一个步骤", "err");
+      const rec = {
+        id: editing ? editing.id : "sop_" + Date.now(),
+        scenario, mode, title,
+        status: on ? "on" : "off",
+        pushCount: editing ? (editing.pushCount || 0) : 0,
+        updated: new Date().toISOString(),
+        steps,
+      };
+      try {
+        await VX.change("script.upsert", { script: rec });
+        m.close(); await refresh(); VX.toast(editing ? "话术已更新" : "话术已新建", "ok");
+      } catch (e) { VX.toast(e.message, "err"); }
+    };
+  }
+
+  async function pushSOP(id) {
+    try { await VX.change("script.push", { id }); await refresh(); VX.toast("已推送坐席", "ok"); }
+    catch (e) { VX.toast(e.message, "err"); }
+  }
+
+  function delSOP(s) {
+    if (!s) return;
+    VX.confirm(`删除话术「${s.title}」?此操作不可撤销。`, async () => {
+      try { await VX.change("script.delete", { id: s.id }); await refresh(); VX.toast("已删除", "ok"); }
+      catch (e) { VX.toast(e.message, "err"); }
+    }, "删除");
+  }
+
+  // 首屏
+  renderTab();
+});
+</script>
+</body></html>

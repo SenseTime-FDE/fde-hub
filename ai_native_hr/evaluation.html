@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>证据链评估报告 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ===== 本页特有样式 ===== */
+.cand-bar { display: flex; align-items: center; gap: 18px; padding: 18px 20px; flex-wrap: wrap; }
+.cand-face { width: 52px; height: 52px; flex: none; border-radius: 50%; background: var(--navy); color: var(--gold-soft); font-size: 17px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.cand-info { min-width: 0; }
+.cand-info b { display: block; font-size: 17px; color: var(--navy); }
+.cand-info .sub { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.cand-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.gen-chip { margin-left: auto; text-align: right; font-size: 12px; color: var(--muted); }
+.gen-chip b { display: block; color: var(--navy); font-size: 15px; }
+.gen-chip em { font-style: normal; color: var(--gold); font-weight: 700; }
+
+.advice-box { margin-top: 16px; background: var(--gold-bg); border: 1px solid var(--gold-soft); border-radius: 10px; padding: 13px 16px; font-size: 13px; color: var(--navy); }
+.advice-box b { color: var(--amber); }
+.advice-box small { display: block; color: var(--muted); font-size: 11.5px; margin-top: 3px; }
+.score-total { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); display: flex; align-items: center; gap: 12px; }
+.score-total .dim { width: 130px; flex: none; font-weight: 700; color: var(--navy); font-size: 13px; }
+.score-total .big { font-size: 24px; font-weight: 700; color: var(--gold); }
+.score-total .of { font-size: 12px; color: var(--faint); }
+.score-list .score-row { margin-bottom: 13px; }
+.score-list .score-row .bar { flex: 1; }
+
+/* 逐维证据链：可展开块 */
+.dim-block { border: 1px solid var(--cbord); border-radius: 10px; margin-bottom: 12px; overflow: hidden; }
+.dim-block:last-child { margin-bottom: 0; }
+.dim-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; background: var(--soft2); user-select: none; }
+.dim-head:hover { background: var(--soft); }
+.dim-head .dim-title { font-weight: 700; color: var(--navy); font-size: 13.5px; }
+.dim-head .dim-score { margin-left: auto; font-weight: 700; color: var(--navy); font-size: 13.5px; flex: none; }
+.dim-head .caret { flex: none; width: 18px; text-align: center; color: var(--faint); transition: transform .18s; font-size: 11px; }
+.dim-block.open .caret { transform: rotate(90deg); }
+.dim-body { display: none; padding: 14px 16px 16px; border-top: 1px solid var(--line); }
+.dim-block.open .dim-body { display: block; }
+.dim-sum { font-size: 13px; color: var(--body); }
+.dim-sum b { color: var(--navy); }
+.evi-tag { display: inline-block; font-size: 10.5px; font-weight: 700; border-radius: 4px; padding: 1px 7px; margin-right: 6px; background: var(--green-bg); color: var(--green); }
+.evi.neg { border-left-color: var(--red); }
+.evi.neg .evi-tag { background: var(--red-bg); color: var(--red); }
+
+/* 多轮串联 */
+.chain-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; }
+.chain-item:last-child { border-bottom: none; }
+.chain-item .ic { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--green-bg); color: var(--green); font-size: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.chain-item .ic.gold { background: var(--gold-bg); color: var(--amber); }
+.chain-item b { color: var(--navy); }
+.chain-prog { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.chain-prog .bar { flex: 1; }
+.chain-prog .num { font-weight: 700; color: var(--navy); font-size: 12.5px; flex: none; }
+
+/* 追问清单 */
+.chk-list { list-style: none; }
+.chk { display: flex; gap: 10px; align-items: flex-start; padding: 10px 4px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.chk:last-child { border-bottom: none; }
+.chk .st-ic { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--green-bg); color: var(--green); font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+.chk .q { flex: 1; }
+.chk .q small { display: block; color: var(--faint); font-size: 11.5px; }
+.chk.miss .st-ic { background: var(--amber-bg); color: var(--amber); }
+.chk.miss .q { color: var(--amber); }
+
+/* 底部操作条 */
+.act-bar { margin-top: 20px; background: #fff; border: 1px solid var(--cbord); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.act-note { font-size: 12px; color: var(--muted); }
+.consent-line { margin-top: 10px; font-size: 11.5px; color: var(--faint); padding: 0 4px; }
+.consent-line b { color: var(--green); font-weight: 700; }
+
+/* 时间戳点击提示 */
+.toast { position: fixed; left: 50%; bottom: 34px; transform: translateX(-50%) translateY(16px); background: var(--navy); color: #fff; font-size: 12.5px; padding: 10px 20px; border-radius: 999px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 99; box-shadow: 0 6px 20px rgba(12,37,69,.3); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html">🤖 AI 专员对话</a>
+      <a href="profile.html">🎯 岗位画像共建</a>
+      <a href="screening.html">🗂 简历筛选与分发</a>
+      <a href="evaluation.html" class="on">📝 证据链评估报告</a>
+      <a href="board.html">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html">📊 面试质检</a>
+      <a href="compliance.html">🛡 合规与数据权属</a>
+      <a href="platform.html">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>证据链评估报告</h1><span class="crumb">AI 招聘专员 / 招聘工作台 / 面试评估</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+
+      <!-- 候选人条 -->
+      <div class="panel" style="margin-bottom:18px;">
+        <div class="cand-bar">
+          <div class="cand-face">陈</div>
+          <div class="cand-info">
+            <b>陈砚秋</b>
+            <span class="sub">应聘：高级后端工程师（画像卡 v3.2 · HRBP 赵一宁）· 二面（技术深挖）· 面试官：刘慕青（技术总监）· 时长 58 分钟</span>
+          </div>
+          <div class="cand-tags">
+            <span class="pill gold">报告已生成 · 待面试官确认</span>
+            <span class="pill blue">评分卡：5 维度</span>
+          </div>
+          <div class="gen-chip">
+            面试结束 → 报告生成
+            <b><em>8 分 12 秒</em></b>
+          </div>
+        </div>
+      </div>
+
+      <!-- 流程步骤 -->
+      <div class="steps">
+        <div class="st done"><span class="n">✓</span>一面 · 技术基础<span class="muted">王梓航 · 3.9/5 · 已通过</span></div>
+        <div class="st cur"><span class="n">2</span>二面 · 技术深挖<span class="muted" style="color:inherit;font-weight:400;">报告待确认</span></div>
+        <div class="st"><span class="n">3</span>终面 · 综合评估<span class="muted">待安排</span></div>
+      </div>
+
+      <div class="cols c23">
+        <!-- 左列：评分总览 + 多轮串联 -->
+        <div>
+          <div class="panel">
+            <div class="p-head"><b>评分总览</b><span class="hint">对齐画像卡 v3.2 胜任力维度</span></div>
+            <div class="p-body">
+              <div class="score-list">
+                <div class="score-row"><span class="dim">系统设计能力</span><div class="bar"><i style="width:90%"></i></div><span class="val">4.5</span></div>
+                <div class="score-row"><span class="dim">工程质量意识</span><div class="bar"><i style="width:84%"></i></div><span class="val">4.2</span></div>
+                <div class="score-row"><span class="dim">高并发实战</span><div class="bar"><i style="width:92%"></i></div><span class="val">4.6</span></div>
+                <div class="score-row"><span class="dim">协作与沟通</span><div class="bar" ><i style="width:76%;background:var(--amber)"></i></div><span class="val">3.8</span></div>
+                <div class="score-row"><span class="dim">责任心与韧性</span><div class="bar"><i style="width:78%"></i></div><span class="val">3.9</span></div>
+              </div>
+              <div class="score-total">
+                <span class="dim">综合建议</span>
+                <span class="big">4.2</span><span class="of">/ 5</span>
+                <span class="pill gold" style="margin-left:auto;">高于岗位基准线 3.5</span>
+              </div>
+              <div class="advice-box">
+                <b>AI 建议：进入终面</b> —— 五维中三项达到「优秀」区间，协作沟通维度建议终面重点复核。
+                <small>本建议仅供参考，录用决定需人工确认。</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel mt">
+            <div class="p-head"><b>多轮串联</b><span class="hint">跨轮次去重 · 避免重复提问</span></div>
+            <div class="p-body">
+              <div class="chain-item">
+                <span class="ic">✓</span>
+                <div><b>工程质量意识 · 已充分验证</b><br>一面（王梓航）已覆盖代码评审习惯与测试策略，判定「已充分验证」，本轮自动去重、不再重复追问。</div>
+              </div>
+              <div class="chain-item">
+                <span class="ic gold">⇢</span>
+                <div><b>本轮追问清单完成度</b>
+                  <div class="chain-prog"><div class="bar"><i class="gold" style="width:83%"></i></div><span class="num">5 / 6</span></div>
+                  <span class="muted">1 条未问到，已自动带入终面追问清单。</span>
+                </div>
+              </div>
+              <div class="chain-item">
+                <span class="ic">✓</span>
+                <div><b>关键词组命中回放</b><br>核心词：分布式 / 高并发 / JVM 调优 / 微服务治理 均有实质性展开；加分信号「千万级 QPS 实战」已在本轮验证。</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右列：逐维证据链 -->
+        <div class="panel">
+          <div class="p-head"><b>逐维证据链</b><span class="hint">每项结论均可回溯至录音原文 · 点击时间戳定位</span></div>
+          <div class="p-body">
+
+            <div class="dim-block open">
+              <div class="dim-head" onclick="toggleDim(this)">
+                <span class="caret">▶</span><span class="dim-title">① 系统设计能力</span><span class="dim-score">4.5 / 5</span>
+              </div>
+              <div class="dim-body">
+                <p class="dim-sum">结论：<b>具备大型分布式系统的整体设计能力</b>，方案取舍有明确的量化依据，非背诵式作答。</p>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">陈砚秋</span><span class="ts" onclick="jumpTs('00:14:22')">00:14:22</span><br>「订单库拆分我们没有一步到位，先按买家维度做了逻辑分库，灰度三周确认热点分布后才做物理拆分。」</div>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">刘慕青</span><span class="ts" onclick="jumpTs('00:19:05')">00:19:05</span><br>「追问：如果重来一次，分库键还会选买家 ID 吗？——候选人主动给出了两种备选方案并比较了迁移成本。」</div>
+              </div>
+            </div>
+
+            <div class="dim-block">
+              <div class="dim-head" onclick="toggleDim(this)">
+                <span class="caret">▶</span><span class="dim-title">② 工程质量意识</span><span class="dim-score">4.2 / 5</span>
+                <span class="pill green" style="margin-left:8px;">一面已验证 · 本轮去重</span>
+              </div>
+              <div class="dim-body">
+                <p class="dim-sum">结论：<b>一面已充分验证</b>（王梓航 · 4.1），本轮仅做交叉印证，未重复展开提问。</p>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">陈砚秋</span><span class="ts" onclick="jumpTs('00:23:48')">00:23:48</span><br>「上线前我们坚持双人评审加自动化回归，核心链路的单测覆盖率红线是 80%，低于就不让合。」</div>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">刘慕青</span><span class="ts" onclick="jumpTs('00:26:10')">00:26:10</span><br>「候选人谈到质量问题时主动提及自己引入过一次线上缺陷及其修复过程，表述坦诚。」</div>
+              </div>
+            </div>
+
+            <div class="dim-block">
+              <div class="dim-head" onclick="toggleDim(this)">
+                <span class="caret">▶</span><span class="dim-title">③ 高并发实战</span><span class="dim-score">4.6 / 5</span>
+              </div>
+              <div class="dim-body">
+                <p class="dim-sum">结论：<b>有千万级 QPS 大促场景的一线实战</b>，对热点治理、降级预案的细节掌握到参数级。</p>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">陈砚秋</span><span class="ts" onclick="jumpTs('00:31:37')">00:31:37</span><br>「大促峰值一千二百万 QPS，热点 key 我们用本地缓存加随机过期打散，命中率从 71% 拉到 96%。」</div>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">陈砚秋</span><span class="ts" onclick="jumpTs('00:35:58')">00:35:58</span><br>「JVM 这块我们把 G1 的 MaxGCPauseMillis 从 200 调到 120，配合堆外缓存，停顿毛刺基本消掉了。」</div>
+              </div>
+            </div>
+
+            <div class="dim-block">
+              <div class="dim-head" onclick="toggleDim(this)">
+                <span class="caret">▶</span><span class="dim-title">④ 协作与沟通</span><span class="dim-score">3.8 / 5</span>
+              </div>
+              <div class="dim-body">
+                <p class="dim-sum">结论：<b>表达清晰、能对齐技术分歧</b>，但跨团队推进偏依赖上级协调，主动拉通动作偏少，建议终面复核。</p>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">陈砚秋</span><span class="ts" onclick="jumpTs('00:41:02')">00:41:02</span><br>「和算法团队对接口分歧时，我先把两版方案的压测数据摆出来，用数据说话，最后按混合方案落地。」</div>
+                <div class="evi neg"><span class="evi-tag">减分</span><span class="who">陈砚秋</span><span class="ts" onclick="jumpTs('00:44:36')">00:44:36</span><br>「跨部门那次链路改造，主要是我们总监出面协调的，我负责把技术方案做扎实。」——跨团队主动推进的直接证据不足。</div>
+              </div>
+            </div>
+
+            <div class="dim-block">
+              <div class="dim-head" onclick="toggleDim(this)">
+                <span class="caret">▶</span><span class="dim-title">⑤ 责任心与韧性</span><span class="dim-score">3.9 / 5</span>
+              </div>
+              <div class="dim-body">
+                <p class="dim-sum">结论：<b>对线上事故有兜底意识</b>，复盘归因先看自身，长周期攻坚项目有完整交付记录。</p>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">陈砚秋</span><span class="ts" onclick="jumpTs('00:49:14')">00:49:14</span><br>「那次资损事故虽然根因在下游，但拦截规则是我负责的，复盘我把自己列为第一责任人。」</div>
+                <div class="evi"><span class="evi-tag">支撑</span><span class="who">刘慕青</span><span class="ts" onclick="jumpTs('00:52:40')">00:52:40</span><br>「谈到连续三个月的存储迁移攻坚时，候选人能完整说出每个里程碑的卡点与解法，非旁观视角。」</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 面前追问清单（折叠） -->
+      <div class="panel mt">
+        <div class="p-head" style="cursor:pointer;" onclick="toggleChk()">
+          <b>面前追问清单（本轮 6 条）</b>
+          <span class="pill green">已问到 5</span><span class="pill amber">未问到 1 · 带入终面</span>
+          <span class="hint" id="chkHint">点击展开 ▾</span>
+        </div>
+        <div class="p-body" id="chkBody" style="display:none;">
+          <ul class="chk-list">
+            <li class="chk"><span class="st-ic">✓</span><div class="q">千万级 QPS 场景下的热点 key 治理方案与实际收益<small>对应维度：高并发实战 · 已问到（00:31:37）</small></div></li>
+            <li class="chk"><span class="st-ic">✓</span><div class="q">微服务治理中拆分粒度的判断依据与一次踩坑复盘<small>对应维度：系统设计能力 · 已问到（00:14:22）</small></div></li>
+            <li class="chk"><span class="st-ic">✓</span><div class="q">JVM 调优实际案例：GC 停顿的定位过程与参数依据<small>对应维度：高并发实战 · 已问到（00:35:58）</small></div></li>
+            <li class="chk"><span class="st-ic">✓</span><div class="q">线上资损事故复盘中本人承担的角色与改进项<small>对应维度：责任心与韧性 · 已问到（00:49:14）</small></div></li>
+            <li class="chk"><span class="st-ic">✓</span><div class="q">与算法/产品团队出现技术分歧时的推进方式<small>对应维度：协作与沟通 · 已问到（00:41:02）</small></div></li>
+            <li class="chk miss"><span class="st-ic">!</span><div class="q">开源贡献（加分信号）的持续性与社区协作方式<small>未问到 · 已自动带入终面追问清单</small></div></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 操作条 -->
+      <div class="act-bar">
+        <button class="btn primary" onclick="toast('演示示意：报告已提交面试官确认流程（人工确认后生效）')">确认报告生效</button>
+        <button class="btn ghost" onclick="toast('演示示意：进入修改模式，所有改动将留痕并展示修改人')">修改后确认（留痕）</button>
+        <span class="act-note">报告经面试官确认后生效 · 修改留痕 · AI 结论仅为建议，录用/淘汰均需人工确认</span>
+      </div>
+      <p class="consent-line"><b>✓</b> 本场录制已获候选人事前同意（2026-08-06 邀请函确认）· 违规提问检出：<b>0 起</b> · 逐字质检明细仅面试官刘慕青本人可见，管理视图仅呈现匿名聚合数据</p>
+
+      <p class="footnote">演示数据均为虚构 · 商汤科技 · 大模型生态渠道部</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function toggleDim(head){ head.parentElement.classList.toggle('open'); }
+function toggleChk(){
+  var b = document.getElementById('chkBody'), h = document.getElementById('chkHint');
+  var open = b.style.display !== 'none';
+  b.style.display = open ? 'none' : 'block';
+  h.textContent = open ? '点击展开 ▾' : '点击收起 ▴';
+}
+var toastTimer = null;
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2600);
+}
+function jumpTs(ts){
+  toast('演示示意：定位到面试录音 ' + ts + ' 处（演示环境不加载真实音频）');
+  if (window.event) { window.event.stopPropagation(); }
+}
+</script>
+</body>
+</html>

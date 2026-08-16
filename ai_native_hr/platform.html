@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智能体管理平台 · AI 招聘专员 · 商汤科技</title>
+<link rel="stylesheet" href="assets/app.css">
+<style>
+/* ---------- 本页特有样式 ---------- */
+.notice {
+  background: var(--gold-bg); border: 1px solid var(--gold-soft); border-radius: 12px;
+  padding: 14px 20px; margin-bottom: 20px; display: flex; gap: 12px; align-items: flex-start;
+}
+.notice .ic { font-size: 18px; line-height: 1.4; }
+.notice b { color: var(--navy); }
+.notice p { font-size: 13px; color: var(--body); }
+
+/* 流程编排横向节点流 */
+.flow-wrap { overflow-x: auto; padding-bottom: 6px; }
+.flow { display: flex; align-items: stretch; gap: 0; min-width: 1080px; }
+.fnode {
+  flex: 1; min-width: 104px; background: var(--soft2); border: 1px solid var(--cbord);
+  border-radius: 10px; padding: 10px 8px 9px; text-align: center; cursor: default;
+  transition: border-color .15s, box-shadow .15s; position: relative;
+}
+.fnode b { display: block; color: var(--navy); font-size: 13px; margin-bottom: 5px; white-space: nowrap; }
+.fnode:hover, .fnode.lit { border-color: var(--gold); box-shadow: 0 2px 8px rgba(194,161,75,.22); background: #fff; }
+.fnode.human { background: var(--gold-bg); }
+.farrow { flex: none; width: 26px; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 13px; }
+.flow-tip {
+  margin-top: 14px; background: var(--soft2); border-left: 3px solid var(--gold);
+  border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 12.5px; min-height: 44px;
+}
+.flow-tip b { color: var(--navy); margin-right: 8px; }
+
+/* 身份卡 */
+.id-card { border: 1px solid var(--cbord); border-radius: 12px; overflow: hidden; }
+.id-card .id-top { background: var(--navy); color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+.id-card .id-top .robot {
+  width: 40px; height: 40px; flex: none; border-radius: 10px; background: var(--dark-card);
+  border: 1px solid var(--dark-line); display: flex; align-items: center; justify-content: center; font-size: 20px;
+}
+.id-card .id-top b { display: block; font-size: 14.5px; }
+.id-card .id-top small { color: var(--dark-faint); font-size: 11px; letter-spacing: 1px; font-family: "SF Mono", Menlo, monospace; }
+.id-card .id-rows { padding: 6px 18px 12px; }
+.id-row { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px dashed var(--line); font-size: 12.5px; }
+.id-row:last-child { border-bottom: none; }
+.id-row .k { width: 96px; flex: none; color: var(--faint); }
+.id-row .v { color: var(--body); }
+.id-row .v b { color: var(--navy); }
+.dual-note {
+  margin-top: 12px; background: var(--red-bg); border: 1px solid #EBD3CF; border-radius: 8px;
+  padding: 9px 14px; font-size: 12.5px; color: var(--red); font-weight: 700;
+}
+
+/* 运行监控队列摘要 */
+.qstats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+.qstat { background: var(--soft2); border: 1px solid var(--cbord); border-radius: 10px; padding: 10px 14px; text-align: center; }
+.qstat b { display: block; font-size: 22px; color: var(--navy); line-height: 1.3; }
+.qstat span { font-size: 11.5px; color: var(--muted); }
+.replay-item { border: 1px solid var(--cbord); border-radius: 10px; padding: 10px 14px; margin-bottom: 10px; font-size: 12.5px; }
+.replay-item:last-child { margin-bottom: 0; }
+.replay-item .rline { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.replay-item .rline b { color: var(--navy); }
+.replay-item .chain { color: var(--muted); margin-top: 3px; }
+.replay-item .chain i { font-style: normal; color: var(--blue); font-weight: 700; }
+.replay-btn {
+  margin-left: auto; flex: none; font-size: 11.5px; color: var(--blue); font-weight: 700;
+  border: 1px solid var(--cbord); border-radius: 999px; padding: 2px 12px; cursor: pointer; background: #fff;
+}
+.replay-btn:hover { border-color: var(--blue); background: var(--soft); }
+
+/* 底部底座说明 */
+.base-note {
+  margin-top: 20px; background: var(--navy); color: var(--dark-sub); border-radius: 12px;
+  padding: 18px 24px; display: flex; gap: 14px; align-items: flex-start;
+}
+.base-note .ic { font-size: 20px; }
+.base-note b { color: var(--gold); display: block; font-size: 14.5px; margin-bottom: 3px; }
+.base-note p { font-size: 12.5px; }
+
+/* 配置详情折叠行 */
+#cfgRow td { background: var(--soft2); }
+.cfg-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px 18px; font-size: 12.5px; }
+.cfg-grid .cg { background: #fff; border: 1px solid var(--cbord); border-radius: 8px; padding: 8px 12px; }
+.cfg-grid .cg small { display: block; color: var(--faint); font-size: 11px; }
+.cfg-grid .cg b { color: var(--navy); font-size: 12.5px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="logo"><img src="assets/st_logo_white.png" alt="商汤科技 SenseTime" style="height:20px;display:block;margin-bottom:10px"><b>AI <em>招聘专员</em></b><small>SENSETIME · DEMO</small></div>
+    <nav>
+      <p class="group">招聘工作台</p>
+      <a href="agent.html">🤖 AI 专员对话</a>
+      <a href="profile.html">🎯 岗位画像共建</a>
+      <a href="screening.html">🗂 简历筛选与分发</a>
+      <a href="evaluation.html">📝 证据链评估报告</a>
+      <a href="board.html">📌 岗位看板</a>
+      <p class="group">管理与合规</p>
+      <a href="quality.html">📊 面试质检</a>
+      <a href="compliance.html">🛡 合规与数据权属</a>
+      <a href="platform.html" class="on">⚙️ 智能体管理平台</a>
+    </nav>
+    <a class="back" href="index.html">← 返回方案主页</a>
+  </aside>
+  <div class="main">
+    <header class="topbar">
+      <h1>智能体管理平台</h1><span class="crumb">AI 招聘专员 / 管理与合规 / 智能体管理平台</span>
+      <div class="right"><img src="assets/st_logo_color.png" alt="商汤科技" style="height:22px"><span class="demo-badge">演示环境 · 数据为虚构示意</span><div class="avatar">HR</div></div>
+    </header>
+    <div class="page">
+
+      <!-- 顶部提示条 -->
+      <div class="notice">
+        <span class="ic">🏛️</span>
+        <p><b>招聘专员只是第一位上岗的数字员工。</b>流程编排、身份权限、运行监控、审计留痕在同一底座完成 —— 绩效面谈、离职面谈等场景包即插即用，不需要为每个场景另建一套系统。</p>
+      </div>
+
+      <!-- KPI -->
+      <div class="kpis">
+        <div class="kpi"><b>1 <em>位</em></b><span>在岗数字员工 · 另有 3 个场景包可开通</span></div>
+        <div class="kpi"><b>1,284 <em>件</em></b><span>本月自动处理任务 · 全程留痕</span></div>
+        <div class="kpi"><b>100%</b><span>人工确认节点留痕率（录用／淘汰／拒绝信）</span></div>
+        <div class="kpi"><b>17 <em>件</em></b><span>例外打包上报 · 均已由 HR 一次决策闭环</span></div>
+      </div>
+
+      <!-- 数字员工团队 -->
+      <div class="panel">
+        <div class="p-head"><b>数字员工团队</b><span class="hint">每位数字员工均有明确的人类责任人，可随时停用</span></div>
+        <div class="p-body" style="padding:0;">
+          <table class="tbl">
+            <tr><th>数字员工</th><th>状态</th><th>版本</th><th>覆盖范围</th><th>责任人</th><th>操作</th></tr>
+            <tr>
+              <td><b>🤖 AI 招聘专员</b></td>
+              <td><span class="pill green">在岗</span></td>
+              <td>v2.3</td>
+              <td>覆盖岗位 2 个：高级后端工程师（画像 v3.2）· 解决方案架构师（画像 v1.4）</td>
+              <td>赵一宁（HRBP）</td>
+              <td><button class="btn ghost" style="padding:5px 14px;font-size:12px;" onclick="toggleCfg()">配置</button></td>
+            </tr>
+            <tr id="cfgRow" style="display:none;">
+              <td colspan="6">
+                <div class="cfg-grid">
+                  <div class="cg"><small>自动处理范围</small><b>接简历 · 初筛 · 推送 · 约面 · 纪要评估 · 归档回流</b></div>
+                  <div class="cg"><small>必须人工确认</small><b>画像生效 · 录用／淘汰 · 拒绝信发出</b></div>
+                  <div class="cg"><small>部门反馈催办</small><b>超 48 小时未反馈自动催办（本周已催办 2 份）</b></div>
+                  <div class="cg"><small>约面触点约束</small><b>候选人触点目标 ≤3 次，超限即打包上报</b></div>
+                  <div class="cg"><small>响应时效目标</small><b>候选人消息响应目标 10 分钟内（非承诺 SLA）</b></div>
+                  <div class="cg"><small>例外上报规则</small><b>两次以上改期／低置信初筛 → 打包上报 HR 一次决策</b></div>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td><b>📈 绩效面谈助理</b></td>
+              <td><span class="pill blue">可开通</span></td>
+              <td>—</td>
+              <td>场景包：绩效周期面谈纪要、证据链整理与改进建议草拟</td>
+              <td>待指派</td>
+              <td><span class="muted">申请开通</span></td>
+            </tr>
+            <tr>
+              <td><b>🚪 离职面谈助理</b></td>
+              <td><span class="pill blue">可开通</span></td>
+              <td>—</td>
+              <td>场景包：离职面谈提纲、原因归因汇总（仅授权范围内）</td>
+              <td>待指派</td>
+              <td><span class="muted">申请开通</span></td>
+            </tr>
+            <tr>
+              <td><b>🎓 面试官陪练</b></td>
+              <td><span class="pill amber">规划中</span></td>
+              <td>—</td>
+              <td>场景包：结合面试质检结果的面试官模拟陪练（质检结果仅本人可见）</td>
+              <td>待指派</td>
+              <td><span class="muted">—</span></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 流程编排 -->
+      <div class="panel mt">
+        <div class="p-head"><b>流程编排</b><span class="hint">按四条出面规则配置：要人脸出面 · 要人担责 · AI 没把握 · 结果偏离必须转人，其余自动 —— 规则由企业自定并版本化（当前 v2.3 · 08-02 生效）</span></div>
+        <div class="p-body">
+          <div class="flow-wrap">
+            <div class="flow" id="flow">
+              <div class="fnode human" data-tip="岗位画像卡由 HRBP 与用人部门共建，人工确认后才生效 —— 当前生效：高级后端工程师 v3.2 · 解决方案架构师 v1.4。"><b>画像生效</b><span class="pill gold">必须人工</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode" data-tip="多渠道简历自动汇入并结构化解析 —— 本周新简历 47 份，解析失败自动转人工修正队列。"><b>接简历</b><span class="pill blue">自动</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode" data-tip="按生效画像逐条比对给出建议分 —— 本周自动初筛覆盖 100%，低置信样本进入人工复核池（当前 5 份）。"><b>自动初筛</b><span class="pill blue">自动</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode" data-tip="按建议分推送用人部门 —— 当前待反馈 6 份，其中 2 份超 48 小时已自动催办。"><b>推送部门</b><span class="pill blue">自动</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode" data-tip="以 HR（赵一宁）署名与候选人协调时间，触点目标 ≤3 次；多次改期（如林晚晴 ×2）自动打包上报 HR 决策。"><b>约面协调</b><span class="pill blue">自动</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode" data-tip="面试纪要自动生成证据链评估报告，结论一律为「建议」，需面试官确认 —— 如陈砚秋二面报告待刘慕青确认。"><b>纪要评估</b><span class="pill blue">自动</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode human" data-tip="AI 只出建议分，录用与淘汰必须由 HR 或面试官人工确认 —— 如周远帆 2.1 分为「已淘汰 · 人工确认」。"><b>录用／淘汰</b><span class="pill gold">必须人工</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode human" data-tip="拒绝信由 agent 起草，必须经 HR 逐封审批后才能发出，发出记录全部留痕。"><b>拒绝信发出</b><span class="pill gold">必须人工</span></div>
+              <div class="farrow">→</div>
+              <div class="fnode" data-tip="过程数据自动归档，评估偏差回流用于优化画像与筛选规则，形成下一个版本。"><b>归档回流</b><span class="pill blue">自动</span></div>
+            </div>
+          </div>
+          <div class="flow-tip" id="flowTip"><b>提示</b>将鼠标悬停在任一节点上，查看该环节的自动化边界与人工确认规则说明。</div>
+        </div>
+      </div>
+
+      <!-- 身份权限 + 运行监控 -->
+      <div class="cols c23 mt">
+        <div class="panel">
+          <div class="p-head"><b>身份与权限</b><span class="hint">数字员工同样有「工牌」</span></div>
+          <div class="p-body">
+            <div class="id-card">
+              <div class="id-top">
+                <div class="robot">🤖</div>
+                <div><b>AI 招聘专员</b><small>ID：DE-HIRE-001</small></div>
+                <span class="pill green" style="margin-left:auto;">在岗</span>
+              </div>
+              <div class="id-rows">
+                <div class="id-row"><span class="k">账号类型</span><span class="v"><b>独立智能体账号</b>，不复用任何人类员工账号</span></div>
+                <div class="id-row"><span class="k">权限原则</span><span class="v"><b>最小权限</b>：仅开放完成招聘任务所需的接口与数据</span></div>
+                <div class="id-row"><span class="k">数据可见范围</span><span class="v">仅限负责岗位：高级后端工程师 · 解决方案架构师</span></div>
+                <div class="id-row"><span class="k">代发署名规则</span><span class="v">日常消息署 <b>HR（赵一宁）</b>名义发出；<b>拒绝信必须人工审批</b>后发出</span></div>
+                <div class="id-row"><span class="k">停用开关</span><span class="v">责任人与管理员均可一键停用，任务自动转人工</span></div>
+              </div>
+            </div>
+            <div class="dual-note">🔒 任何权限变更需管理员双人确认，变更记录进入审计日志。</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="p-head"><b>运行监控</b><span class="hint">每一步动作可回放：输入 → 判断依据 → 输出全程留痕</span></div>
+          <div class="p-body">
+            <div class="qstats">
+              <div class="qstat"><b>3</b><span>任务排队中</span></div>
+              <div class="qstat"><b>2</b><span>任务执行中</span></div>
+              <div class="qstat"><b>96</b><span>今日已完成</span></div>
+            </div>
+            <p class="muted" style="margin-bottom:8px;">异常与例外回放（最近 2 条）：</p>
+            <div class="replay-item">
+              <div class="rline"><b>候选人林晚晴 · 面试时间两次改期</b><span class="pill green">已闭环</span><button class="replay-btn" onclick="showReplay('林晚晴改期事件：触点已达上限，agent 停止自行协调，打包 2 次改期记录与候选人意向上报 HR，赵一宁一次决策改约下周，全过程留痕可回放。')">回放</button></div>
+              <div class="chain">触点达上限 → <i>例外打包上报</i> → HR 一次决策（改约下周）→ agent 以 HR 署名代发新邀约</div>
+            </div>
+            <div class="replay-item">
+              <div class="rline"><b>简历 #R-0807-031 · 扫描件解析失败</b><span class="pill amber">处理中</span><button class="replay-btn" onclick="showReplay('解析失败事件：agent 判定置信度不足，不猜测、不硬解析，简历原件转入人工修正队列，等待 HR 补录关键字段后回流初筛。')">回放</button></div>
+              <div class="chain">解析置信度不足 → <i>转人工修正队列</i> → 待 HR 补录后自动回流初筛</div>
+            </div>
+            <div class="evi" id="replayBox" style="display:none;"><span class="who">动作回放</span><span id="replayText"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 审计日志 -->
+      <div class="panel mt">
+        <div class="p-head"><b>审计日志</b><span class="hint">节选 · 全量日志支持按事件／操作人／时间导出</span></div>
+        <div class="p-body" style="padding:0;">
+          <table class="tbl">
+            <tr><th>时间</th><th>事件</th><th>操作人</th><th>留痕状态</th></tr>
+            <tr>
+              <td>08-09 17:42</td>
+              <td><b>权限变更</b>：为 DE-HIRE-001 新增「解决方案架构师」岗位数据可见范围</td>
+              <td>管理员 张启铭 + 何静宜（双人确认）</td>
+              <td><span class="pill gold">双人确认</span></td>
+            </tr>
+            <tr>
+              <td>08-09 11:06</td>
+              <td><b>拒绝信审批</b>：候选人周远帆，人工批准后由 agent 以 HR 署名代发</td>
+              <td>赵一宁（HRBP）</td>
+              <td><span class="pill green">已留痕</span></td>
+            </tr>
+            <tr>
+              <td>08-08 09:30</td>
+              <td><b>规则版本发布</b>：流程编排规则 v2.3 生效（催办阈值调整为目标 48h）</td>
+              <td>赵一宁 提交 · 管理员确认</td>
+              <td><span class="pill blue">版本化</span></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- 底座说明 -->
+      <div class="base-note">
+        <span class="ic">🧩</span>
+        <div>
+          <b>平台即底座</b>
+          <p>新场景包开通不需要采购新系统 —— 绩效面谈助理、离职面谈助理在同一平台完成「入职」，沿用同一套流程编排、身份权限、运行监控与审计留痕，管理成本不随场景数量线性增长。</p>
+        </div>
+      </div>
+
+      <p class="footnote">演示数据均为虚构 · 商汤科技 · 大模型生态渠道部</p>
+    </div>
+  </div>
+</div>
+<script>
+// 流程节点悬停说明
+(function () {
+  var tip = document.getElementById('flowTip');
+  var defaultHtml = tip.innerHTML;
+  var nodes = document.querySelectorAll('#flow .fnode');
+  nodes.forEach(function (n) {
+    n.addEventListener('mouseenter', function () {
+      nodes.forEach(function (m) { m.classList.remove('lit'); });
+      n.classList.add('lit');
+      var name = n.querySelector('b').textContent;
+      var mode = n.classList.contains('human') ? '【必须人工】' : '【自动】';
+      tip.innerHTML = '<b>' + name + ' ' + mode + '</b>' + n.getAttribute('data-tip');
+    });
+    n.addEventListener('mouseleave', function () {
+      n.classList.remove('lit');
+      tip.innerHTML = defaultHtml;
+    });
+  });
+})();
+
+// 配置详情折叠
+function toggleCfg() {
+  var row = document.getElementById('cfgRow');
+  row.style.display = (row.style.display === 'none') ? '' : 'none';
+}
+
+// 异常回放
+function showReplay(text) {
+  var box = document.getElementById('replayBox');
+  document.getElementById('replayText').textContent = text;
+  box.style.display = '';
+}
+</script>
+</body>
+</html>

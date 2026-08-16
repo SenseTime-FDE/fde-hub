@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Native 销售管理 · 待决队列</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ============ queue 页专属样式（q- 前缀） ============ */
+/* 品牌区（不改 style.css，写在页内） */
+.topnav .brand img{height:24px;width:auto}
+.topnav .brand{flex-wrap:wrap;row-gap:4px}
+.topnav .brand .bx{font-size:12px;color:var(--muted);margin:0 2px}
+.topnav nav{gap:1px}
+.topnav nav a{padding:7px 11px;font-size:13px}
+.site-footer .foot-brand img{height:18px}
+
+.q-sec { margin-bottom: 46px; }
+.q-head { display: flex; align-items: baseline; gap: 13px; margin-bottom: 16px; flex-wrap: wrap; }
+.q-head .no { flex: none; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: #fff; background: var(--ink); border-radius: 7px; padding: 5px 10px; }
+.q-head h2 { font-size: 21px; color: var(--ink); }
+.q-head h2 .hl { color: var(--warm-d); }
+.q-head p { font-size: 12px; color: var(--muted); }
+
+/* ---------- 01 看板 vs 待决队列 ---------- */
+.q-vs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 980px) { .q-vs { grid-template-columns: 1fr; } }
+.q-vs .panel { padding: 20px 22px; }
+.q-vs .panel.old { background: #FBFAF8; border-color: var(--cream2); }
+.q-vs .panel.old h3::before { background: var(--muted); }
+.q-vs .vs-tag { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 6px; }
+.q-vs .panel:not(.old) .vs-tag { color: var(--teal); }
+.q-flow { margin: 6px 0 4px; }
+.q-flow .f-step .n { font-size: 11px; }
+.q-flow .f-step.man .n { background: var(--warm); }
+.q-flow .f-step.sys .n { background: var(--teal-d); }
+.q-flow .f-step { display: flex; flex-direction: column; }
+.q-flow .f-step .who { display: block; font-size: 10px; font-weight: 800; letter-spacing: .5px; margin-top: auto; padding-top: 5px; }
+.q-flow .f-step.man .who { color: var(--warm-d); }
+.q-flow .f-step.sys .who { color: var(--teal-d); }
+.q-load { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 12px; color: var(--sub); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.q-load b { color: var(--ink); }
+.q-load .tag { flex: none; white-space: nowrap; }
+.q-shift { margin-top: 16px; background: var(--ink); border-radius: 14px; padding: 16px 20px; color: #fff; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.q-shift .big { font-size: 15.5px; font-weight: 700; }
+.q-shift .big em { font-style: normal; color: #E3C569; }
+.q-shift .sm { font-size: 12px; color: #B8C7D8; flex: 1; min-width: 260px; line-height: 1.6; }
+
+/* ---------- 02 队列主体 ---------- */
+.q-owner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 15px 20px; box-shadow: var(--shadow-sm); margin-bottom: 16px; }
+.q-owner .av { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--warm), var(--warm-d)); color: #fff; display: grid; place-items: center; font-size: 16px; font-weight: 700; flex: none; }
+.q-owner .who b { display: block; font-size: 14.5px; color: var(--ink); }
+.q-owner .who span { font-size: 11.5px; color: var(--muted); }
+.q-owner .cnt { margin-left: auto; display: flex; align-items: baseline; gap: 7px; }
+.q-owner .cnt .v { font-size: 30px; font-weight: 800; color: var(--warm-d); font-variant-numeric: tabular-nums; line-height: 1; }
+.q-owner .cnt .l { font-size: 12.5px; color: var(--sub); }
+.q-owner .reset { font-size: 11.5px; color: var(--teal-d); background: var(--sky); border: 1px solid var(--sky2); border-radius: 999px; padding: 5px 12px; cursor: pointer; font-family: inherit; }
+.q-owner .reset:hover { background: var(--sky2); }
+.q-empty { display: none; text-align: center; font-size: 13px; color: var(--ok); background: #E7F5EE; border-radius: 12px; padding: 12px; margin-bottom: 16px; }
+.q-empty.on { display: block; }
+
+.q-list { display: flex; flex-direction: column; gap: 14px; }
+.q-card { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 17px 20px 15px; box-shadow: var(--shadow-sm); transition: border-color .2s, background .2s; }
+.q-card [hidden] { display: none !important; }
+.q-card.hot { border-color: #F3C4C2; background: #FFFCFA; }
+.q-card.done { border-color: #BFE4D2; background: #F8FCFA; }
+.q-card.hold { border-color: var(--warm-l); background: #FFFDF7; }
+.q-top { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; margin-bottom: 12px; }
+.q-no { flex: none; font-size: 11px; font-weight: 800; color: #fff; background: var(--ink); border-radius: 7px; padding: 3px 8px; letter-spacing: .5px; }
+.q-card.hot .q-no { background: var(--warn); }
+.q-card.done .q-no { background: var(--ok); }
+.q-top h3 { font-size: 15.5px; color: var(--ink); line-height: 1.45; flex: 1; min-width: 240px; }
+.q-state { flex: none; font-size: 11px; font-weight: 700; color: var(--warm-d); background: var(--cream); border-radius: 999px; padding: 3px 10px; }
+.q-card.done .q-state { color: var(--ok); background: #E7F5EE; }
+.q-card.hold .q-state { color: var(--teal-d); background: var(--sky); }
+
+.q-seg { border-top: 1px dashed var(--card-b); padding: 10px 0 9px; display: grid; grid-template-columns: 88px 1fr; gap: 14px; align-items: start; }
+.q-seg:first-of-type { border-top: none; padding-top: 2px; }
+@media (max-width: 700px) { .q-seg { grid-template-columns: 1fr; gap: 5px; } }
+.q-lab { font-size: 10.5px; font-weight: 800; letter-spacing: 1px; color: var(--muted); padding-top: 3px; }
+.q-judge .q-lab { color: var(--teal-d); }
+.q-judge p { font-size: 14px; color: var(--sub); line-height: 1.6; }
+.q-judge p b { color: var(--ink); font-size: 15px; }
+.q-ev { list-style: none; }
+.q-ev li { position: relative; font-size: 12.5px; color: var(--sub); line-height: 1.65; padding: 4px 0 4px 16px; }
+.q-ev li::before { content: "▸"; position: absolute; left: 0; top: 4px; color: var(--teal-l); font-size: 11px; }
+.q-ev .src { display: inline-block; font-size: 10.5px; font-weight: 700; color: var(--teal-d); background: var(--sky); border-radius: 5px; padding: 1px 7px; margin-right: 6px; vertical-align: 1px; }
+.q-ev .src.warm { color: var(--warm-d); background: var(--cream); }
+.q-ev em { font-style: normal; font-size: 10.5px; color: var(--muted); margin-left: 5px; }
+.q-act p { font-size: 13px; color: var(--sub); line-height: 1.65; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 9px 13px; }
+.q-act p b { color: var(--warm-d); }
+
+.q-btns { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; }
+.q-btn { font-family: inherit; font-size: 13px; font-weight: 600; border: 1px solid var(--line); border-radius: 9px; padding: 8px 18px; cursor: pointer; background: var(--white); color: var(--sub); transition: all .15s; }
+.q-btn:hover { border-color: var(--teal-l); color: var(--teal-d); }
+.q-btn.primary { background: var(--warm); border-color: var(--warm); color: #fff; }
+.q-btn.primary:hover { background: var(--warm-d); border-color: var(--warm-d); color: #fff; }
+.q-btn:active { transform: scale(.97); }
+.q-btns.off .q-btn { display: none; }
+
+.q-trace { margin-top: 12px; background: #F1F8F4; border: 1px solid #CFE7DA; border-radius: 12px; padding: 11px 14px; font-size: 12.5px; color: #2C6B4E; line-height: 1.7; }
+.q-trace.hold { background: var(--cream); border-color: var(--warm-l); color: var(--warm-d); }
+.q-trace .th { display: block; font-size: 10.5px; font-weight: 800; letter-spacing: 1px; margin-bottom: 3px; opacity: .8; }
+.q-trace b { color: inherit; font-weight: 700; }
+
+.q-more { margin-top: 11px; padding-top: 9px; border-top: 1px solid var(--line); }
+.q-link { font-size: 12px; font-weight: 600; color: var(--teal-d); cursor: pointer; background: none; border: none; font-family: inherit; padding: 0; }
+.q-link:hover { color: var(--warm-d); }
+.q-audit { margin-top: 11px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 13px 15px; }
+.q-audit .at { font-size: 11px; font-weight: 800; letter-spacing: 1px; color: var(--muted); margin-bottom: 9px; }
+.q-scroll { overflow-x: auto; }
+.q-scroll .mini-table { min-width: 620px; }
+.q-audit .note { font-size: 11.5px; color: var(--muted); background: var(--sky); border-radius: 9px; padding: 8px 12px; margin-top: 10px; line-height: 1.6; }
+.q-audit .note b { color: var(--teal-d); }
+
+/* ---------- 03 角色四格 ---------- */
+.q-roles { grid-template-columns: repeat(4, 1fr); }
+.q-roles .cap { padding: 16px 17px; }
+.q-roles .cap .rl { font-size: 10.5px; font-weight: 800; letter-spacing: 1px; color: var(--muted); margin-bottom: 5px; }
+.q-roles .cap b { font-size: 14px; }
+.q-roles .cap .ex { display: block; margin-top: 8px; font-size: 11.5px; color: var(--teal-d); background: var(--sky); border-radius: 8px; padding: 6px 10px; line-height: 1.55; }
+.q-roles .cap.warm .ex { color: var(--warm-d); background: var(--cream); }
+@media (max-width: 1080px) { .q-roles { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 640px) { .q-roles { grid-template-columns: 1fr; } }
+
+/* ---------- 04 看板降级 ---------- */
+.q-demote { display: grid; grid-template-columns: 1.05fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 980px) { .q-demote { grid-template-columns: 1fr; } }
+.q-arrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.q-arrow .box { flex: 1; min-width: 150px; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; line-height: 1.55; }
+.q-arrow .box.was { background: #FBFAF8; border: 1px dashed var(--cream2); color: var(--muted); }
+.q-arrow .box.now { background: var(--ink); color: #fff; }
+.q-arrow .box b { display: block; font-size: 13px; margin-bottom: 3px; color: inherit; }
+.q-arrow .box.was b { color: var(--sub); }
+.q-arrow .ar { color: var(--warm); font-weight: 800; font-size: 16px; flex: none; }
+
+/* ---------- 商机作战室导流 ---------- */
+.q-wr-hint { font-size: 12.5px; color: var(--muted); margin: -4px 0 14px; }
+.q-wr-hint a { color: var(--warm-d); font-weight: 700; border-bottom: 1px dashed var(--warm); transition: all .15s; }
+.q-wr-hint a:hover { color: var(--warm); border-bottom-style: solid; }
+</style>
+</head>
+<body>
+
+<header class="topnav">
+  <div class="brand">
+    <img src="assets/st_logo.png" alt="商汤科技">
+    <span class="bx">×</span>
+    <img src="assets/dc_logo.png" alt="神州数码">
+    <div class="divider"></div>
+    <div class="name">AI Native 销售管理 3.0</div>
+  </div>
+  <nav>
+    <a href="index.html">方案总览</a>
+    <a href="workroom.html">商机作战室</a>
+    <a href="autonomy.html">自主度分级</a>
+    <a href="deal.html">商机与团队</a>
+    <a href="boundary.html">人机边界</a>
+    <a href="queue.html" class="active"><span class="dot"></span>待决队列</a>
+    <a href="capability.html">能力集</a>
+    <a href="platform.html">Agent 平台</a>
+    <a href="roadmap.html">落地路线</a>
+  </nav>
+</header>
+
+<main class="page">
+  <div class="page-head">
+    <div class="eyebrow">Decision Queue · 系统分析 → 系统给方案 → 人授权</div>
+    <h1>管理层每天打开的不该是一屏数字 —— 是<span class="hl">今天需要你拍板的几件事</span></h1>
+    <p class="sub">数字不会告诉你该做什么，它只是把「分析」这件事原封不动留给了你。待决队列反过来：<b>主 Agent 已经把商机盯完、把原因判完、把方案备好</b>，送到你面前的是一条可以直接落下去的决定。你要做的只有一个动作 —— <b>授权，或者不授权</b>。本页以李芳（华东一组主管，6 人团队）的当日队列为例，四条都可点。</p>
+  </div>
+
+  <!-- ============ 01 为什么不是看板 ============ -->
+  <section class="q-sec">
+    <div class="q-head"><span class="no">01</span><h2>为什么第一屏不能是看板</h2><p>不是看板做得不好，是它把最费脑子的那一段留给了人</p></div>
+    <div class="q-vs">
+      <div class="panel old">
+        <div class="vs-tag">BEFORE · 看板</div>
+        <h3>系统给数据，剩下三步全是人</h3>
+        <div class="flow q-flow">
+          <div class="f-step sys"><div class="n">1</div><b>给数据</b><span>指标、排名、趋势铺满一屏</span><span class="who">系统</span></div>
+          <div class="f-arrow">→</div>
+          <div class="f-step man"><div class="n">2</div><b>人分析</b><span>哪个数字不对劲、为什么</span><span class="who">人</span></div>
+          <div class="f-arrow">→</div>
+          <div class="f-step man"><div class="n">3</div><b>人决策</b><span>该让步还是该换人</span><span class="who">人</span></div>
+          <div class="f-arrow">→</div>
+          <div class="f-step man"><div class="n">4</div><b>人派活</b><span>找到人、说清楚、跟踪</span><span class="who">人</span></div>
+        </div>
+        <div class="q-load"><span class="tag warn">人做 3 / 4 步</span><span>看完一屏数字，管理者其实还站在起点：<b>数字只是提出了问题</b>。分析、决策、派活三段全靠人的经验与时间，而这三段恰恰最难规模化。</span></div>
+      </div>
+      <div class="panel">
+        <div class="vs-tag">AFTER · 待决队列</div>
+        <h3>系统分析、系统给方案，人只授权</h3>
+        <div class="flow q-flow">
+          <div class="f-step sys"><div class="n">1</div><b>系统分析</b><span>盯住信号，判出根因</span><span class="who">主 Agent</span></div>
+          <div class="f-arrow">→</div>
+          <div class="f-step sys"><div class="n">2</div><b>系统给方案</b><span>带依据、带执行人、带时间</span><span class="who">主 Agent</span></div>
+          <div class="f-arrow">→</div>
+          <div class="f-step man"><div class="n">3</div><b>人授权</b><span>同意 · 改条件 · 我来处理</span><span class="who">人</span></div>
+        </div>
+        <div class="q-load"><span class="tag ok">人做 1 / 3 步</span><span>队列里的每一条都已经是<b>一个可以立刻生效的决定</b>。人不再从零开始想，只需要判断这个方案接不接受、边界要不要改。</span></div>
+      </div>
+    </div>
+    <div class="q-shift">
+      <div class="big">人的工作量从<em>「分析」</em>转移到<em>「判断」</em></div>
+      <div class="sm">分析是一项可以被系统承接的重复劳动 —— 找差异、查原始记录、比历史同类；判断不是，它关乎让哪一步、担什么责、把谁派到哪。管理者的时间应该只花在后者。</div>
+    </div>
+  </section>
+
+  <!-- ============ 02 待决队列主体 ============ -->
+  <section class="q-sec">
+    <div class="q-head"><span class="no">02</span><h2>今天的队列长什么样：<span class="hl">四条，每条五段结构</span></h2><p>事项 / Agent 的判断 / 依据（可回溯）/ 建议动作 / 三个按钮 —— 点「同意授权」看留痕与计数变化</p></div>
+    <p class="q-wr-hint">想在完整剧情里遇到这条队列？<a href="workroom.html">去商机作战室，D34 你会亲手批掉它 →</a></p>
+
+    <div class="q-owner">
+      <div class="av">李</div>
+      <div class="who"><b>李芳 · 华东一组主管</b><span>6 人团队 · 队列由主 Agent 于当日自动生成并排序</span></div>
+      <div class="cnt"><span class="v" id="qCount">4</span><span class="l">件事需要你拍板</span></div>
+      <button type="button" class="reset" id="qReset">重置演示</button>
+    </div>
+    <div class="q-empty" id="qEmpty">✅ 今天没有需要你拍板的事了 —— 其余的，主 Agent 会自己跑完并留痕。</div>
+
+    <div class="q-list">
+
+      <!-- ---- Q1 金桥制造 ---- -->
+      <article class="q-card hot" data-q="1">
+        <div class="q-top">
+          <span class="q-no">01</span>
+          <h3>金桥制造 · 年度框架 ¥86 万 —— 商务谈判停滞 14 天</h3>
+          <span class="tag warn">结果偏离</span><span class="tag gold">要人担责</span>
+          <span class="q-state">待你拍板</span>
+        </div>
+        <div class="q-seg q-judge">
+          <span class="q-lab">AGENT 的判断</span>
+          <p><b>卡在账期，不在价格。</b>价格线索已经走到头，继续在价格上让不会改变结果；真正没被回应的是对方采购侧反复提到的付款节奏。</p>
+        </div>
+        <div class="q-seg">
+          <span class="q-lab">依据 · 可回溯</span>
+          <ul class="q-ev">
+            <li><span class="src">D21 二访纪要 · 00:14:32</span>周总（采购总监）原话：「账期能不能松」<em>录音片段可回放</em></li>
+            <li><span class="src">D27 谈判记录</span>价格已让至底价，商机仍未推进<em>报价版本链可比对</em></li>
+            <li><span class="src warm">同类单复盘 · 已归档</span>同类 6 单中 5 单在账期让步后 2 周内签约<em>逐单可展开</em></li>
+          </ul>
+        </div>
+        <div class="q-seg q-act">
+          <span class="q-lab">建议动作</span>
+          <p>授权<b>账期让步到 75 天</b>，换<b>预付 30%</b>；由<b>王强</b>在<b>本周内</b>谈完。条件卡与谈判要点主 Agent 已备好，王强到场即可用。</p>
+        </div>
+        <div class="q-btns">
+          <button type="button" class="q-btn primary" data-act="agree">同意授权</button>
+          <button type="button" class="q-btn" data-act="edit">改条件</button>
+          <button type="button" class="q-btn" data-act="mine">我来谈</button>
+        </div>
+        <div class="q-trace" data-agree="授权账期让步至 <b>75 天</b>、换<b>预付 30%</b>；生效范围仅限「金桥制造 · 年度框架」这一单，有效期本周，执行人王强。" data-mine="认领该事项，改由本人与周总当面谈；主 Agent 转为备场，负责材料与纪要。" hidden></div>
+        <div class="q-more"><button type="button" class="q-link" data-audit>查看该判断的原始依据 →</button></div>
+        <div class="q-audit" hidden>
+          <div class="at">原始依据链 · 这就是看板现在的用途</div>
+          <div class="q-scroll">
+            <table class="mini-table">
+              <thead><tr><th>时间戳</th><th>原始记录</th><th>取到的事实</th><th>来源类型</th><th>可见范围</th></tr></thead>
+              <tbody>
+                <tr><td><b>D21</b> 00:14:32</td><td>二访录音 · 分角色转写</td><td>周总提出账期诉求（原话）</td><td>现场记录与理解</td><td><span class="tag teal">结构化结论团队可见</span></td></tr>
+                <tr><td><b>D27</b></td><td>商务谈判记录 · 报价版本链</td><td>价格已至底价，无推进</td><td>内容生成 · 版本留痕</td><td><span class="tag teal">商机相关人可见</span></td></tr>
+                <tr><td><b>D21–D34</b></td><td>停滞监测 · 主 Agent 自动触发</td><td>停滞 14 天，无人上报</td><td>主 Agent 盯</td><td><span class="tag teal">主管可见</span></td></tr>
+                <tr><td><b>已归档</b></td><td>同类单赢单复盘库</td><td>6 单中 5 单账期让步后 2 周内签约</td><td>知识萃取</td><td><span class="tag gold">组织资产</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note"><b>合规：</b>拜访录音需提前告知参会方，录音原文默认仅销售本人可见；队列与看板向上呈现的是结构化结论与可回溯指针，不是逐句监听。查看范围由企业规则配置。</p>
+        </div>
+      </article>
+
+      <!-- ---- Q2 谈判环节转化 ---- -->
+      <article class="q-card" data-q="2">
+        <div class="q-top">
+          <span class="q-no">02</span>
+          <h3>谈判环节转化：公司 62%，华南 48% —— 缺口在授权链路，建议固化授权模板</h3>
+          <span class="tag warn">结果偏离</span><span class="tag teal">结构性</span>
+          <span class="q-state">待你拍板</span>
+        </div>
+        <div class="q-seg q-judge">
+          <span class="q-lab">AGENT 的判断</span>
+          <p><b>缺口在最后一环，而且是授权链路的问题，不是线索量的问题。</b>把授权条件做成可复用的模板，一线在谈判桌上就能当场给条件，不必回公司请示再答复。</p>
+        </div>
+        <div class="q-seg">
+          <span class="q-lab">依据 · 可回溯</span>
+          <ul class="q-ev">
+            <li><span class="src">环节转化 · 当日重算</span>线索→商机 18%、方案→谈判 54%、谈判→签约 62%（公司口径）；<b>华南谈判环节 48%，是最大缺口</b><em>可下钻到单</em></li>
+            <li><span class="src">谈判现场记录 · 本周抽样</span>遇到条件类问题需回公司请示后再答复，等待期内客户温度回落<em>对应片段可回放</em></li>
+            <li><span class="src warm">本队列第 01 条 · 金桥制造</span>账期授权的条件项、上限、有效期、生效范围四要素主 Agent 已备齐，拍板归档后即可直接引用为模板<em>要素卡可预览</em></li>
+          </ul>
+        </div>
+        <div class="q-seg q-act">
+          <span class="q-lab">建议动作</span>
+          <p>待第 01 条拍板归档后，把其授权四要素（<b>条件项 / 上限 / 有效期 / 生效范围</b>）固化为<b>可复用授权模板</b>，交<b>陈远（销售总监）</b>在华南试用一轮后回收结果。结构性调整那一条已同时进入陈远的队列，你这里只需确认模板口径。</p>
+        </div>
+        <div class="q-btns">
+          <button type="button" class="q-btn primary" data-act="agree">同意授权</button>
+          <button type="button" class="q-btn" data-act="edit">改条件</button>
+          <button type="button" class="q-btn" data-act="mine">我来处理</button>
+        </div>
+        <div class="q-trace" data-agree="确认待第 01 条拍板归档后，将其授权四要素（条件项 / 上限 / 有效期 / 生效范围）固化为<b>可复用授权模板</b>，交陈远在华南试用一轮；试用结果回收前不自动扩大适用范围。" data-mine="认领该事项，改由本人与陈远直接对齐模板口径后再入库。" hidden></div>
+        <div class="q-more"><button type="button" class="q-link" data-audit>查看该判断的原始依据 →</button></div>
+        <div class="q-audit" hidden>
+          <div class="at">原始依据链 · 这就是看板现在的用途</div>
+          <div class="q-scroll">
+            <table class="mini-table">
+              <thead><tr><th>时间戳</th><th>原始记录</th><th>取到的事实</th><th>来源类型</th><th>可见范围</th></tr></thead>
+              <tbody>
+                <tr><td><b>当日</b> · 队列生成时</td><td>全量商机环节转化重算</td><td>谈判→签约：公司 62% / 华南 48%</td><td>数据分析</td><td><span class="tag teal">主管及以上</span></td></tr>
+                <tr><td><b>本周</b></td><td>谈判现场记录抽样</td><td>条件类问题需回公司请示</td><td>现场记录与理解</td><td><span class="tag teal">结构化结论可见</span></td></tr>
+                <tr><td><b>当日</b> · 队列生成时</td><td>本队列第 01 条 · 授权要素卡</td><td>条件项 / 上限 / 有效期 / 生效范围已备齐</td><td>主 Agent 调</td><td><span class="tag teal">主管可见</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note"><b>合规：</b>过程数据用于赋能与组织沉淀，不用于监控个人；跨团队对比只呈现环节口径，不呈现个人排名。采集、保存与查看范围由企业规则配置。</p>
+        </div>
+      </article>
+
+      <!-- ---- Q3 决策链变更 · AI 没把握 ---- -->
+      <article class="q-card" data-q="3">
+        <div class="q-top">
+          <span class="q-no">03</span>
+          <h3>锅里（890 万 / 37 单）中一单：决策链出现新面孔，主 Agent 主动停下来问</h3>
+          <span class="tag teal">AI 没把握</span><span class="tag warm">要人脸出面</span>
+          <span class="q-state">待你拍板</span>
+        </div>
+        <div class="q-seg q-judge">
+          <span class="q-lab">AGENT 的判断</span>
+          <p><b>说不准，所以不推进。</b>对方决策链上出现了一位此前没有出现过的分管领导，现有信息互相冲突，置信度低于阈值 —— 按规则应当停下来找人，而不是按原路径继续跑。</p>
+        </div>
+        <div class="q-seg">
+          <span class="q-lab">依据 · 可回溯</span>
+          <ul class="q-ev">
+            <li><span class="src">对外往来 · 本周</span>抄送人中新增一位未在既有决策链中出现过的分管领导，内部职务未确认<em>原始往来可回溯</em></li>
+            <li><span class="src">上次拜访录音 · 已归档</span>李工（技术负责人）提到「方向要再对一下」，与采购侧口径不一致 —— 信息冲突<em>片段可回放</em></li>
+            <li><span class="src warm">历史同类场景检索</span>决策链变更后仍按原路径推进的单，停滞概率明显高于先做一次高层对齐的单<em>样本单可展开</em></li>
+          </ul>
+        </div>
+        <div class="q-seg q-act">
+          <span class="q-lab">建议动作</span>
+          <p>由<b>你本人</b>在<b>本周内</b>约对方新任分管领导做一次短会对齐，<b>王强</b>陪同。主 Agent 会提前把双方口径差异、已确认需求清单与我方立场整理成一页纸送到你手上；会面邀约与日程由它代发。</p>
+        </div>
+        <div class="q-btns">
+          <button type="button" class="q-btn primary" data-act="agree">同意授权</button>
+          <button type="button" class="q-btn" data-act="edit">改条件</button>
+          <button type="button" class="q-btn" data-act="mine">我来处理</button>
+        </div>
+        <div class="q-trace" data-agree="授权主 Agent 代为发起会面邀约、排定日程并预备材料；<b>出面人为本人，王强陪同</b>，时间本周内。会面前不做任何对外承诺。" data-mine="认领该事项，改由本人自行约见并准备材料；主 Agent 仅保留提醒与纪要。" hidden></div>
+        <div class="q-more"><button type="button" class="q-link" data-audit>查看该判断的原始依据 →</button></div>
+        <div class="q-audit" hidden>
+          <div class="at">原始依据链 · 这就是看板现在的用途</div>
+          <div class="q-scroll">
+            <table class="mini-table">
+              <thead><tr><th>时间戳</th><th>原始记录</th><th>取到的事实</th><th>来源类型</th><th>可见范围</th></tr></thead>
+              <tbody>
+                <tr><td><b>本周</b></td><td>对外往来 · 决策链图谱更新</td><td>新增未识别的分管领导</td><td>研究与触达</td><td><span class="tag teal">商机相关人可见</span></td></tr>
+                <tr><td><b>已归档</b></td><td>上次拜访录音 · 分角色转写</td><td>技术侧与采购侧口径冲突</td><td>现场记录与理解</td><td><span class="tag teal">结构化结论可见</span></td></tr>
+                <tr><td><b>当日</b></td><td>置信度评估 · 低于阈值即停</td><td>触发「AI 没把握」找人规则</td><td>审计日志</td><td><span class="tag gold">全程留痕</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note"><b>合规：</b>置信度阈值、找人规则与授权范围均由企业配置；<b>「找了人」与「没找人」都写入审计日志</b>，事后可逐条核对系统当时为什么这么判。</p>
+        </div>
+      </article>
+
+      <!-- ---- Q4 回款逾期 ---- -->
+      <article class="q-card" data-q="4">
+        <div class="q-top">
+          <span class="q-no">04</span>
+          <h3>一单已签合同回款逾期：主 Agent 已按节点自主催办，仍未到账</h3>
+          <span class="tag warn">结果偏离</span><span class="tag gold">要人担责</span>
+          <span class="q-state">待你拍板</span>
+        </div>
+        <div class="q-seg q-judge">
+          <span class="q-lab">AGENT 的判断</span>
+          <p><b>不是客户不认账，是我方少了一份签字。</b>对方付款审批卡在履约验收单上，验收单缺一处我方签字 —— 这件事我催不动，需要一个能签字的人。</p>
+        </div>
+        <div class="q-seg">
+          <span class="q-lab">依据 · 可回溯</span>
+          <ul class="q-ev">
+            <li><span class="src">回款节点跟踪 · 到期日自动触发</span>合同约定节点已到期，款未到账；催办已自主发出并留痕<em>催办往来可回溯</em></li>
+            <li><span class="src">对方财务回复 · 已归档</span>需先收到完整履约验收单，当前验收单缺一处我方签字<em>原文可回溯</em></li>
+            <li><span class="src warm">公司口径 · 当日重算（背景）</span>本月已回款 780 万 / 目标 1,200 万（65%），时间进度 73%，落后 8 个百分点；这一单落在本月缺口内<em>可下钻到单</em></li>
+          </ul>
+        </div>
+        <div class="q-seg q-act">
+          <span class="q-lab">建议动作</span>
+          <p>授权主 Agent <b>直接向我方交付负责人发出补签申请</b>并同步对方财务预期时间；补签件出来后<b>由你确认一次</b>即可回传。若本周内仍未回款，自动升级到<b>陈远（销售总监）</b>。</p>
+        </div>
+        <div class="q-btns">
+          <button type="button" class="q-btn primary" data-act="agree">同意授权</button>
+          <button type="button" class="q-btn" data-act="edit">改条件</button>
+          <button type="button" class="q-btn" data-act="mine">我来处理</button>
+        </div>
+        <div class="q-trace" data-agree="授权主 Agent 发起验收单补签流程并对外同步预期时间；<b>补签件仍由本人确认一次后才可回传</b>，本周内未回款自动升级至陈远。" data-mine="认领该事项，改由本人直接协调交付侧补签并对接对方财务。" hidden></div>
+        <div class="q-more"><button type="button" class="q-link" data-audit>查看该判断的原始依据 →</button></div>
+        <div class="q-audit" hidden>
+          <div class="at">原始依据链 · 这就是看板现在的用途</div>
+          <div class="q-scroll">
+            <table class="mini-table">
+              <thead><tr><th>时间戳</th><th>原始记录</th><th>取到的事实</th><th>来源类型</th><th>可见范围</th></tr></thead>
+              <tbody>
+                <tr><td><b>到期日</b></td><td>合同回款节点台账</td><td>节点已到期，款未到账</td><td>回款与履约</td><td><span class="tag teal">商机相关人可见</span></td></tr>
+                <tr><td><b>催办后</b></td><td>对方财务往来记录</td><td>验收单缺一处我方签字</td><td>回款与履约</td><td><span class="tag teal">商机相关人可见</span></td></tr>
+                <tr><td><b>当日</b></td><td>回款进度重算</td><td>780 万 / 1,200 万（65%）· 时间进度 73%</td><td>数据分析</td><td><span class="tag gold">按角色权限</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="note"><b>合规：</b>涉及法律与商业责任的动作（报价定案、合同签署、对外承诺）必须由授权人确认，系统不代签；补签件的确认动作与授权范围同样写入审计日志。</p>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <h3>三个按钮，对应三种不同的责任落点</h3>
+      <div class="q-scroll">
+        <table class="mini-table">
+          <thead><tr><th style="width:110px">按钮</th><th style="width:150px">责任落到谁</th><th>系统随后做什么</th><th style="width:150px">队列里的变化</th></tr></thead>
+          <tbody>
+            <tr><td><b>同意授权</b></td><td><span class="tag gold">拍板人</span></td><td>在你划定的边界内自主执行，执行过程与结果继续留痕；越界即回到队列再问一次</td><td>转为已授权 · <b>计数减一</b></td></tr>
+            <tr><td><b>改条件</b></td><td><span class="tag teal">仍待你拍板</span></td><td>把你改动的条件回传主 Agent，按新边界重算方案与影响面，改后重新入队</td><td>转为改条件中 · 计数不减</td></tr>
+            <tr><td><b>我来处理</b></td><td><span class="tag warm">你本人</span></td><td>主 Agent 退为备场：备材料、订日程、记纪要，不再自主推进这条链路</td><td>转为本人处理 · 计数减一</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note"><b>合规：</b>自主执行的边界、阈值与授权范围由企业配置；<b>每一次自主执行与每一次找人都留痕可审计</b>，授权与拍板本身也是留痕对象 —— 谁、什么时间、授权了什么、有效期多久，都写进审计日志。</p>
+    </div>
+  </section>
+
+  <!-- ============ 03 不同角色的队列不一样 ============ -->
+  <section class="q-sec">
+    <div class="q-head"><span class="no">03</span><h2>同一个系统，<span class="hl">四个人打开看到的是四份队列</span></h2><p>不是同一屏数据换个筛选条件 —— 是按「这个角色能拍什么板」重新组织的</p></div>
+    <div class="cap-grid q-roles">
+      <div class="cap">
+        <div class="rl">一线销售 · 王强</div>
+        <div class="ic">🤝</div><b>要你出面的场次</b>
+        <span>今天、本周你必须到场的会面：谁、几点、谈什么、底线在哪。材料主 Agent 已备好，到场即可用。不需要你出面的事，根本不进你的队列。</span>
+        <span class="ex">典型：首访 · 关键谈判 · 高层拜访 —— 关系与信任无法委托</span>
+      </div>
+      <div class="cap warm">
+        <div class="rl">主管 · 李芳</div>
+        <div class="ic">✍️</div><b>要你授权的决策</b>
+        <span>让步区间、出面安排、例外放行、模板固化。她不再从看板里找问题，也不再追着谁填没填表 —— 队列送来的已经是判断题。</span>
+        <span class="ex">典型：账期让步授权 · 谁去出面 · 补签放行 —— 责任必须落到自然人</span>
+      </div>
+      <div class="cap">
+        <div class="rl">销售总监 · 陈远</div>
+        <div class="ic">🧭</div><b>结构性问题</b>
+        <span>不是单个商机怎么救，而是哪一环、哪一片区域在系统性地漏。队列直接给到环节与差距，以及可复用的补法。</span>
+        <span class="ex">典型：谈判环节 公司 62% / 华南 48% · 授权模板要不要推广</span>
+      </div>
+      <div class="cap warm">
+        <div class="rl">总经理 · 张总</div>
+        <div class="ic">⚖️</div><b>需要拍板的经营事项</b>
+        <span>只上到「非他不可」的那几件：回款缺口怎么补、资源往哪投、系统的自主度要不要再往上放一档。</span>
+        <span class="ex">典型：落后 8 个百分点的补法 · 是否由 L2.5 放权进 L3</span>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:16px">
+      <p class="note"><b>合规：</b>队列与问数（ChatBI）均<b>按角色权限应答</b> —— 每一次提问先做权限判定再取数，越权的问题当场拦截并说明拦截原因，拦截记录同样入审计日志。可见范围由企业规则配置，不因为「问得巧」而绕开。</p>
+    </div>
+  </section>
+
+  <!-- ============ 04 看板去哪了 ============ -->
+  <section class="q-sec">
+    <div class="q-head"><span class="no">04</span><h2>那看板去哪了：<span class="hl">从入口降级为出口</span></h2><p>看板不取消，只是不再是你每天打开的第一屏</p></div>
+    <div class="q-demote">
+      <div class="panel">
+        <h3>它换了个位置，也换了个用途</h3>
+        <div class="q-arrow">
+          <div class="box was"><b>过去 · 入口</b>每天先看一屏数字，然后自己找问题、自己想办法、自己派活。</div>
+          <div class="ar">→</div>
+          <div class="box now"><b>现在 · 出口</b>队列先把结论送到你面前；你想验证这个结论对不对时，才打开看板往回查。</div>
+        </div>
+        <ul class="q-ev" style="margin-top:4px">
+          <li><span class="src">用途一 · 追溯</span>任一条判断都能一路回到原始记录与时间戳：哪句话、哪一版报价、哪一次停滞监测</li>
+          <li><span class="src">用途二 · 审计</span>系统自主执行了什么、什么时候找了人、谁授权了什么，逐条可查、可导出</li>
+          <li><span class="src">用途三 · 校准</span>判断被人推翻时，偏差进入学习回路，用来调阈值和规则 —— 而不是让人下次记得多看两眼</li>
+        </ul>
+        <p class="note"><b>一句话：</b>看板从「让人替系统做分析的地方」，变成「让人核查系统分析对不对的地方」。它的价值没有下降，位置变了。</p>
+      </div>
+      <div class="panel">
+        <h3>入口就在每一条队列的脚下</h3>
+        <p style="font-size:13px;color:var(--sub);line-height:1.7">上面四条里，每一条底部都有一行「<b style="color:var(--teal-d)">查看该判断的原始依据 →</b>」。点开就是这条判断用到的全部原始记录、时间戳、来源类型与可见范围。<br>这就是新的看板入口 —— 它不主动占据你的时间，只在你怀疑系统的时候随叫随到。</p>
+        <div class="q-audit" style="margin-top:14px">
+          <div class="at">示意 · 点开后长这样</div>
+          <div class="q-scroll">
+            <table class="mini-table">
+              <thead><tr><th>时间戳</th><th>原始记录</th><th>取到的事实</th></tr></thead>
+              <tbody>
+                <tr><td><b>D21</b> 00:14:32</td><td>二访录音 · 分角色转写</td><td>周总提出账期诉求（原话）</td></tr>
+                <tr><td><b>D21–D34</b></td><td>停滞监测 · 主 Agent 自动触发</td><td>停滞 14 天，无人上报</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <p class="note"><b>合规：</b>追溯到原始录音一级时受可见范围约束 —— 录音需提前告知参会方，录音原文默认仅销售本人可见；管理者默认看到的是结构化结论与指针，需要调阅原文时按企业规则走授权，调阅动作本身也留痕。</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="panel">
+    <h3>接着看</h3>
+    <p style="font-size:13px;color:var(--sub);line-height:1.8">队列里那四类「必须找人」的标签是怎么定的 →&nbsp;<a href="boundary.html" style="color:var(--teal-d);font-weight:600">人机边界</a><br>
+    判断与依据是谁产出的、主 Agent 怎么盯怎么调 →&nbsp;<a href="deal.html" style="color:var(--teal-d);font-weight:600">商机与团队</a><br>
+    授权越放越多，自主度怎么一档档往上爬 →&nbsp;<a href="roadmap.html" style="color:var(--teal-d);font-weight:600">落地路线</a></p>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="foot-brand"><img src="assets/st_logo.png" alt="商汤科技"><span>×</span><img src="assets/dc_logo.png" alt="神州数码"></div>
+  <div><b>商汤科技 × 神州数码</b></div>
+  <div style="margin-top:4px">页面中全部数字为目标态示意，非真实经营数据；自主执行的边界与授权范围由企业配置，每一次自主执行与每一次找人都留痕可审计。</div>
+</footer>
+
+<script>
+(function () {
+  var OWNER = '李芳（华东一组主管）';
+  var countEl = document.getElementById('qCount');
+  var emptyEl = document.getElementById('qEmpty');
+  var resetEl = document.getElementById('qReset');
+  var cards = [].slice.call(document.querySelectorAll('.q-card[data-q]'));
+
+  function stamp() {
+    var d = new Date();
+    function p(n) { return (n < 10 ? '0' : '') + n; }
+    return '今日 ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  }
+
+  function refresh() {
+    var open = cards.filter(function (c) { return !c.classList.contains('done'); }).length;
+    countEl.textContent = open;
+    emptyEl.classList.toggle('on', open === 0);
+  }
+
+  function settle(card, mode) {
+    var trace = card.querySelector('.q-trace');
+    var btns = card.querySelector('.q-btns');
+    var state = card.querySelector('.q-state');
+    var body = mode === 'agree' ? trace.getAttribute('data-agree') : trace.getAttribute('data-mine');
+    var head = mode === 'agree' ? '已授权 · 留痕' : '已认领 · 留痕';
+
+    card.classList.remove('hot', 'hold');
+    card.classList.add('done');
+    state.textContent = mode === 'agree' ? '已授权' : '本人处理';
+    btns.classList.add('off');
+    trace.classList.remove('hold');
+    trace.hidden = false;
+    trace.innerHTML = '<span class="th">' + head + '</span><b>' + OWNER + '</b> · ' + stamp()
+      + '<br>' + body
+      + '<br>已写入商机档案与审计日志，可在原始依据里逐条核对；授权范围之外的动作，主 Agent 会重新回到队列问一次。';
+    refresh();
+  }
+
+  function revise(card) {
+    var trace = card.querySelector('.q-trace');
+    var state = card.querySelector('.q-state');
+    if (card.classList.contains('done')) return;
+    card.classList.remove('hot');
+    card.classList.add('hold');
+    state.textContent = '改条件中';
+    trace.classList.add('hold');
+    trace.hidden = false;
+    trace.innerHTML = '<span class="th">已回传 · 留痕</span><b>' + OWNER + '</b> · ' + stamp()
+      + '<br>你修改的条件已回传主 Agent，它会按新边界重算方案与影响面，<b>改后重新入队</b>再请你拍一次板。'
+      + '<br>此条仍计入待决数 —— 没拍板的事，系统不会当作已经拍过。';
+    refresh();
+  }
+
+  cards.forEach(function (card) {
+    card.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t.hasAttribute && t.hasAttribute('data-audit')) {
+        var box = card.querySelector('.q-audit');
+        box.hidden = !box.hidden;
+        t.textContent = box.hidden ? '查看该判断的原始依据 →' : '收起原始依据 ↑';
+        return;
+      }
+      var act = t.getAttribute && t.getAttribute('data-act');
+      if (!act) return;
+      if (act === 'agree') settle(card, 'agree');
+      else if (act === 'mine') settle(card, 'mine');
+      else if (act === 'edit') revise(card);
+    });
+  });
+
+  resetEl.addEventListener('click', function () {
+    cards.forEach(function (card) {
+      card.classList.remove('done', 'hold');
+      if (card.getAttribute('data-q') === '1') card.classList.add('hot');
+      card.querySelector('.q-state').textContent = '待你拍板';
+      card.querySelector('.q-btns').classList.remove('off');
+      var tr = card.querySelector('.q-trace');
+      tr.hidden = true; tr.innerHTML = ''; tr.classList.remove('hold');
+      var box = card.querySelector('.q-audit');
+      box.hidden = true;
+      card.querySelector('.q-link').textContent = '查看该判断的原始依据 →';
+    });
+    refresh();
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

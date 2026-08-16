@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="zh"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>全渠道统一坐席 · 声渡 VoxOne</title>
+<link rel="stylesheet" href="assets/styles.css"/>
+</head><body>
+<script src="assets/seed.js"></script>
+<script src="assets/local-backend.js"></script>
+<script src="assets/app.js"></script>
+<script>
+VX.page("omni", async (root, ctx) => {
+  const { data, me } = ctx;
+  const $ = VX.$;
+
+  // ---- 渠道图标(旗舰页专用)----
+  const CH_ICON = { voice:"🎧", web:"🌐", app:"📱", miniapp:"🟢", wechat:"💬", whatsapp:"🟩", line:"🟦", email:"✉️", sms:"📩" };
+  const chIcon = (ch) => CH_ICON[ch] || "🔗";
+  const chChip = (ch) => `<span class="chip">${chIcon(ch)} ${VX.esc(VX.CH[ch] || ch)}</span>`;
+
+  // ---- 旗舰 Agent ----
+  const A = data.agents.find((a) => a.flagship || a.mode === "omni") || {};
+  const voiceName = (data.voices.find((v) => v.id === A.voiceId) || {}).name || "—";
+  const chCount = (A.channel || []).length;
+  const langCount = (A.langs || []).length;
+  const kbCount = (A.kbIds || []).length;
+
+  // ---- 售前 / 售后 徽标(据 tags,兜底售后)----
+  function bizBadges(c) {
+    const tags = c.tags || [];
+    const has = (kw) => tags.some((t) => String(t).includes(kw)); // "售前+售后" 同时命中两者
+    let pre = has("售前"), post = has("售后");
+    if (!pre && !post) post = true; // 无标签则按售后兜底
+    return (pre ? VX.badge("售前", "run") : "") + (post ? VX.badge("售后", "ai") : "");
+  }
+  const modalityBadge = (c) => c.channel === "voice" ? VX.badge("语音·全双工", "ai") : VX.badge("文本", "run");
+  const resolvedBadge = (rb) => rb === "ai" ? VX.badge("AI", "ai") : rb === "human" ? VX.badge("转人工", "coral") : "—";
+  const scShort = (id) => VX.scEmoji(id) + " " + VX.scLabel(id).split(" / ")[0];
+
+  // ---- 全渠道统一会话(mode=omni)----
+  let rows = [];
+  try { const r = await VX.api("/api/calls?mode=omni"); rows = r.calls || []; } catch (e) { /* 保持空表 */ }
+
+  // ---- 可选:即问即答卡(需坐席工作台权限)----
+  const askCard = me.perms.useWorkbench ? `
+    <div class="card pad" style="margin-bottom:16px">
+      <div class="hd"><h3>⚡ 即问即答 · 同一个 Agent 接住售前售后</h3><div class="sp"></div><span class="chip">🌊 omni · 🛒 跨境电商</span></div>
+      <div class="sub" style="margin-bottom:12px">下面这句话既有「退货(售后)」又有「优惠(售前)」—— 由同一个统一 Agent、同一套知识库一次接住。</div>
+      <div class="row" style="gap:10px;align-items:flex-end;flex-wrap:wrap">
+        <label class="fld" style="flex:1;min-width:260px;margin:0"><span class="lb">用户话术</span><input id="askText" value="我要退货,顺便问下有没有优惠"/></label>
+        <button class="btn voice" id="askBtn">▶ 让统一 Agent 应答</button>
+      </div>
+      <div id="askResult" style="margin-top:12px"></div>
+    </div>` : "";
+
+  root.innerHTML = `
+  <!-- 1) Hero -->
+  <div class="pagehero">
+    <div style="width:46px;height:46px;border-radius:13px;background:var(--grad-voice);display:grid;place-items:center;font-size:22px">🌐</div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#fff">全渠道统一坐席</div>
+      <div class="sub">一个 Agent · 语音+文本全双工 · 全渠道统一 · 售前售后一体 · 一套知识库 · 一个 SenseAudio V2.0 模型</div>
+    </div>
+    <a class="btn voice" href="workbench.html">🎧 去工作台体验</a>
+  </div>
+
+  <!-- 2) 旗舰 Agent 卡 -->
+  <div class="card pad" style="margin-bottom:16px;background:linear-gradient(120deg,rgba(240,81,60,.13),#122c50 46%,rgba(34,199,214,.11))">
+    <div class="row" style="align-items:center;gap:14px">
+      <div style="width:52px;height:52px;border-radius:15px;background:var(--grad-brand);display:grid;place-items:center;font-size:25px;box-shadow:0 8px 22px rgba(240,81,60,.38)">🤖</div>
+      <div style="flex:1;min-width:0">
+        <div class="row" style="align-items:center;gap:9px;flex-wrap:wrap"><b style="color:#fff;font-size:17px">${VX.esc(A.name || "全渠道统一 Agent")}</b>${VX.badge("★ 旗舰统一坐席", "coral")}${VX.statusBadge(A.status)}</div>
+        <div class="sub" style="margin-top:4px">${VX.esc(A.desc || "")}</div>
+      </div>
+    </div>
+    <div class="hr"></div>
+    <div class="row" style="gap:26px;flex-wrap:wrap">
+      <div><div class="sub">绑定音色</div><div style="font-weight:700;color:#fff">🎙️ ${VX.esc(voiceName)}</div></div>
+      <div><div class="sub">绑定知识库</div><div style="font-weight:700;color:#fff">📚 ${kbCount} 条</div></div>
+      <div><div class="sub">模型</div><div style="font-weight:700;color:#fff">🧠 ${VX.esc(A.model || "—")}</div></div>
+      <div><div class="sub">会话量</div><div style="font-weight:800;color:var(--teal);font-size:16px">${VX.fmtNum(A.calls)}</div></div>
+      <div><div class="sub">自主解决率</div><div style="font-weight:800;color:var(--coral-2);font-size:16px">${A.resolveRate != null ? A.resolveRate + "%" : "—"}</div></div>
+    </div>
+    <div style="margin-top:14px"><div class="sub" style="margin-bottom:6px">支持语种 · ${langCount}</div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">${(A.langs || []).map((l) => `<span class="chip">${VX.esc(VX.LANG[l] || l)}</span>`).join("")}</div></div>
+    <div style="margin-top:12px"><div class="sub" style="margin-bottom:6px">支持渠道 · ${chCount}</div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">${(A.channel || []).map(chChip).join("")}</div></div>
+  </div>
+
+  <!-- 3) Stat 磁贴 -->
+  <div class="stats" style="margin-bottom:16px">
+    <div class="stat"><div class="k">🌐 覆盖渠道数</div><div class="v">${chCount}</div><div class="d">语音 + 文本渠道统一收口</div></div>
+    <div class="stat voice"><div class="k">🗣️ 支持语种</div><div class="v">${langCount}</div><div class="d">30 语言 + 粤语底座</div></div>
+    <div class="stat"><div class="k">📚 一套知识库</div><div class="v">${data.knowledge.length}<small>条</small></div><div class="d">售前 + 售后共用</div></div>
+    <div class="stat voice"><div class="k">🧠 一个模型</div><div class="v" style="font-size:19px">SenseAudio V2.0</div><div class="d">全栈自研</div></div>
+  </div>
+
+  <!-- 4) 架构可视化:统一到一起 -->
+  <div class="card pad" style="margin-bottom:16px">
+    <div class="hd"><h3>🧩 统一到一起</h3><div class="sp"></div><span class="chip">全渠道 · 语音+文本 → 一个 Agent → 一套知识库 → 一个模型</span></div>
+    <div class="row" style="align-items:stretch;gap:12px;flex-wrap:wrap">
+      <!-- 左:接入渠道 + 模态 -->
+      <div style="flex:1;min-width:230px;display:flex;flex-direction:column;gap:12px">
+        <div class="panel">
+          <div class="sub" style="margin-bottom:8px">接入渠道</div>
+          <div class="row" style="gap:6px;flex-wrap:wrap">${(A.channel || []).map(chChip).join("")}</div>
+        </div>
+        <div class="panel">
+          <div class="between" style="margin-bottom:8px"><span class="sub">对话模态</span><span class="tag" style="background:rgba(34,199,214,.14);color:#8be6f0;border-color:rgba(34,199,214,.3)">全双工</span></div>
+          <div class="row" style="gap:8px"><span class="chip">🎙️ 语音</span><span class="chip">⌨️ 文本</span></div>
+        </div>
+      </div>
+      <!-- 箭头 -->
+      <div style="flex:0 0 34px;display:grid;place-items:center;color:var(--teal);font-weight:800;font-size:18px">▶</div>
+      <!-- 中:统一 Agent -->
+      <div style="flex:0 0 214px;min-width:190px;display:grid;place-items:center">
+        <div style="width:100%;background:var(--grad-voice);border-radius:var(--r-l);padding:22px 16px;text-align:center;box-shadow:0 10px 30px rgba(78,123,224,.35)">
+          <div style="font-size:30px;line-height:1">🌊</div>
+          <b style="color:#fff;display:block;margin-top:8px;font-size:16px">统一 AI Agent</b>
+          <div style="color:rgba(255,255,255,.85);font-size:12px;margin-top:2px">声渡 VoxOne</div>
+        </div>
+      </div>
+      <!-- 箭头 -->
+      <div style="flex:0 0 34px;display:grid;place-items:center;color:var(--coral);font-weight:800;font-size:18px">▶</div>
+      <!-- 右:知识库+模型 / 统一输出 -->
+      <div style="flex:1;min-width:230px;display:flex;flex-direction:column;gap:12px">
+        <div class="panel">
+          <div class="sub" style="margin-bottom:8px">一套知识 · 一个模型</div>
+          <div class="row" style="align-items:center;gap:8px;flex-wrap:wrap">
+            <span class="chip">📚 一套知识库 · RAG</span>
+            <span style="color:var(--teal);font-weight:800">▶</span>
+            <span class="chip"><span class="dot g"></span>SenseAudio V2.0</span>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="sub" style="margin-bottom:8px">统一输出 · 售前售后一体</div>
+          <div class="row" style="gap:8px;flex-wrap:wrap">${VX.badge("售前答疑", "run")}${VX.badge("售后服务(一体)", "ai")}</div>
+        </div>
+      </div>
+    </div>
+    <div class="notice" style="margin-top:14px"><span>所有渠道 + 语音/文本全双工 → <b style="color:#fff">同一个 Agent</b> → <b style="color:#8be6f0">同一套知识库</b> → <b style="color:#8be6f0">同一个 SenseAudio V2.0 模型</b> → 售前答疑与售后服务<b style="color:var(--coral-ink)">一体化</b>。</span></div>
+  </div>
+
+  <!-- 5) 全渠道统一收件箱 -->
+  <div class="card pad" style="margin-bottom:16px">
+    <div class="between" style="flex-wrap:wrap;gap:10px">
+      <div class="hd" style="margin:0"><h3>📥 全渠道统一收件箱</h3><span class="chip" id="omniCnt">${rows.length} 条</span></div>
+      <span class="sub" style="max-width:560px">下面这些会话来自不同渠道(邮件 / 微信 / 小程序 / 电话 / 网页),既有售前也有售后,却是同一个 Agent、同一套知识库处理的。</span>
+    </div>
+    <div id="omniTb" style="margin-top:12px;overflow-x:auto"></div>
+  </div>
+
+  <!-- 6) 统一带来的价值 -->
+  <div class="three" style="margin-bottom:16px">
+    <div class="card pad">
+      <div class="hd"><h3>🔄 数据互通</h3></div>
+      <div class="sub">一次对话即沉淀客户画像与意图,售前咨询与售后服务实时复用同一份上下文,不再各渠道各自为政。</div>
+    </div>
+    <div class="card pad">
+      <div class="hd"><h3>💰 成本摊薄</h3></div>
+      <div class="sub">一套引擎 + 一套知识库支撑全渠道、全流程,无需为每个渠道、每个环节重复搭建与维护。</div>
+    </div>
+    <div class="card pad">
+      <div class="hd"><h3>🎯 体验一致</h3></div>
+      <div class="sub">全渠道面对同一个「声音」与同一套上下文,客户无论从哪来、问售前还是售后,感受始终一致。</div>
+    </div>
+  </div>
+
+  <!-- 7) 即问即答(可选) -->
+  ${askCard}`;
+
+  // ---- 收件箱表格渲染 + 详情 ----
+  function tableHtml(list) {
+    return `<table class="tb"><thead><tr>
+      <th>时间</th><th>渠道</th><th>模态</th><th>场景</th><th>客户</th><th>意图</th><th>售前售后</th><th>结果</th><th>解决方</th><th>CSAT</th>
+    </tr></thead><tbody>
+    ${list.map((c, i) => `<tr data-idx="${i}" style="cursor:pointer">
+      <td class="mono" style="white-space:nowrap">${VX.fmtTs(c.ts)}</td>
+      <td style="white-space:nowrap">${chIcon(c.channel)} ${VX.esc(VX.CH[c.channel] || c.channel)}</td>
+      <td>${modalityBadge(c)}</td>
+      <td style="white-space:nowrap">${scShort(c.scenario)}</td>
+      <td>${VX.esc(c.customer || "—")}</td>
+      <td class="nm">${VX.esc(c.intent || "—")}</td>
+      <td style="white-space:nowrap">${bizBadges(c)}</td>
+      <td>${VX.esc(c.outcome || "—")}</td>
+      <td>${resolvedBadge(c.resolvedBy)}</td>
+      <td style="white-space:nowrap">${c.csat != null ? "★ " + c.csat : "—"}</td>
+    </tr>`).join("")}
+    </tbody></table>`;
+  }
+
+  function paintTable() {
+    const wrap = $("#omniTb");
+    $("#omniCnt").textContent = rows.length + " 条";
+    if (!rows.length) { wrap.innerHTML = '<div class="empty"><div class="ic">📥</div><h3>暂无全渠道会话</h3><p class="sub">从工作台以 omni 统一坐席产生会话后将在此汇总。</p></div>'; return; }
+    wrap.innerHTML = tableHtml(rows);
+    VX.$$("tr[data-idx]", wrap).forEach((tr) => { tr.onclick = () => openDetail(rows[+tr.dataset.idx]); });
+  }
+
+  function openDetail(c) {
+    if (!c) return;
+    const bubbles = (c.transcript || []).map((m) => `<div class="bub ${m.role}"><div class="meta">${m.role === "user" ? "客户" : m.role === "ai" ? "AI" : "系统"}</div><div>${VX.esc(m.text)}</div></div>`).join("")
+      || '<div class="sub">无转写记录</div>';
+    const kv = (k, v) => `<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+    const body = `
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:14px">
+        ${chChip(c.channel)}
+        ${modalityBadge(c)}
+        <span class="chip">${scShort(c.scenario)}</span>
+        ${bizBadges(c)}
+        ${resolvedBadge(c.resolvedBy)}
+      </div>
+      <div class="two" style="gap:0 18px">
+        <div>
+          ${kv("渠道", chIcon(c.channel) + " " + VX.esc(VX.CH[c.channel] || c.channel))}
+          ${kv("模态", c.channel === "voice" ? "语音 · 全双工" : "文本")}
+          ${kv("场景", VX.esc(scShort(c.scenario)))}
+        </div>
+        <div>
+          ${kv("语种", VX.esc(VX.LANG[c.lang] || c.lang))}
+          ${kv("意图", VX.esc(c.intent || "—"))}
+          ${kv("音色", VX.esc(c.voiceName || "—"))}
+        </div>
+      </div>
+      ${(c.tags && c.tags.length) ? `<div class="row" style="gap:6px;margin:10px 0 2px">${c.tags.map((x) => `<span class="tag">${VX.esc(x)}</span>`).join("")}</div>` : ""}
+      <div class="hr"></div>
+      <div class="sub" style="margin-bottom:10px">🗣️ 对话转写</div>
+      <div class="chat">${bubbles}</div>`;
+    VX.modal({ title: (c.intent || "会话详情") + " · " + VX.fmtTs(c.ts), body, wide: true });
+  }
+
+  paintTable();
+
+  // ---- 即问即答:同一个 omni Agent 同时接住售后(退货)与售前(优惠)----
+  if (me.perms.useWorkbench) {
+    const askBtn = $("#askBtn");
+    if (askBtn) askBtn.onclick = async () => {
+      const text = ($("#askText").value || "").trim() || "你好";
+      const box = $("#askResult");
+      askBtn.disabled = true;
+      box.innerHTML = `<div class="notice">⏳ 统一 Agent 应答中 · SenseAudio V2.0 …</div>`;
+      try {
+        const resp = await VX.api("/api/rt/reply", "POST", { scenario: "ecom", mode: "omni", text, history: [] });
+        const rp = resp.reply || {};
+        box.innerHTML = `<div class="panel">
+          <div class="row" style="gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+            ${VX.badge("统一 Agent 应答", "on")}
+            ${rp.intent ? VX.badge("意图 · " + rp.intent, "ai") : ""}
+            ${VX.badge("引擎 · " + (rp.source === "live" ? "实时端点 Live" : "内置引擎"), "run")}
+            ${rp.latencyMs != null ? `<span class="sub">端到端 ${rp.latencyMs}ms</span>` : ""}
+          </div>
+          <div class="chat"><div class="bub ai"><div class="meta">全渠道统一 Agent · 售前+售后一体</div><div>${VX.esc(rp.text || "—")}</div></div></div>
+        </div>`;
+      } catch (e) {
+        const msg = e.message || "应答失败";
+        box.innerHTML = `<div class="notice" style="border-color:rgba(255,107,107,.4);color:#ff9e9e"><span>⚠️ ${VX.esc(msg)}${/403|无权/.test(msg) ? " · 当前角色不含跨境电商场景,可在坐席工作台体验统一坐席" : ""}</span></div>`;
+      } finally { askBtn.disabled = false; }
+    };
+  }
+});
+</script>
+</body></html>
