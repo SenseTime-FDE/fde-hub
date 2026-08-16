@@ -219,21 +219,25 @@
     const featuredCount = data.articles.filter((article) => article.featured).length;
     app.innerHTML = `
       <section class="tc-hero">
-        <div class="tc-hero-copy">
-          <span class="tc-eyebrow">OFDE · TECHNICAL FIELD NOTES</span>
-          <h1>技术内容中心</h1>
-          <p>${esc(data.site.description)}</p>
-          <label class="tc-hero-search">
-            <span aria-hidden="true">⌕</span>
-            <input id="contentSearch" type="search" aria-label="搜索全部技术内容" autocomplete="off" placeholder="搜索 MCP、Skill、RAG、Hermes……" value="${esc(state.query)}">
-            <button type="button" id="clearSearch" aria-label="清空搜索" ${state.query ? "" : "hidden"}>清除</button>
-          </label>
-          <div class="tc-hero-topics" aria-label="热门专题">${data.topics.slice(0, 5).map((topic) => `<a href="${topicUrl(topic.id)}">${esc(topic.title)}</a>`).join("")}</div>
-        </div>
-        <div class="tc-hero-panel" aria-label="内容统计">
-          <div><strong>${data.total}</strong><span>篇技术内容</span></div>
-          <div><strong>${data.topics.length}</strong><span>条专题路径</span></div>
-          <div><strong>${featuredCount}</strong><span>篇精选文章</span></div>
+        <div class="tc-hero-glow" aria-hidden="true"></div>
+        <div class="tc-hero-grid-lines" aria-hidden="true"></div>
+        <div class="tc-hero-center">
+          <span class="tc-hero-eyebrow">TECHNICAL FIELD NOTES · 技术交流</span>
+          <h1>面向真实业务的<br><span>技术内容中心</span></h1>
+          <p class="tc-hero-lead">${esc(data.site.description)}</p>
+          <div class="tc-hero-meta" aria-label="内容统计">
+            <span>${data.total} 篇技术内容</span><i aria-hidden="true"></i>
+            <span>${data.topics.length} 条专题路径</span><i aria-hidden="true"></i>
+            <span>${featuredCount} 篇精选文章</span>
+          </div>
+          <div class="tc-hero-discovery">
+            <label class="tc-hero-search">
+              <span aria-hidden="true">⌕</span>
+              <input id="contentSearch" type="search" aria-label="搜索全部技术内容" autocomplete="off" placeholder="搜索 MCP、Skill、RAG、Hermes……" value="${esc(state.query)}">
+              <button type="button" id="clearSearch" aria-label="清空搜索" ${state.query ? "" : "hidden"}>清除</button>
+            </label>
+            <div class="tc-hero-topics" aria-label="热门专题">${data.topics.slice(0, 5).map((topic) => `<a href="${topicUrl(topic.id)}">${esc(topic.title)}</a>`).join("")}</div>
+          </div>
         </div>
       </section>
       ${renderNews(data)}

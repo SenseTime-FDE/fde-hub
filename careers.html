@@ -105,9 +105,9 @@
       <div class="wrap hero-center">
         <span class="eyebrow">Careers · 人才招聘</span>
         <h1>AI 招聘 Agent<br><span class="hl">带你直达生态渠道</span></h1>
-        <p class="lead">不用海投,不用猜 —— Agent 帮你分析简历、匹配合适岗位,投递后进度实时可查;HR 在同一系统里处理申请。右上角登录,选择你的身份开始体验。</p>
+        <p class="lead">这是公开的浏览器内交互演示：Agent 可分析示例经历、匹配岗位，并模拟候选人与 HR 两种视角。身份和申请记录只保存在当前浏览器，不会提交到商汤招聘系统。</p>
         <div class="hero-tags">
-          <span>AI 读简历</span><i></i><span>岗位智能匹配</span><i></i><span>进度实时跟踪</span><i></i><span>HR 在线处理</span>
+          <span>本地模拟分析</span><i></i><span>岗位智能匹配</span><i></i><span>无需真实账号</span><i></i><span>官方渠道为准</span>
         </div>
       </div>
     </header>
@@ -118,7 +118,7 @@
         <div class="grid-3">
           <div class="info reveal" data-d="0"><div class="n">01</div><h3>简历分析</h3><p>粘贴简历,Agent 生成你的能力画像 —— 分析在浏览器本地完成,内容不会上传。</p></div>
           <div class="info reveal" data-d="1"><div class="n">02</div><h3>岗位匹配</h3><p>按画像给出各岗位匹配度与推荐理由,AI 读懂简历帮你选,不再盲投。</p></div>
-          <div class="info reveal" data-d="2"><div class="n">03</div><h3>进度跟踪</h3><p>投递状态实时掌握:初筛、复核、面试、Offer,每一步 HR 的处理都同步可见。</p></div>
+          <div class="info reveal" data-d="2"><div class="n">03</div><h3>流程演示</h3><p>在当前浏览器内模拟初筛、复核、面试和 Offer 流程，不代表真实招聘进度。</p></div>
         </div>
       </div>
     </section>
@@ -129,7 +129,7 @@
         <div class="sec-head reveal">
           <span class="kicker">Workbench · 候选人工作台</span>
           <h2>三步,找到你的位置</h2>
-          <p class="sec-sub">分析简历 → 选择岗位 → 投递跟踪;投递需以「候选人」身份登录(右上角)。</p>
+          <p class="sec-sub">分析经历 → 选择岗位 → 模拟投递；右上角可切换「候选人体验」身份。</p>
         </div>
         <div class="agent-wrap reveal">
           <div class="agent-panel">
@@ -153,11 +153,11 @@
                   <span style="font-size:12.5px;color:var(--gray);align-self:center" id="applyHint">点选一个岗位后投递</span>
                 </div>
               </div>
-              <p class="demo-note">演示环境:分析与投递均在本地模拟,简历内容不会上传;正式投递请发送简历至 <a href="mailto:hello@sensetime.com" style="color:var(--red)">hello@sensetime.com</a>,并注明「生态渠道 + 岗位方向」。</p>
+              <p class="demo-note">演示环境：分析与申请流程均在本机模拟，输入内容不会上传。正式岗位与投递方式请以商汤官方招聘渠道实际发布为准。</p>
             </div>
           </div>
           <div class="track-panel">
-            <div class="track-head"><h3>我的申请</h3><p>进度实时跟踪,HR 处理后自动更新</p></div>
+            <div class="track-head"><h3>本机模拟申请</h3><p>仅展示当前浏览器内的流程体验</p></div>
             <div class="track-body" id="trackBody"></div>
           </div>
         </div>
@@ -170,7 +170,7 @@
         <div class="sec-head reveal">
           <span class="kicker">HR Console · 招聘管理</span>
           <h2>HR 工作台:申请处理与流程推进</h2>
-          <p class="sec-sub">以「HR 管理员」身份登录后可见 —— 处理候选人申请:通过复核、安排面试、发送 Offer,候选人侧进度实时同步。</p>
+          <p class="sec-sub">切换到「HR 流程体验」后可见 —— 可在当前浏览器内模拟复核、面试与 Offer 状态，不连接真实招聘后台。</p>
         </div>
         <div id="hrArea" class="reveal"></div>
       </div>
@@ -273,7 +273,7 @@
     applyBtn.addEventListener("click", () => {
       const sess = window.FDE_AUTH.get();
       if (!sess || sess.role !== "candidate") {
-        msg.innerHTML = "投递需要以「<b>候选人</b>」身份登录 —— 已为你打开登录窗口。";
+        msg.innerHTML = "模拟投递需要切换到「<b>候选人体验</b>」—— 已为你打开身份选择窗口。";
         window.FDE_AUTH.login("candidate", (s) => { if (s && s.role === "candidate") doApply(s); });
         return;
       }
@@ -289,7 +289,7 @@
       const no = "FDE-" + String(10000 + (apps.length * 137 + s.job.id.length * 41 + sess.name.length * 7) % 89999);
       apps.unshift({ no, name: sess.name, jobId: s.job.id, job: s.job.t, score: s.score, at: now(), stage: 0, log: [{ t: 0, at: now() }] });
       saveApps(apps);
-      msg.innerHTML = `已投递「<b>${esc(s.job.t)}</b>」!右侧「我的申请」已开始跟踪 —— HR 处理后状态会实时更新。`;
+      msg.innerHTML = `已生成「<b>${esc(s.job.t)}</b>」模拟申请。右侧会显示当前浏览器内的演示进度；这不是正式投递。`;
       setTimeout(() => {
         const a = loadApps(); const rec = a.find(x => x.no === no);
         if (rec && rec.stage === 0) { rec.stage = 1; rec.log.push({ t: 1, at: now() }); saveApps(a); }
@@ -300,7 +300,7 @@
     function renderTrack() {
       const sess = window.FDE_AUTH.get();
       if (!sess || sess.role !== "candidate") {
-        trackBody.innerHTML = '<div class="track-empty">以「候选人」身份登录后,<br>你的申请与进度会出现在这里</div>'; return;
+        trackBody.innerHTML = '<div class="track-empty">切换到「候选人体验」后，<br>本机模拟申请与进度会出现在这里</div>'; return;
       }
       const mine = loadApps().filter(a => a.name === sess.name);
       if (!mine.length) {
@@ -333,7 +333,7 @@
     function renderHR() {
       const sess = window.FDE_AUTH.get();
       if (!sess || sess.role !== "hr") {
-        hrArea.innerHTML = '<div class="role-gate">此面板仅「HR 管理员」可见 —— 右上角登录并选择「HR 管理员」身份即可进入。<br>想完整体验闭环:先以候选人身份投一份申请,再切换 HR 处理,回到候选人视角看进度更新。</div>';
+        hrArea.innerHTML = '<div class="role-gate">此面板仅用于「HR 流程体验」—— 右上角切换身份即可进入。<br>想体验完整闭环：先生成一份候选人模拟申请，再切换 HR 视角处理。所有数据只在当前浏览器内有效。</div>';
         return;
       }
       const apps = loadApps();
@@ -368,7 +368,7 @@
           <td><div class="hr-actions">${actions(a)}</div></td>
         </tr>`).join("")}
       </table></div></div>
-      <p class="demo-note" style="margin-top:12px">演示环境:操作即时同步到候选人侧的「我的申请」;数据仅存于本机浏览器。</p>`;
+      <p class="demo-note" style="margin-top:12px">演示环境：操作只更新当前浏览器里的模拟申请，不连接商汤招聘系统，也不代表真实招聘结论。</p>`;
       hrArea.querySelectorAll(".hr-actions button[data-no]").forEach(b => b.addEventListener("click", () => {
         const apps2 = loadApps(); const rec = apps2.find(x => x.no === b.dataset.no);
         if (!rec) return;
