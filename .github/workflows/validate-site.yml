@@ -19,6 +19,8 @@ jobs:
           node-version: 22
       - name: Check community JavaScript
         run: node --check community/js/community.js
+      - name: Validate partner application links
+        run: node --test tests/*.test.mjs
       - name: Validate community content
         run: node scripts/validate-content.mjs
       - name: Validate static site
