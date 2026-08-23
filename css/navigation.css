@@ -188,6 +188,7 @@
 
 #nav .user-chip b {
   color: var(--nav-ink);
+  display: none;
 }
 
 #nav .user-chip button {
@@ -198,9 +199,8 @@
   color: var(--nav-red);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1240px) {
   #nav .fde-cap { display: none; }
-  #nav .user-chip b { display: none; }
 }
 
 @media (max-width: 1180px) {

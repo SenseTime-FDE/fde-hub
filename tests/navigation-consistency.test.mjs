@@ -16,6 +16,7 @@ const pages = [
 ];
 const labels = ["产品与方案", "Token Plan", "市场活动", "人才招聘", "技术交流", "加入生态"];
 const navigationCss = fs.readFileSync(path.join(root, "css/navigation.css"), "utf8");
+const navigationDesktopCss = navigationCss.slice(0, navigationCss.indexOf("@media"));
 
 function readPage(file) {
   return fs.readFileSync(path.join(root, file), "utf8");
@@ -71,6 +72,16 @@ test("shared navigation collapses before fixed desktop controls can overlap", ()
     navigationCss,
     /@media\s*\(max-width:\s*1180px\)\s*{[\s\S]*?#nav \.nav-links\s*{\s*display:\s*none;/,
     "desktop navigation must collapse at the verified safe breakpoint"
+  );
+  assert.match(
+    navigationDesktopCss,
+    /#nav \.user-chip b\s*{[^}]*display:\s*none;/,
+    "the optional user name must not consume navigation width"
+  );
+  assert.match(
+    navigationCss,
+    /@media\s*\(max-width:\s*1240px\)\s*{[\s\S]*?#nav \.fde-cap\s*{\s*display:\s*none;/,
+    "the long brand caption must collapse before the navigation reaches its max width"
   );
 });
 
