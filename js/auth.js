@@ -74,8 +74,7 @@
     if (!box) {
       box = document.createElement("div");
       box.id = "navUser";
-      const cta = inner.querySelector(".nav-cta");
-      inner.insertBefore(box, cta);
+      inner.appendChild(box);
     }
     const s = get();
     if (!s) {
