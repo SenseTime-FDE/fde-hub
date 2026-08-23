@@ -203,7 +203,11 @@
   #nav .fde-cap { display: none; }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1060px) {
+  #navUser { display: none; }
+}
+
+@media (max-width: 880px) {
   #nav .nav-links { display: none; }
 }
 

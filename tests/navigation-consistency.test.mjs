@@ -70,8 +70,13 @@ test("global navigation pages load the shared identity slot", () => {
 test("shared navigation collapses before fixed desktop controls can overlap", () => {
   assert.match(
     navigationCss,
-    /@media\s*\(max-width:\s*1180px\)\s*{[\s\S]*?#nav \.nav-links\s*{\s*display:\s*none;/,
-    "desktop navigation must collapse at the verified safe breakpoint"
+    /@media\s*\(max-width:\s*1060px\)\s*{[\s\S]*?#navUser\s*{\s*display:\s*none;/,
+    "the optional identity slot must collapse before it can crowd the menu"
+  );
+  assert.match(
+    navigationCss,
+    /@media\s*\(max-width:\s*880px\)\s*{[\s\S]*?#nav \.nav-links\s*{\s*display:\s*none;/,
+    "navigation links must remain available at common laptop widths"
   );
   assert.match(
     navigationDesktopCss,
