@@ -2,6 +2,13 @@
    Load this file after page-specific styles so every top-level page keeps
    the same typography, logo dimensions, spacing, and responsive behavior. */
 #nav {
+  --nav-ink: #1a1b22;
+  --nav-gray: #6a6a72;
+  --nav-gray-2: #8c8c96;
+  --nav-line: #ece6dc;
+  --nav-line-2: #e0d8cb;
+  --nav-red: #e72427;
+  --nav-red-dark: #c01d20;
   position: sticky;
   top: 0;
   z-index: 60;
@@ -18,7 +25,7 @@
 
 #nav.solid {
   background: rgba(255, 255, 255, .9);
-  border-bottom-color: var(--line, #ece6dc);
+  border-bottom-color: var(--nav-line);
 }
 
 #nav .nav-inner {
@@ -55,7 +62,7 @@
 #nav .brand-div {
   width: 1px;
   height: 22px;
-  background: var(--line-2, #e0d8cb);
+  background: var(--nav-line-2);
   flex: none;
 }
 
@@ -78,7 +85,7 @@
 }
 
 #nav .fde-cap {
-  color: var(--gray, #6a6a72);
+  color: var(--nav-gray);
   font-size: 8.5px;
   font-weight: 600;
   line-height: 1;
@@ -93,7 +100,7 @@
   column-gap: clamp(12px, 1.7vw, 32px);
   min-width: 0;
   overflow: visible;
-  color: var(--gray, #6a6a72);
+  color: var(--nav-gray);
   font-size: 13.5px;
   font-weight: 500;
   line-height: 1.7;
@@ -113,7 +120,7 @@
 
 #nav .nav-links a:hover,
 #nav .nav-links a.cur {
-  color: var(--ink, #1a1b22);
+  color: var(--nav-ink);
 }
 
 #nav .nav-links a.cur {
@@ -127,7 +134,7 @@
   bottom: -8px;
   width: 0;
   height: 2px;
-  background: var(--red, #e72427);
+  background: var(--nav-red);
   transition: width .25s;
 }
 
@@ -145,7 +152,7 @@
   border: 1px solid transparent;
   border-radius: 999px;
   color: #fff;
-  background: var(--red, #e72427);
+  background: var(--nav-red);
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
@@ -156,14 +163,47 @@
 
 #nav .nav-cta:hover {
   color: #fff;
-  background: var(--red-dark, #c01d20);
+  background: var(--nav-red-dark);
+}
+
+#nav .user-login {
+  color: var(--nav-gray);
+  border-color: var(--nav-line-2);
+}
+
+#nav .user-login:hover {
+  color: var(--nav-ink);
+  border-color: var(--nav-ink);
+}
+
+#nav .user-chip {
+  border-color: var(--nav-line-2);
+  background: #fff;
+}
+
+#nav .user-chip i {
+  color: var(--nav-red);
+  background: rgba(231, 36, 39, .08);
+}
+
+#nav .user-chip b {
+  color: var(--nav-ink);
+}
+
+#nav .user-chip button {
+  color: var(--nav-gray-2);
+}
+
+#nav .user-chip button:hover {
+  color: var(--nav-red);
 }
 
 @media (max-width: 1200px) {
   #nav .fde-cap { display: none; }
+  #nav .user-chip b { display: none; }
 }
 
-@media (max-width: 880px) {
+@media (max-width: 1180px) {
   #nav .nav-links { display: none; }
 }
 

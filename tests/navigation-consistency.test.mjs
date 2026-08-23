@@ -15,6 +15,7 @@ const pages = [
   "partners.html"
 ];
 const labels = ["产品与方案", "Token Plan", "市场活动", "人才招聘", "技术交流", "加入生态"];
+const navigationCss = fs.readFileSync(path.join(root, "css/navigation.css"), "utf8");
 
 function readPage(file) {
   return fs.readFileSync(path.join(root, file), "utf8");
@@ -63,4 +64,20 @@ test("global navigation pages load the shared identity slot", () => {
   for (const file of pages) {
     assert.match(readPage(file), /(?:\.\.\/|\.\/)?js\/auth\.js/i, `${file} is missing the shared identity slot`);
   }
+});
+
+test("shared navigation collapses before fixed desktop controls can overlap", () => {
+  assert.match(
+    navigationCss,
+    /@media\s*\(max-width:\s*1180px\)\s*{[\s\S]*?#nav \.nav-links\s*{\s*display:\s*none;/,
+    "desktop navigation must collapse at the verified safe breakpoint"
+  );
+});
+
+test("shared navigation uses navigation-owned color tokens", () => {
+  assert.doesNotMatch(
+    navigationCss,
+    /var\(--(?:ink|gray|gray-2|line|line-2|red|red-dark)(?:,|\))/,
+    "page-level color variables must not change the shared navigation"
+  );
 });
