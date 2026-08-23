@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const pages = [
@@ -96,4 +97,52 @@ test("shared navigation uses navigation-owned color tokens", () => {
     /var\(--(?:ink|gray|gray-2|line|line-2|red|red-dark)(?:,|\))/,
     "page-level color variables must not change the shared navigation"
   );
+});
+
+test("identity control renders after the application CTA", () => {
+  const cta = { id: "", className: "nav-cta" };
+  const children = [cta];
+  let identity = null;
+  const inner = {
+    querySelector(selector) {
+      if (selector === "#navUser") return identity;
+      if (selector === ".nav-cta") return cta;
+      return null;
+    },
+    insertBefore(element, reference) {
+      children.splice(children.indexOf(reference), 0, element);
+      identity = element;
+    },
+    appendChild(element) {
+      children.push(element);
+      identity = element;
+    }
+  };
+  const document = {
+    readyState: "complete",
+    querySelector(selector) {
+      return selector === ".nav-inner" ? inner : null;
+    },
+    createElement() {
+      return {
+        id: "",
+        innerHTML: "",
+        querySelector() {
+          return { addEventListener() {} };
+        }
+      };
+    },
+    addEventListener() {},
+    dispatchEvent() {}
+  };
+  const context = {
+    document,
+    localStorage: { getItem() { return null; } },
+    window: {},
+    CustomEvent: class {}
+  };
+
+  vm.runInNewContext(readPage("js/auth.js"), context);
+
+  assert.deepEqual(children.map((element) => element.id || element.className), ["nav-cta", "navUser"]);
 });
