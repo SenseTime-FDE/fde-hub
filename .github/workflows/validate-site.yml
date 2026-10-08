@@ -17,9 +17,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Export v1.3 public pages
+        run: node scripts/export-v13-static.mjs
+      - name: Check generated pages are committed
+        run: git diff --exit-code
       - name: Check community JavaScript
         run: node --check community/js/community.js
-      - name: Validate partner application links
+      - name: Validate navigation and application links
         run: node --test tests/*.test.mjs
       - name: Validate community content
         run: node scripts/validate-content.mjs
