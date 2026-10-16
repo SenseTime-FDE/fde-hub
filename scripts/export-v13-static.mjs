@@ -69,6 +69,8 @@ function copyAsset(relativePath) {
 
 copyAsset('css/site.css');
 copyAsset('js/site.js');
+copyAsset('css/salesbuddy.css');
+copyAsset('js/salesbuddy.js');
 copyAsset('img/favicon.svg');
 copyAsset('img/sensetime_logo_color.png');
 
