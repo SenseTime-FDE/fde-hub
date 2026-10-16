@@ -6,8 +6,8 @@ module.exports = {
   description: '商汤销售小浣熊 SalesBuddy 连接客户、商机、拜访与任务，提供客户作战地图、AI 拜访整理与质检、任务协作和经营看板，让销售工作有记录、有行动、可复盘。',
   workspace: 'https://www.ericepc.com/web/?mode=live#/pages/login/index',
   heroVideo: {
-    src: '/media/salesbuddy/miniapp-overview.mp4?v=f7e7b1e1b8',
-    poster: '/images/salesbuddy/miniapp-video-poster.jpg?v=37133f0956',
+    src: '/media/salesbuddy/miniapp-overview.mp4?v=db5b0381b4',
+    poster: '/images/salesbuddy/miniapp-video-poster.jpg?v=4398a066dd',
     width: 442, height: 900,
     label: 'SalesBuddy 微信小程序经营看板演示',
   },
