@@ -278,6 +278,7 @@ function solutions() {
 /* ---------- 产品介绍页 ---------- */
 function product(slug) {
   if (slug === 'salesbuddy') return require('./salesbuddy').salesbuddy();
+  if (slug === 'raccoon-x') return require('./raccoon-x').raccoonX();
   const p = C.PRODUCTS[slug];
   if (!p) return null;
   const g = C.CATALOG.find((x) => x.key === p.group);
