@@ -3,6 +3,7 @@ const { page, ICON_ARROW } = require('./layout');
 const { esc } = require('../http');
 const { asset } = require('../assets');
 const R = require('../raccoon-x-content');
+const CTA_URL = 'https://app.jingsocial.com/mF/commonLandingPage/CTA/49a2bacfc8e54b948a314013e8f24bbc?pushId=4FGTqdkHziP9nUAjjvUw3T1';
 
 const heading = (no, cn, en, title, lead) => `<div class="sec-head"><p class="kicker"><b>${no}</b>${cn}<i>·</i>${en}</p><h2 class="h-section">${title}</h2><p class="lead">${esc(lead)}</p></div>`;
 const shot = (image, alt, caption, width, height, eager = false) => `<figure class="sb-shot${eager ? ' sb-hero-shot' : ''}">
@@ -13,7 +14,7 @@ const shot = (image, alt, caption, width, height, eager = false) => `<figure cla
 function raccoonX() {
   const hero = `<section class="sb-hero rx-hero" id="rx-top"><div class="page-head-bg" aria-hidden="true"></div><div class="wrap">
     <nav class="crumbs" aria-label="当前位置"><a href="/solutions">产品与方案</a><i>/</i><a href="/solutions/raccoonbuddy">小浣熊企服版</a><i>/</i><b>Raccoon X</b></nav>
-    <div class="sb-hero-layout"><div class="sb-hero-copy"><p class="kicker">RACCOON X<i>·</i>智能体平台</p><h1>把 AI 能力，<br><em>变成业务生产力。</em></h1><p class="sb-hero-lead">将模型、知识、工具与工作方法，<br>组合成专业助手、专家团队和业务流程。</p><div class="btn-row"><a class="btn btn-red btn-lg" href="#rx-capabilities">探索 Raccoon X ${ICON_ARROW}</a><a class="btn btn-ghost btn-lg" href="/contact?from=raccoon-x">预约产品演示</a></div><p class="sb-platforms"><span>Agent</span><i></i><span>Agent Teams</span><i></i><span>Workflow / Chatflow</span></p><p class="sb-hero-footline"><span>能力可组合</span><i>/</i><span>经验可复用</span><i>/</i><span>应用可维护</span></p></div>
+    <div class="sb-hero-layout"><div class="sb-hero-copy"><p class="kicker">RACCOON X<i>·</i>智能体平台</p><h1>把 AI 能力，<br><em>变成业务生产力。</em></h1><p class="sb-hero-lead">将模型、知识、工具与工作方法，<br>组合成专业助手、专家团队和业务流程。</p><div class="btn-row"><a class="btn btn-red btn-lg" href="#rx-capabilities">探索 Raccoon X ${ICON_ARROW}</a><a class="btn btn-ghost btn-lg" href="${esc(CTA_URL)}">预约产品演示</a></div><p class="sb-platforms"><span>Agent</span><i></i><span>Agent Teams</span><i></i><span>Workflow / Chatflow</span></p><p class="sb-hero-footline"><span>能力可组合</span><i>/</i><span>经验可复用</span><i>/</i><span>应用可维护</span></p></div>
     <div class="rx-hero-visual">${shot('home.jpg', 'Raccoon X 首页，包含工作室、Agents、知识库、Skills、集成与业务模板', '从业务任务与应用模板开始，让 AI 接入日常工作。', 1280, 678, true)}<div class="rx-hero-tags"><span>专业助手</span><span>专家协作</span><span>可视化编排</span></div></div></div>
   </div></section>`;
 
@@ -49,7 +50,7 @@ function raccoonX() {
   const faq = `<section class="section sb-faq" id="rx-faq"><div class="wrap">${heading('05', '常见问题', 'FAQ', '关于 Raccoon X，<em>你可能想了解。</em>', '选好起点，让应用围绕实际业务任务逐步生长。')}<div class="sb-faq-grid">${[R.faq.slice(0, 2), R.faq.slice(2)].map(items => `<div class="sb-faq-list">${items.map(([q, a]) => `<details><summary>${esc(q)}<span aria-hidden="true"></span></summary><p>${esc(a)}</p></details>`).join('')}</div>`).join('')}</div></div></section>`;
 
   const related = `<aside class="sb-related-section" aria-label="相关产品与方案"><div class="wrap"><div class="sb-related"><span>继续了解商汤 AI 产品与方案</span><a href="/solutions/salesbuddy">SalesBuddy 销售小浣熊 ${ICON_ARROW}</a><a href="/solutions/maas">MaaS 平台 ${ICON_ARROW}</a><a href="/solutions">全部产品 ${ICON_ARROW}</a></div></div></aside>`;
-  const cta = `<section class="section cta-section"><div class="wrap"><div class="cta-box"><p class="kicker">LET’S BUILD YOUR FIRST AGENT</p><h2>让第一个业务场景，<br>在 Raccoon X 上跑起来。</h2><p>从你的团队和业务任务出发，了解合适的应用方式与落地方案。</p><div class="btn-row center"><a class="btn btn-red btn-lg" href="/contact?from=raccoon-x">预约产品演示 ${ICON_ARROW}</a><a class="btn btn-outline btn-lg" href="/partners#apply">申请加入生态渠道</a></div></div></div></section>`;
+  const cta = `<section class="section cta-section"><div class="wrap"><div class="cta-box"><p class="kicker">LET’S BUILD YOUR FIRST AGENT</p><h2>让第一个业务场景，<br>在 Raccoon X 上跑起来。</h2><p>从你的团队和业务任务出发，了解合适的应用方式与落地方案。</p><div class="btn-row center"><a class="btn btn-red btn-lg" href="${esc(CTA_URL)}">预约产品演示 ${ICON_ARROW}</a><a class="btn btn-outline btn-lg" href="${esc(CTA_URL)}">申请加入生态渠道</a></div></div></div></section>`;
   return page({ title: 'Raccoon X 智能体平台｜专业助手、专家协作与业务流程', description: R.description, active: 'solutions', head: `<link rel="stylesheet" href="${asset('/css/salesbuddy.css')}"><link rel="stylesheet" href="${asset('/css/raccoon-x.css')}">`, scripts: `<script src="${asset('/js/salesbuddy.js')}" defer></script>`, body: `<div class="sb-page rx-page">${hero}${nav}${intro}${capabilities}${resources}${scenarios}${connect}${faq}${related}${cta}</div>` });
 }
 module.exports = { raccoonX };
