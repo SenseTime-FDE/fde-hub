@@ -70,6 +70,7 @@ function copyAsset(relativePath) {
 copyAsset('css/site.css');
 copyAsset('js/site.js');
 copyAsset('css/salesbuddy.css');
+copyAsset('css/salesbuddy-brand.css');
 copyAsset('js/salesbuddy.js');
 copyAsset('css/raccoon-x.css');
 copyAsset('img/favicon.svg');

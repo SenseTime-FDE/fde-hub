@@ -1,0 +1,14 @@
+/* SalesBuddy-only hero branding; keep the shared product styles unchanged. */
+.sb-hero-brand { display: flex; align-items: center; gap: 14px; }
+.sb-hero-logo { display: block; flex: none; width: 64px; height: 64px; object-fit: contain; }
+.sb-hero-brand-copy { text-align: left; }
+.sb-hero-brand-name { margin-top: 5px; color: var(--ink2); font-size: 12px; line-height: 1.5; letter-spacing: .06em; }
+
+@media (max-width: 800px) {
+  .sb-hero-brand { justify-content: center; }
+}
+@media (max-width: 520px) {
+  .sb-hero-brand { gap: 12px; }
+  .sb-hero-logo { width: 56px; height: 56px; }
+  .sb-hero-brand-name { font-size: 11px; }
+}
