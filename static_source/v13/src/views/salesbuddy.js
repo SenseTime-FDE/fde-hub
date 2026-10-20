@@ -24,7 +24,10 @@ function salesbuddy() {
       <nav class="crumbs" aria-label="当前位置"><a href="/solutions">产品与方案</a><i>/</i><a href="/solutions/apps">AI 应用</a><i>/</i><b>SalesBuddy</b></nav>
       <div class="sb-hero-layout">
         <div class="sb-hero-copy">
-          <p class="kicker"><span>SALESBUDDY</span><i>·</i><span>商汤销售小浣熊</span></p>
+          <div class="sb-hero-brand">
+            <img class="sb-hero-logo" src="${esc(S.heroLogo.src)}" alt="${esc(S.heroLogo.alt)}" width="${S.heroLogo.width}" height="${S.heroLogo.height}" decoding="async">
+            <div class="sb-hero-brand-copy"><p class="kicker">SALESBUDDY</p><p class="sb-hero-brand-name">商汤销售小浣熊</p></div>
+          </div>
           <h1>记录每一次沟通，<br><em>让 AI 助力销售增长。</em></h1>
           <p class="sb-hero-lead">连接客户、商机、拜访与任务，<br>让销售工作有记录、有行动、可复盘。</p>
           <div class="btn-row"><a href="#sb-miniapp" class="btn btn-red btn-lg">探索销售小浣熊 ${ICON_ARROW}</a>${external(S.workspace, '进入 Web 工作台', 'btn btn-ghost btn-lg')}</div>
@@ -96,7 +99,7 @@ function salesbuddy() {
   const dialog = `<dialog class="sb-lightbox" aria-labelledby="sb-lightbox-title"><div class="sb-lightbox-bar"><p id="sb-lightbox-title">产品界面</p><button type="button" data-sb-close aria-label="关闭大图">关闭 <span aria-hidden="true">×</span></button></div><div class="sb-lightbox-body"><img alt=""></div></dialog>`;
   return page({
     title: 'SalesBuddy 销售小浣熊｜AI 销售助手', description: S.description, active: 'solutions',
-    head: `<link rel="stylesheet" href="${asset('/css/salesbuddy.css')}">`,
+    head: `<link rel="stylesheet" href="${asset('/css/salesbuddy.css')}"><link rel="stylesheet" href="${asset('/css/salesbuddy-brand.css')}">`,
     scripts: `<script src="${asset('/js/salesbuddy.js')}" defer></script>`,
     body: `<div class="sb-page">${hero}${nav}${promise}${miniapp}${capabilities}${workflow}${roles}${faq}${related}${dialog}</div>`,
   });
