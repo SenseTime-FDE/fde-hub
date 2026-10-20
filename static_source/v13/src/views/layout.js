@@ -112,7 +112,7 @@ function footer() {
     </div>
     <div class="footer-col">
       <h3>生态与合作</h3>
-      <a href="/partners">加入生态</a><a href="/partners#identity">体验身份</a><a href="/events">市场活动</a><a href="/community">技术交流</a><a href="/careers">人才招聘</a><a href="/contact">预约演示</a><a href="https://www.sensetime.com" target="_blank" rel="noopener">商汤官网 ${ICON_OUT}</a><a href="/privacy">隐私说明</a>
+      <a href="/partners">加入生态</a><a href="/partners#identity">体验身份</a><a href="/demos">案例 Demo</a><a href="/events">市场活动</a><a href="/community">技术交流</a><a href="/careers">人才招聘</a><a href="/contact">预约演示</a><a href="https://www.sensetime.com" target="_blank" rel="noopener">商汤官网 ${ICON_OUT}</a><a href="/privacy">隐私说明</a>
     </div>
   </div>
   <div class="wrap footer-bottom">

@@ -406,6 +406,53 @@ function privacy() {
   return page({ title: '隐私说明', body });
 }
 
+/* ---------- 案例 Demo：恢复旧站中可访问的场景原型入口 ---------- */
+function demos() {
+  const body = pageHead({
+    en: 'DEMOS & PROTOTYPES',
+    cn: '案例 Demo',
+    t1: 'Demo 与场景原型',
+    t2: '从真实问题进入交互验证',
+    lead: '汇集餐饮零售、智能媒体、展会营销、业务原型等场景；先看设计思路，再打开可交互 Demo 验证。',
+    tags: ['场景化', '可交互', '快速验证', '持续更新'],
+  })
+  + `<section class="section demo-feature-section">
+  <div class="wrap">
+    ${secHead('01', '重点展示', 'FEATURED', '从一个具体场景开始', '先看餐饮点单与智能媒体两个典型场景，了解 Agent 如何进入业务流程，再打开完整 Demo 体验。')}
+    <div class="demo-feature-grid" id="demoFeatured" aria-live="polite"></div>
+  </div>
+</section>
+<section class="section bg-soft" id="all-demos">
+  <div class="wrap">
+    ${secHead('02', '全部内容', 'EXPLORE', '按行业和场景筛选', '搜索只在当前浏览器中运行，不会上传搜索词。')}
+    <div class="demo-controls" aria-label="Demo 筛选">
+      <label class="demo-search" for="demoSearch"><span aria-hidden="true">⌕</span><input id="demoSearch" type="search" placeholder="搜索场景、能力或关键词" autocomplete="off"></label>
+      <p class="demo-count" id="demoCount" aria-live="polite">正在加载……</p>
+    </div>
+    <div class="demo-categories" id="demoCategories" aria-label="Demo 分类"></div>
+    <div class="demo-grid" id="demoGrid" aria-live="polite"></div>
+    <div class="demo-empty" id="demoEmpty" hidden><h3>没有找到匹配内容</h3><p>试试更换关键词，或切换到「全部」分类。</p></div>
+    <noscript><p class="demo-noscript">请开启 JavaScript 以查看 Demo 列表。</p></noscript>
+  </div>
+</section>
+<section class="section demo-boundary-section">
+  <div class="wrap"><div class="demo-boundary">
+    <p class="kicker"><b>03</b>使用边界<i>·</i>BOUNDARIES</p>
+    <h2>Demo 用于方案沟通，不等于生产系统</h2>
+    <p>页面中的数据、业务流程与交互均用于演示，不代表真实客户信息、当前产品承诺或客户公开背书。需要完整方案、部署边界或最新能力时，请以正式产品资料和项目确认为准。</p>
+  </div></div>
+</section>`;
+
+  return page({
+    title: '案例 Demo',
+    description: '生态渠道场景 Demo 与业务原型，支持按行业和能力搜索筛选。',
+    active: 'demos',
+    body,
+    head: '<link rel="stylesheet" href="/css/demos.css">',
+    scripts: '<script src="/js/data.js" defer></script>\n<script src="/js/demos.js" defer></script>',
+  });
+}
+
 function notFound() {
   const body = `<section class="section thanks"><div class="wrap narrow"><div class="thanks-mark muted" aria-hidden="true">404</div><h1>页面不存在</h1><p class="lead">你访问的页面可能已移动或删除。</p><div class="btn-row center"><a class="btn btn-red" href="/">返回首页</a></div></div></section>`;
   return page({ title: '页面不存在', body });
@@ -415,4 +462,4 @@ function errorPage(status, message) {
   return page({ title: '出错了', body });
 }
 
-module.exports = { home, solutions, product, cloudMaas, privacy };
+module.exports = { home, solutions, product, cloudMaas, privacy, demos };

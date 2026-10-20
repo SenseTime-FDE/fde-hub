@@ -49,7 +49,7 @@ const PROJECTS = [
     desc: "面向餐饮点单链路，依据用餐偏好、菜品组合和门店菜单推荐合适菜品。",
     tags: ["点餐推荐", "小程序", "个性化推荐"],
     url: "https://sensetime-fde.github.io/Demo/%E7%82%B9%E9%A4%90%E5%8A%A9%E6%89%8B%E5%B0%8F%E7%A8%8B%E5%BA%8FAgent",
-    hue: 28, live: true, featured: true,
+    hue: 28, live: true, featured: true, spotlight: true,
   },
   {
     cat: "hr", badge: "人力招聘", title: "HR 招聘 Agent",
@@ -77,21 +77,21 @@ const PROJECTS = [
     desc: "面向新品发布和客户提案，辅助生成结构化 Pitch 内容，用视频展示完整流程。",
     tags: ["新品提案", "Pitch 生成", "视频演示"],
     url: "https://my.feishu.cn/file/NLmYbwuyCoD3LBxmy31cmVNvnqd",
-    hue: 12, live: false,
+    hue: 12, live: false, access: "login",
   },
   {
     cat: "media", badge: "智能媒体", title: "智媒平台",
     desc: "面向媒体内容生产与运营场景，提供智能化内容处理、协作和平台化能力演示。",
     tags: ["智能媒体", "内容生产", "平台演示"],
     url: "https://sensetime-fde.github.io/Demo/%E6%99%BA%E5%AA%92%E5%B9%B3%E5%8F%B0",
-    hue: 330, live: true, featured: true,
+    hue: 330, live: true, featured: true, spotlight: true,
   },
   {
     cat: "data", badge: "数据治理", title: "客户表单数据清理",
     desc: "面向客户表单和线索数据，演示字段规范化、脏数据识别和批量清洗流程。",
     tags: ["表单清洗", "字段规范化", "视频演示"],
     url: "https://my.feishu.cn/file/HPOabqIjWojRULxu8Xgcgv1AnQg",
-    hue: 215, live: false,
+    hue: 215, live: false, access: "login",
   },
   {
     cat: "industry", badge: "工业制造", title: "机械总成交互展厅",
@@ -182,6 +182,7 @@ const PROJECTS = [
     tags: ["招投标", "多 Agent 协同", "标书生成"],
     url: "https://sensetime.feishu.cn/docx/UqW4dAQMlodT4jxJcZvcTpM7nJ6",
     type: "doc",
+    access: "login",
     hue: 240,
   },
   {

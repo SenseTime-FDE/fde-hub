@@ -18,6 +18,7 @@ const generatedPages = [
   "tokenplan.html",
   "cloud-maas/index.html",
   "privacy.html",
+  "demos.html",
   "solutions/raccoonbuddy/index.html",
   "solutions/apps/index.html",
   "solutions/partner-isv/index.html",
@@ -29,8 +30,8 @@ const generatedPages = [
   "solutions/compute-rental/index.html",
   "solutions/services/index.html"
 ];
-const legacyLabels = ["产品与方案", "Token Plan", "市场活动", "人才招聘", "技术交流", "加入生态"];
-const generatedLabels = ["产品与方案", "云端 MaaS", "市场活动", "人才招聘", "技术交流", "加入生态"];
+const legacyLabels = ["产品与方案", "Token Plan", "案例 Demo", "市场活动", "人才招聘", "技术交流", "加入生态"];
+const generatedLabels = ["产品与方案", "云端 MaaS", "案例 Demo", "市场活动", "人才招聘", "技术交流", "加入生态"];
 const navigationCss = fs.readFileSync(path.join(root, "css/navigation.css"), "utf8");
 const navigationDesktopCss = navigationCss.slice(0, navigationCss.indexOf("@media"));
 
@@ -104,6 +105,7 @@ test("v1.3 generated pages expose the new ordered navigation and static destinat
     assert.match(nav, /href=["']\/events\.html["']/, `${file} must retain the static events page`);
     assert.match(nav, /href=["']\/careers\.html["']/, `${file} must retain the static careers page`);
     assert.match(nav, /href=["']\/community\/["']/, `${file} must retain the technical content center`);
+    assert.match(nav, /href=["']\/demos\.html["']/, `${file} must retain the restored demo gallery`);
     assert.match(nav, /href=["']\/partners\.html["']/, `${file} must retain the static partner page`);
   }
 });
