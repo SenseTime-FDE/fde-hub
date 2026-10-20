@@ -7,7 +7,7 @@ const R = require('../raccoon-x-content');
 const heading = (no, cn, en, title, lead) => `<div class="sec-head"><p class="kicker"><b>${no}</b>${cn}<i>·</i>${en}</p><h2 class="h-section">${title}</h2><p class="lead">${esc(lead)}</p></div>`;
 const shot = (image, alt, caption, width, height, eager = false) => `<figure class="sb-shot${eager ? ' sb-hero-shot' : ''}">
   <div class="sb-window-bar"><span class="sb-window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>Raccoon X · 智能体平台</span><span class="sb-window-label">产品界面</span></div>
-  <a class="sb-image-link" data-sb-zoom href="/img/raccoon-x/${image}" data-caption="${esc(caption)}" data-alt="${esc(alt)}" target="_blank" rel="noopener" aria-label="放大查看：${esc(caption)}"><img src="/img/raccoon-x/${image}" alt="${esc(alt)}" width="${width}" height="${height}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"><span class="sb-enlarge" aria-hidden="true">放大查看 ↗</span></a><figcaption>${esc(caption)}</figcaption>
+  <div class="rx-image"><img src="/img/raccoon-x/${image}" alt="${esc(alt)}" width="${width}" height="${height}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async"></div><figcaption>${esc(caption)}</figcaption>
 </figure>`;
 
 function raccoonX() {
@@ -50,7 +50,6 @@ function raccoonX() {
 
   const related = `<aside class="sb-related-section" aria-label="相关产品与方案"><div class="wrap"><div class="sb-related"><span>继续了解商汤 AI 产品与方案</span><a href="/solutions/salesbuddy">SalesBuddy 销售小浣熊 ${ICON_ARROW}</a><a href="/solutions/maas">MaaS 平台 ${ICON_ARROW}</a><a href="/solutions">全部产品 ${ICON_ARROW}</a></div></div></aside>`;
   const cta = `<section class="section cta-section"><div class="wrap"><div class="cta-box"><p class="kicker">LET’S BUILD YOUR FIRST AGENT</p><h2>让第一个业务场景，<br>在 Raccoon X 上跑起来。</h2><p>从你的团队和业务任务出发，了解合适的应用方式与落地方案。</p><div class="btn-row center"><a class="btn btn-red btn-lg" href="/contact?from=raccoon-x">预约产品演示 ${ICON_ARROW}</a><a class="btn btn-outline btn-lg" href="/partners#apply">申请加入生态渠道</a></div></div></div></section>`;
-  const dialog = `<dialog class="sb-lightbox" aria-labelledby="sb-lightbox-title"><div class="sb-lightbox-bar"><p id="sb-lightbox-title">Raccoon X 产品界面</p><button type="button" data-sb-close aria-label="关闭大图">关闭 <span aria-hidden="true">×</span></button></div><div class="sb-lightbox-body"><img alt=""></div></dialog>`;
-  return page({ title: 'Raccoon X 智能体平台｜专业助手、专家协作与业务流程', description: R.description, active: 'solutions', head: `<link rel="stylesheet" href="${asset('/css/salesbuddy.css')}"><link rel="stylesheet" href="${asset('/css/raccoon-x.css')}">`, scripts: `<script src="${asset('/js/salesbuddy.js')}" defer></script>`, body: `<div class="sb-page rx-page">${hero}${nav}${intro}${capabilities}${resources}${scenarios}${connect}${faq}${related}${cta}${dialog}</div>` });
+  return page({ title: 'Raccoon X 智能体平台｜专业助手、专家协作与业务流程', description: R.description, active: 'solutions', head: `<link rel="stylesheet" href="${asset('/css/salesbuddy.css')}"><link rel="stylesheet" href="${asset('/css/raccoon-x.css')}">`, scripts: `<script src="${asset('/js/salesbuddy.js')}" defer></script>`, body: `<div class="sb-page rx-page">${hero}${nav}${intro}${capabilities}${resources}${scenarios}${connect}${faq}${related}${cta}</div>` });
 }
 module.exports = { raccoonX };

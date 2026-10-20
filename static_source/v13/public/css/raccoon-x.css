@@ -1,4 +1,4 @@
-/* Raccoon X：复用 SalesBuddy 的版式、标签切换、图片放大与 FAQ。 */
+/* Raccoon X：复用 SalesBuddy 的版式、标签切换与 FAQ。 */
 .rx-page { --sb-section-space: 68px; }
 .rx-page .h-section em { display: inline-block; }
 .rx-hero { padding-bottom: 40px; }
@@ -17,9 +17,9 @@
 .rx-tab-copy { display: flex; flex-direction: column; gap: 4px; font-weight: 650; line-height: 1.5; }
 .rx-tab-copy small { font-size: 12px; font-weight: 400; }
 .rx-page :is(a, button, summary, [role="tabpanel"]):focus-visible { outline: 2px solid var(--red); outline-offset: 4px; }
-.rx-page .sb-image-link:focus-visible { outline-offset: -3px; }
-.rx-page .sb-feature .sb-image-link img { aspect-ratio: 1470 / 779; object-fit: contain; }
-body:has(.rx-page .sb-lightbox[open]) { overflow: hidden; }
+.rx-image { background: #f4f6f9; }
+.rx-image img { display: block; width: 100%; height: auto; }
+.rx-page .sb-feature .rx-image img { aspect-ratio: 1470 / 779; object-fit: contain; }
 .rx-page .sb-feature { grid-template-columns: .85fr 1.45fr; gap: 42px; }
 .rx-page .sb-feature h3 { font-size: clamp(24px, 2.2vw, 30px); }
 .rx-resource-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
