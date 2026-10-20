@@ -30,6 +30,7 @@ const SITE = {
   nav: [
     { href: '/solutions', label: '产品与方案', key: 'solutions', menu: 'solutions' },
     { href: '/cloud-maas', label: '云端 MaaS', key: 'cloud', menu: 'cloud' },
+    { href: '/demos', label: '案例 Demo', key: 'demos' },
     { href: '/events', label: '市场活动', key: 'events' },
     { href: '/careers', label: '人才招聘', key: 'careers' },
     { href: '/community', label: '技术交流', key: 'community' },

@@ -96,7 +96,7 @@
 
 #nav .nav-links {
   display: grid;
-  grid-template-columns: 5em 5.52em repeat(4, 4em);
+  grid-template-columns: 5em 5.52em 5em repeat(4, 4em);
   column-gap: clamp(12px, 1.7vw, 32px);
   min-width: 0;
   overflow: visible;

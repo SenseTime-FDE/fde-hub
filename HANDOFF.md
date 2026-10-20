@@ -26,6 +26,7 @@ cloud-maas/
 tokenplan.html
 privacy.html
 privacy/
+demos.html
 ```
 
 生成源位于 `static_source/v13/`，导出脚本是 `scripts/export-v13-static.mjs`。产品文案或页面模板调整后必须重新导出，并把生成结果一并提交。
@@ -33,6 +34,7 @@ privacy/
 原站以下资产全部保留，没有被 v1.3 覆盖：
 
 - 技术内容中心 `community/`：25 篇独立文章、5 个分类、6 条专题路径、6 条资讯；
+- 案例 Demo `demos.html`：恢复旧站的全部分类、搜索、精选展示和外部体验入口；
 - 市场活动 `events.html`、活动图片和 5 份 PPTX 下载；
 - 人才招聘 `careers.html`：5 个岗位需求与纯本地文件选择演示；
 - 伙伴页 `partners.html` 及已上线的外部申请落地页；
@@ -69,11 +71,12 @@ downloads/events/
 1. 确认 Draft PR 的 base 是 `main`，head 是 `codex/` 开头的静态适配分支。
 2. 确认 `CNAME` 仍为 `allfde.com`。
 3. 检查 PR 中没有 `voxone/server/`、`voxone.db`、`_v2_body.html` 或单文件超过 95 MB。
-4. 查看首页、产品与方案、市场活动、人才招聘、加入生态和技术内容中心。
+4. 查看首页、产品与方案、案例 Demo、市场活动、人才招聘、加入生态和技术内容中心。
 5. 运行：
 
 ```bash
 node scripts/export-v13-static.mjs
+node --check js/demos.js
 node --check community/js/community.js
 node scripts/validate-content.mjs
 node scripts/validate-site.mjs
@@ -86,7 +89,7 @@ node --test
 
 ## 回滚
 
-本轮 v1.3 静态适配的基线 `main` 提交为 `14d494c80ee7ed29759dbe21b708a86d45b9840d`。如上线后出现严重问题，从该提交创建回滚 PR，不要强推或改写 `main` 历史。
+本轮 Demo 恢复前的 `main` 基线提交为 `ae3e4421b4529857d45d3ee89c802cab906b51f4`。如上线后出现严重问题，从该提交创建回滚 PR，不要强推或改写 `main` 历史。
 
 ## 后续内容发布
 
@@ -98,6 +101,8 @@ node --test
 - 新资讯：更新 `community/data/news.json`
 
 日常内容流程和 Codex 定时任务边界见 `docs/CONTENT_SYNC_GUIDE.md` 与 `docs/CODEX_SCHEDULED_CONTENT.md`。
+
+Demo 条目统一维护在 `js/data.js`，展示页由 `static_source/v13/src/views/pages.js` 生成。旧站清单与恢复依据、条目字段、上新流程和公开口径见 `docs/DEMO_GALLERY_MAINTENANCE.md`。
 
 ## 仍待人工确认
 

@@ -7,6 +7,7 @@ OFDE 官网静态站点。生产站由 GitHub Pages 直接发布仓库 `main` �
 - 官网入口：`index.html`（v1.3 视觉与内容结构的静态导出）
 - 产品与方案：`solutions.html`、`solutions/` 及 10 个产品详情目录
 - 云端 MaaS：`cloud-maas/`；旧入口 `tokenplan.html` 保留并展示同一份静态内容
+- 案例 Demo：`demos.html`（恢复旧站的 Demo 检索、分类与外部体验入口）
 - 市场活动：`events.html`
 - 人才招聘：`careers.html`（5 个岗位需求与本地文件选择演示；不含真实登录或投递）
 - 加入生态：`partners.html`
@@ -18,7 +19,7 @@ OFDE 官网静态站点。生产站由 GitHub Pages 直接发布仓库 `main` �
 
 ## v1.3 静态页面维护
 
-首页、方案总览、10 个产品页、云端 MaaS 与隐私页由以下目录生成：
+首页、方案总览、10 个产品页、云端 MaaS、案例 Demo 与隐私页由以下目录生成：
 
 ```text
 static_source/v13/
@@ -30,7 +31,7 @@ static_source/v13/
 node scripts/export-v13-static.mjs
 ```
 
-导出结果会直接写入可发布的 HTML、`css/site.css`、`js/site.js` 和 `img/`。GitHub Pages 只托管导出结果，不会在服务器运行该脚本。活动、招聘、伙伴页、技术内容中心、Demo 和下载资源不由这个生成器覆盖。
+导出结果会直接写入可发布的 HTML、`css/site.css`、`js/site.js` 和 `img/`。GitHub Pages 只托管导出结果，不会在服务器运行该脚本。案例 Demo 页的外壳由生成器导出，条目则继续从 `js/data.js` 读取；活动、招聘、伙伴页、技术内容中心和下载资源不由这个生成器覆盖。
 
 ## 本地预览与校验
 
@@ -39,6 +40,7 @@ node scripts/export-v13-static.mjs
 ```bash
 python3 -m http.server 8767
 node scripts/export-v13-static.mjs
+node --check js/demos.js
 node scripts/validate-content.mjs
 node scripts/validate-site.mjs
 node --test
@@ -72,3 +74,7 @@ node scripts/validate-site.mjs
 ```
 
 完整协作规则见 [HANDOFF.md](HANDOFF.md) 和 [docs/CONTENT_SYNC_GUIDE.md](docs/CONTENT_SYNC_GUIDE.md)。
+
+## 更新案例 Demo
+
+Demo 清单统一维护在 `js/data.js`，展示页是 `demos.html`。每个条目保存分类、标题、摘要、标签和体验地址；外部 Demo 源码不在本仓库重复复制。新增或修改条目后，运行导出与全站校验。详见 [docs/DEMO_GALLERY_MAINTENANCE.md](docs/DEMO_GALLERY_MAINTENANCE.md)。

@@ -34,6 +34,7 @@ function staticLinks(html) {
     ['/events', '/events.html'],
     ['/careers', '/careers.html'],
     ['/community', '/community/'],
+    ['/demos', '/demos.html'],
     ['/privacy', '/privacy.html'],
   ];
   for (const [from, to] of exact) {
@@ -80,6 +81,7 @@ const home = pages.home({ events: [] });
 const solutions = pages.solutions();
 const cloud = pages.cloudMaas();
 const privacy = pages.privacy();
+const demos = pages.demos();
 
 write('index.html', home);
 write('solutions.html', solutions);
@@ -89,9 +91,10 @@ write('cloud-maas/index.html', cloud);
 write('tokenplan.html', cloud);
 write('privacy.html', privacy);
 write('privacy/index.html', privacy);
+write('demos.html', demos);
 
 for (const slug of Object.keys(content.PRODUCTS)) {
   write(path.join('solutions', slug, 'index.html'), pages.product(slug));
 }
 
-console.log(`已导出首页、方案总览、${Object.keys(content.PRODUCTS).length} 个产品页、云端 MaaS 与隐私页。`);
+console.log(`已导出首页、方案总览、${Object.keys(content.PRODUCTS).length} 个产品页、云端 MaaS、案例 Demo 与隐私页。`);
