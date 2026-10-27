@@ -6,13 +6,13 @@ After=network.target
 Type=simple
 User=allfde
 Group=allfde
-WorkingDirectory=/srv/allfde
+WorkingDirectory=/srv/allfde/current
 EnvironmentFile=/etc/allfde/allfde.env
 Environment=NODE_ENV=production
 Environment=ALLFDE_STATIC_SITE=1
-Environment=ALLFDE_STATIC_ROOT=/srv/allfde
+Environment=ALLFDE_STATIC_ROOT=/srv/allfde/current
 Environment=ALLFDE_DATA=/srv/allfde/data
-ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /srv/allfde/server/src/server.js
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /srv/allfde/current/server/src/server.js
 Restart=on-failure
 RestartSec=5
 NoNewPrivileges=true

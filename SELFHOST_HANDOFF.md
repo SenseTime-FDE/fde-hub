@@ -74,7 +74,7 @@ npm test
 服务器不需要暴露 Node 端口。推荐目录：
 
 ```text
-/srv/allfde/                 当前发布版本软链接
+/srv/allfde/current         当前发布版本软链接
 /srv/allfde-releases/<sha>/  不可变发布目录
 /srv/allfde/data/            SQLite、WAL、简历与活动封面
 /etc/allfde/allfde.env      仅 root 可读的运行环境变量
@@ -84,13 +84,14 @@ npm test
 
 ```bash
 sudo adduser --system --group --home /srv/allfde allfde
-sudo install -d -o allfde -g allfde -m 750 /srv/allfde/data /srv/allfde-releases
+sudo install -d -o allfde -g allfde -m 750 /srv/allfde/data
+sudo install -d -o root -g root -m 755 /srv/allfde-releases
 sudo install -d -m 750 /etc/allfde
 sudo cp deploy/allfde.env.example /etc/allfde/allfde.env
 sudo chmod 640 /etc/allfde/allfde.env
 ```
 
-部署代码时不要把 `data/`、真实环境文件或任何私钥放入压缩包。建议每个版本解压到新的 `<sha>` 目录，确认文件完整后再更新 `/srv/allfde` 软链接；这样可以快速回滚上一版。
+部署代码时不要把 `data/`、真实环境文件或任何私钥放入压缩包。建议每个版本解压到新的 `<sha>` 目录，确认文件完整后再更新 `/srv/allfde/current` 软链接；这样可以快速回滚上一版，`/srv/allfde/data` 不随代码版本切换。
 
 systemd 与 Nginx 模板：
 
@@ -115,7 +116,7 @@ sudo -u allfde env \
   ALLFDE_DATA=/srv/allfde/data \
   ALLFDE_ADMIN=admin \
   ALLFDE_ADMIN_PASSWORD='一次性强密码' \
-  node /srv/allfde/server/scripts/init.js
+  node /srv/allfde/current/server/scripts/init.js
 ```
 
 初始化完成后立即修改密码，并从 shell 历史、临时文件和聊天记录中清除明文凭据。数据库默认启用 WAL；备份必须覆盖 `site.db`、`site.db-wal`、`site.db-shm` 和 `uploads/`，并使用一致性备份或停服快照。只复制单个 `site.db` 不算可靠备份。
@@ -155,7 +156,7 @@ GET  /healthz           存活检查
 4. 只创建 Draft PR，不自动合并；
 5. 人工审核后合并并在服务器创建新的不可变 release 目录；
 6. 重启服务，检查 `/healthz`、首页、技术内容、`/admin/login` 和最近修改功能；
-7. 若异常，恢复 `/srv/allfde` 上一个 release 软链接并重启，不要 force push 或删除旧 release。
+7. 若异常，恢复 `/srv/allfde/current` 上一个 release 软链接并重启，不要 force push 或删除旧 release。
 
 交给 Codex 的启动提示词示例：
 
