@@ -14,7 +14,9 @@ OFDE 官网静态站点。生产站由 GitHub Pages 直接发布仓库 `main` �
 - 旧技术交流地址兼容：`forum.html` 跳转至 `community/`
 - 既有产品 Demo、VoxOne、活动图片与下载材料继续保留原路径
 
-本站是纯静态站点，不部署数据库、Node 服务、真实账号登录、后台管理、简历上传或运行时密钥。VoxOne 等演示页使用浏览器内的静态演示数据；同事 v1.3 交付包中的服务端代码和 SQLite 数据库没有进入发布版本。
+GitHub Pages 发布模式仍是纯静态站点：不依赖数据库、Node 服务、真实账号登录、后台管理、简历上传或运行时密钥。仓库同时保留一个可选的自托管模式：在同一份静态前端上启动 `server/` 的 Node + SQLite 服务，可承接后台、线索、活动报名和简历投递。两种模式的部署边界不同，不能把 GitHub Pages 当成动态后端。
+
+自托管部署、数据目录、systemd/Nginx、备份与回滚说明见 [SELFHOST_HANDOFF.md](SELFHOST_HANDOFF.md)。默认 GitHub Pages 发布不需要执行其中的服务器步骤。
 
 ## v1.3 静态页面维护
 
@@ -72,3 +74,7 @@ node scripts/validate-site.mjs
 ```
 
 完整协作规则见 [HANDOFF.md](HANDOFF.md) 和 [docs/CONTENT_SYNC_GUIDE.md](docs/CONTENT_SYNC_GUIDE.md)。
+
+## 可选：自托管前后端
+
+自托管模式使用仓库根目录作为静态文件根，并由 Node 进程提供 `/api/*`、`/admin` 和 `/healthz`。启动时设置 `ALLFDE_STATIC_SITE=1`；运行时数据必须放到未纳入 Git 的 `ALLFDE_DATA` 目录。具体命令和生产发布约束以 [SELFHOST_HANDOFF.md](SELFHOST_HANDOFF.md) 为准。
