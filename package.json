@@ -1,0 +1,16 @@
+{
+  "name": "fde-hub-selfhost",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ALLFDE 官网自托管前后端：静态前端 + Node/SQLite 管理后台与表单 API",
+  "main": "server/src/server.js",
+  "engines": { "node": ">=22.13" },
+  "scripts": {
+    "init": "node --disable-warning=ExperimentalWarning server/scripts/init.js",
+    "start": "node --disable-warning=ExperimentalWarning server/src/server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server/src/server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test \"server/test/*.test.js\"",
+    "check": "npm test"
+  },
+  "dependencies": {}
+}

@@ -11,7 +11,8 @@
 - 发布方式：Pull Request 合并进入 `main` 后由 GitHub Pages 自动重建
 - 内容负责人：周玮，已具备仓库管理员权限
 - 合并规则：Codex 只创建 Draft PR；周玮人工审核并合并，不允许 Codex 自动合并
-- 当前架构决策：继续使用 GitHub Pages 纯静态部署，不迁移 Node + SQLite 动态站
+- 当前 GitHub Pages 发布模式：继续使用纯静态部署；不把数据库、密钥或动态服务发布到 Pages。
+- 当前仓库同时提供可选的自托管模式：`server/` 使用 Node + SQLite，为后台、线索、活动报名和简历投递提供运行时能力。自托管部署不改变 GitHub Pages 的静态发布规则，生产安装、数据目录、备份和回滚见 [SELFHOST_HANDOFF.md](SELFHOST_HANDOFF.md)。
 
 ## v1.3 静态适配包含什么
 
@@ -43,7 +44,7 @@ privacy/
 
 人才招聘页当前展示 5 个完整岗位需求：FDE 交付工程师、生态招商经理、FDE 实习生、市场与内容运营、线索与私域运营。岗位状态、工作地点和正式投递入口均继续标记为“待 HR 确认”，不得擅自改成正式在招。
 
-## 发布包主动排除了什么
+## GitHub Pages 发布包主动排除了什么
 
 以下内容不属于浏览器运行依赖，或不适合公开静态托管，因此没有进入发布版本：
 
@@ -52,7 +53,7 @@ privacy/
 - VoxOne Node 服务、SQLite 数据库、启动脚本和本地工具配置
 - 智能需求管理平台的 Python 制作脚本与临时壳页
 - 各子项目内部 README、绝对本地路径说明和交付制作笔记
-- v1.3 的 Node HTTP 服务、SQLite 数据库、后台账号与权限、动态路由
+- v1.3 的运行时数据库、后台账号与权限、动态数据不会进入 GitHub Pages 的静态运行环境；仓库中的 `server/` 是给自托管部署使用的源码，不由 Pages 执行
 - v1.3 的活动/招聘/伙伴申请数据库表单、简历上传和本地固定管理员密码
 
 `events.html` 原先把图片和 5 份 PPTX 全部内嵌，单文件超过 GitHub 100 MB 限制。新版已将它们拆分到：
@@ -98,6 +99,10 @@ node --test
 - 新资讯：更新 `community/data/news.json`
 
 日常内容流程和 Codex 定时任务边界见 `docs/CONTENT_SYNC_GUIDE.md` 与 `docs/CODEX_SCHEDULED_CONTENT.md`。
+
+## 自托管维护入口
+
+如果维护目标是服务器上的前后端，而不是 GitHub Pages 静态站，请先阅读 [SELFHOST_HANDOFF.md](SELFHOST_HANDOFF.md)。其中固定了 Node 版本、`ALLFDE_DATA` 数据目录、systemd/Nginx 模板、API 路径、备份范围、不可变 release 与回滚方式。不要把 `site.db`、`uploads/`、`/etc/allfde/allfde.env` 或任何私钥加入 PR。
 
 ## 仍待人工确认
 

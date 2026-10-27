@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /admin
+Disallow: /thanks/
+Sitemap: https://allfde.com/sitemap.xml
