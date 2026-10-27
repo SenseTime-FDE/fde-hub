@@ -15,6 +15,7 @@ Environment=ALLFDE_DATA=/srv/allfde/data
 ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /srv/allfde/current/server/src/server.js
 Restart=on-failure
 RestartSec=5
+UMask=0077
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
